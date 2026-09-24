@@ -7,16 +7,18 @@ import type { FormState } from "@/app/actions/children";
 import { Button } from "@/components/ui/Button";
 import { InputField } from "@/components/ui/Field";
 import { FormError } from "@/components/ui/FormError";
-import { t } from "@/i18n/fr";
+import { useI18n } from "@/i18n/client";
 
 export function LoginForm() {
+  const i18n = useI18n();
+  const { t } = i18n;
   const [state, action, pending] = useActionState<FormState, FormData>(login, { ok: false });
   const values = (state.values ?? {}) as Record<string, string>;
   const errors = state.errors ?? {};
 
   return (
     <form action={action} noValidate className="space-y-4">
-      <FormError message={errors.form} />
+      <FormError message={i18n.error(errors.form)} />
       <InputField name="email" type="email" label={t.fields.email} placeholder={t.fields.emailPlaceholder} autoComplete="email" defaultValue={values.email} error={errors.email} required />
       <InputField name="password" type="password" label={t.fields.password} autoComplete="current-password" error={errors.password} required />
       <Button type="submit" disabled={pending} className="w-full">

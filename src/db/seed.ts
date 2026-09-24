@@ -10,7 +10,7 @@
  */
 import { hashPassword } from "better-auth/crypto";
 import { db } from "./index";
-import { accounts, authCredentials, children, therapists, type NewChild, type TherapistRole } from "./schema";
+import { accounts, authCredentials, children, episodes, therapists, type NewChild, type TherapistRole } from "./schema";
 
 // Override with SEED_PASSWORD when seeding anything reachable from the internet.
 const DEMO_PASSWORD = process.env.SEED_PASSWORD ?? "demo1234";
@@ -70,6 +70,60 @@ const OTHER_CHILDREN: ChildSeed[] = [
   { initials: "A. P.", birthDate: yearsAgo(6, 0, 9), referralReason: "Motricité globale", schoolLevel: "CP", followUpStart: "2026-02-02" },
 ];
 
+/** A date `days` ago at the given UTC time (Israel is UTC+3 in September: 10:00 UTC = 13:00 local). */
+const daysAgo = (days: number, hourUtc: number, minute = 0) => {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - days);
+  d.setUTCHours(hourUtc, minute, 0, 0);
+  return d;
+};
+
+type EpisodeSeed = {
+  days: number;
+  hour: number;
+  minutes: number;
+  kind: "crisis" | "difficulty";
+  situation?: string;
+  antecedent?: string;
+  behavior?: string;
+  causes: string[];
+  helped: string[];
+};
+
+// L. M.: the history shown in the PRD mockup, plus enough to surface patterns
+// (clothing as frequent trigger, short nights as background factor, around lunch).
+const LM_EPISODES: EpisodeSeed[] = [
+  { days: 7, hour: 10, minutes: 12, kind: "crisis", antecedent: "Début de séance, nouvelles chaussures", behavior: "Pleurs, refus de marcher", causes: ["clothing"], helped: ["removeCause"] },
+  { days: 14, hour: 10, minutes: 8, kind: "crisis", antecedent: "Porte du couloir claquée", behavior: "Mains sur les oreilles, cris", causes: ["noise"], helped: ["headphones", "quietCorner"] },
+  { days: 21, hour: 10, minutes: 20, kind: "crisis", antecedent: "Nuit courte (parents)", behavior: "Opposition sur l'exercice", causes: ["sleep", "tooDifficult"], helped: ["break", "weightedCushion"] },
+  { days: 28, hour: 10, minutes: 15, kind: "crisis", antecedent: "Chaussette plissée", behavior: "Se roule au sol", causes: ["clothing"], helped: ["removeCause"] },
+  { days: 33, hour: 10, minutes: 10, kind: "crisis", antecedent: "Étiquette du nouveau pull", behavior: "Tire sur son pull, pleure", causes: ["clothing", "sleep"], helped: ["removeCause", "weightedCushion"] },
+  { days: 40, hour: 13, minutes: 6, kind: "crisis", antecedent: "Fin d'activité peinture", behavior: "Refuse de ranger, jette les pinceaux", causes: ["transition", "clothing"], helped: ["quietCorner"] },
+  { days: 10, hour: 8, minutes: 5, kind: "difficulty", situation: "closedDoor", antecedent: "Porte de la salle de soin fermée", behavior: "Reste dans le couloir, refuse d'entrer", causes: ["closedDoor", "unfamiliarPlace"], helped: ["Porte laissée ouverte"] },
+  { days: 17, hour: 8, minutes: 4, kind: "difficulty", situation: "closedDoor", antecedent: "Arrivée, porte fermée", behavior: "S'assoit par terre devant la porte", causes: ["closedDoor"], helped: ["Porte laissée ouverte", "Annoncer ce qu'il y a derrière"] },
+];
+
+const TR_EPISODES: EpisodeSeed[] = [
+  { days: 5, hour: 10, minutes: 20, kind: "difficulty", situation: "eating", antecedent: "Purée servie tiède", behavior: "Repousse l'assiette, ferme la bouche", causes: ["textures", "oralChange"], helped: ["Texture plus lisse", "break"] },
+  { days: 12, hour: 10, minutes: 15, kind: "difficulty", situation: "eating", antecedent: "Nouvel aliment au déjeuner", behavior: "Refus de goûter, pleure", causes: ["textures", "routineChange"], helped: ["Texture plus lisse"] },
+];
+
+function episodeRows(seeds: EpisodeSeed[], accountId: string, childId: string, recordedBy: string) {
+  return seeds.map(({ days, hour, minutes, situation, ...rest }) => {
+    const startedAt = daysAgo(days, hour);
+    return {
+      ...rest,
+      situation: situation ?? null,
+      accountId,
+      childId,
+      recordedBy,
+      status: "closed" as const,
+      startedAt,
+      endedAt: new Date(startedAt.getTime() + minutes * 60_000),
+    };
+  });
+}
+
 async function createTherapist(accountId: string, role: TherapistRole, name: string, email: string) {
   const therapist = db.insert(therapists).values({ accountId, role, name, email }).returning().get();
   db.insert(authCredentials)
@@ -82,8 +136,17 @@ async function seed() {
   const demo = db.insert(accounts).values({ name: "Cabinet Démo" }).returning().get();
   const owner = await createTherapist(demo.id, "owner", "Michaela Cohen", "michaela@demo.local");
   await createTherapist(demo.id, "member", "Sarah Levy", "colleague@demo.local");
-  db.insert(children)
+  const demoKids = db
+    .insert(children)
     .values(DEMO_CHILDREN.map((c) => ({ ...c, accountId: demo.id, createdBy: owner.id })))
+    .returning({ id: children.id, initials: children.initials })
+    .all();
+  const kidId = (initials: string) => demoKids.find((k) => k.initials === initials)!.id;
+  db.insert(episodes)
+    .values([
+      ...episodeRows(LM_EPISODES, demo.id, kidId("L. M."), owner.id),
+      ...episodeRows(TR_EPISODES, demo.id, kidId("T. R."), owner.id),
+    ])
     .run();
 
   const other = db.insert(accounts).values({ name: "Autre cabinet" }).returning().get();
@@ -103,7 +166,9 @@ async function main() {
     return;
   }
   await seed();
-  console.log(`Seeded 2 accounts, 3 therapists (password "${DEMO_PASSWORD}"), ${DEMO_CHILDREN.length + OTHER_CHILDREN.length} children.`);
+  console.log(
+    `Seeded 2 accounts, 3 therapists (password "${DEMO_PASSWORD}"), ${DEMO_CHILDREN.length + OTHER_CHILDREN.length} children, ${LM_EPISODES.length + TR_EPISODES.length} episodes.`,
+  );
 }
 
 main();

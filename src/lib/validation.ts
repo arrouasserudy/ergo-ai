@@ -1,7 +1,19 @@
 import { z } from "zod";
-import { t } from "@/i18n/fr";
 
-const e = t.errors;
+/**
+ * Error messages are codes ("required", "tooLong:200"…), translated where they are
+ * displayed (see `i18n.error`), so validation does not depend on the request locale.
+ */
+const e = {
+  required: "required",
+  tooLong: (max: number) => `tooLong:${max}`,
+  invalidDate: "invalidDate",
+  futureDate: "futureDate",
+  invalidNumber: "invalidNumber",
+  initialsFormat: "initialsFormat",
+  invalidEmail: "invalidEmail",
+  passwordTooShort: "passwordTooShort",
+};
 
 /** Empty strings from form fields become null. */
 const optionalText = (max = 2000) =>
@@ -30,15 +42,20 @@ const tagList = z
   .transform((tags) => [...new Set(tags)]);
 
 /**
- * Accepts 1–4 initials ("L. M.", "LM", "J.-B. D.") and normalizes them to "L. M.".
- * Lowercase letters are rejected so a first name like "Léa" cannot slip through.
+ * One initial: an uppercase Latin letter ("L", "L."), or a Hebrew letter followed by a
+ * period/geresh or a separator ("ל.", "ל׳", "ל מ"). Lowercase Latin letters and runs of
+ * Hebrew letters are rejected, so a first name like "Léa" or "לאה" cannot slip through.
  */
+const INITIALS_PATTERN = /^(?:(?:\p{Lu}\.?|[\u05D0-\u05EA](?:[.'׳"״]|(?=[\s-]|$)))[\s.-]*){1,4}$/u;
+const INITIAL_LETTER = /\p{Lu}|[\u05D0-\u05EA]/gu;
+
+/** Accepts 1–4 initials ("L. M.", "LM", "J.-B. D.", "ל. מ.") and normalizes them to "L. M." / "ל. מ.". */
 const initials = z
   .string()
   .trim()
   .min(1, e.required)
-  .regex(/^(\p{Lu}\.?[\s.-]*){1,4}$/u, e.initialsFormat)
-  .transform((v) => (v.match(/\p{Lu}/gu) ?? []).map((c) => `${c}.`).join(" "));
+  .regex(INITIALS_PATTERN, e.initialsFormat)
+  .transform((v) => (v.match(INITIAL_LETTER) ?? []).map((c) => `${c}.`).join(" "));
 
 export const identitySchema = z.object({
   initials,
@@ -98,6 +115,23 @@ export function formDataToInput(section: Section, formData: FormData): Record<st
   }
   return input;
 }
+
+/** Autosaved content of a crisis / everyday-difficulty entry. */
+export const episodeSchema = z.object({
+  situation: z
+    .string()
+    .trim()
+    .max(80, e.tooLong(80))
+    .transform((v) => (v === "" ? null : v))
+    .nullable(),
+  antecedent: optionalText(1000),
+  behavior: optionalText(1000),
+  notes: optionalText(2000),
+  causes: tagList,
+  helped: tagList,
+});
+
+export type EpisodeInput = z.input<typeof episodeSchema>;
 
 const email = z.string().trim().toLowerCase().pipe(z.email(e.invalidEmail));
 const newPassword = z.string().min(8, e.passwordTooShort).max(128, e.tooLong(128));

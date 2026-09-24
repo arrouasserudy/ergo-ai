@@ -6,9 +6,10 @@ import { renameAccount } from "@/app/actions/account";
 import type { FormState } from "@/app/actions/children";
 import { Button } from "@/components/ui/Button";
 import { InputField } from "@/components/ui/Field";
-import { t } from "@/i18n/fr";
+import { useI18n } from "@/i18n/client";
 
 export function AccountNameForm({ name }: { name: string }) {
+  const { t } = useI18n();
   const [state, action, pending] = useActionState<FormState, FormData>(renameAccount, { ok: false });
   const values = (state.values ?? {}) as Record<string, string>;
 

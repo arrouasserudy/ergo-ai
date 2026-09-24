@@ -3,7 +3,7 @@
 import { InputField, TextareaField } from "@/components/ui/Field";
 import { TagPicker } from "@/components/ui/TagPicker";
 import type { Child } from "@/db/schema";
-import { t } from "@/i18n/fr";
+import { useI18n } from "@/i18n/client";
 import {
   BACKGROUND_FACTOR_OPTIONS,
   CALMING_STRATEGY_OPTIONS,
@@ -13,7 +13,6 @@ import {
 } from "@/lib/options";
 import type { FieldErrors } from "@/lib/validation";
 
-const f = t.fields;
 const today = () => new Date().toISOString().slice(0, 10);
 
 /** Saved record, optionally overlaid with raw values from a failed submit. */
@@ -21,6 +20,7 @@ type FieldValues = Partial<Omit<Child, "siblingsCount">> & { siblingsCount?: num
 type FieldsProps = { child?: FieldValues; errors?: FieldErrors };
 
 export function IdentityFields({ child, errors = {} }: FieldsProps) {
+  const f = useI18n().t.fields;
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <InputField
@@ -52,6 +52,7 @@ export function IdentityFields({ child, errors = {} }: FieldsProps) {
 }
 
 export function HistoryFields({ child, errors = {} }: FieldsProps) {
+  const f = useI18n().t.fields;
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <TextareaField name="medicalHistory" label={f.medicalHistory} defaultValue={child?.medicalHistory ?? ""} error={errors.medicalHistory} className="sm:col-span-2" />
@@ -67,6 +68,7 @@ export function HistoryFields({ child, errors = {} }: FieldsProps) {
 }
 
 export function SensoryFields({ child, errors = {} }: FieldsProps) {
+  const f = useI18n().t.fields;
   return (
     <div className="flex flex-col gap-5">
       <TextareaField name="knownTriggers" label={f.knownTriggers} placeholder={f.knownTriggersPlaceholder} defaultValue={child?.knownTriggers ?? ""} error={errors.knownTriggers} rows={2} />

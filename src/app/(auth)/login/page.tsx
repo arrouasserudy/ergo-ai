@@ -1,12 +1,17 @@
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { Card } from "@/components/ui/Card";
-import { t } from "@/i18n/fr";
+import { getI18n } from "@/i18n/server";
 import { getSession } from "@/lib/session";
 
-export const metadata = { title: `${t.auth.loginTitle} · ${t.app.name}` };
+export async function generateMetadata() {
+  const { t } = await getI18n();
+  return { title: `${t.auth.loginTitle} · ${t.app.name}` };
+}
 
 export default async function LoginPage() {
+  const i18n = await getI18n();
+  const { t } = i18n;
   if (await getSession()) redirect("/children");
 
   return (

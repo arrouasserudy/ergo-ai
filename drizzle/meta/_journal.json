@@ -8,6 +8,13 @@
       "when": 1790279184629,
       "tag": "0000_wandering_gambit",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1790281934049,
+      "tag": "0001_mysterious_tarantula",
+      "breakpoints": true
     }
   ]
 }

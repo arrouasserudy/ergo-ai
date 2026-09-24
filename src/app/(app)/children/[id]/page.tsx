@@ -1,27 +1,31 @@
-import { Activity, Archive, ChevronLeft, FileText, RotateCcw } from "lucide-react";
+import { Archive, ChevronLeft, FileText, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { setChildStatus } from "@/app/actions/children";
 import { EditableSection } from "@/components/children/EditableSection";
+import { EpisodeList } from "@/components/episodes/EpisodeList";
+import { OpenEpisodes } from "@/components/episodes/OpenEpisodes";
+import { StartButtons } from "@/components/episodes/StartButtons";
 import { InfoList } from "@/components/children/InfoList";
 import { StatusBadge } from "@/components/children/StatusBadge";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
-import { TagList } from "@/components/ui/TagPicker";
+import { TagList } from "@/components/ui/TagList";
 import type { Child } from "@/db/schema";
-import { formatDate, t } from "@/i18n/fr";
-import { formatAge } from "@/lib/age";
+import { isolate } from "@/i18n";
+import { getI18n } from "@/i18n/server";
 import { getChild } from "@/lib/children";
+import { listChildEpisodes } from "@/lib/episodes";
 import { requireTherapist } from "@/lib/session";
 
-const f = t.fields;
-
 export async function generateMetadata(props: PageProps<"/children/[id]">) {
+  const i18n = await getI18n();
+  const { t } = i18n;
   const { accountId } = await requireTherapist();
   const child = getChild(accountId, (await props.params).id);
-  return { title: `${child?.initials ?? t.children.listTitle} · ${t.app.name}` };
+  return { title: `${child ? isolate(child.initials) : t.children.listTitle} · ${t.app.name}` };
 }
 
 const hasHistory = (c: Child) =>
@@ -36,19 +40,26 @@ const hasSensory = (c: Child) =>
 const tags = (values: string[]) => (values.length ? <TagList values={values} /> : null);
 
 export default async function ChildPage(props: PageProps<"/children/[id]">) {
+  const i18n = await getI18n();
+  const { t } = i18n;
+  const f = t.fields;
   const { accountId } = await requireTherapist();
   const { id } = await props.params;
   const child = getChild(accountId, id);
   if (!child) notFound();
 
-  const age = formatAge(child.birthDate);
+  const episodes = listChildEpisodes(accountId, child.id, { limit: 20 });
+  const openEpisodes = episodes.filter((ep) => ep.status === "open");
+  const recentEpisodes = episodes.filter((ep) => ep.status === "closed").slice(0, 3);
+
+  const age = i18n.age(child.birthDate);
   const archived = child.status === "archived";
   const toggleStatus = setChildStatus.bind(null, child.id, archived ? "active" : "archived");
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
       <Link href="/children" className="inline-flex items-center gap-1 text-[13px] text-ink-muted hover:text-ink">
-        <ChevronLeft className="size-4" />
+        <ChevronLeft className="size-4 rtl:rotate-180" />
         {t.children.backToList}
       </Link>
 
@@ -57,13 +68,13 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
           <Eyebrow>{t.children.detailEyebrow}</Eyebrow>
           <div className="mt-1 flex flex-wrap items-center gap-3">
             <h1 className="font-serif text-[32px] leading-tight font-medium">
-              {child.initials}
+              <bdi>{child.initials}</bdi>
               {age && <span> · {age}</span>}
             </h1>
             <StatusBadge status={child.status} />
           </div>
           <p className="mt-1 text-[13px] text-ink-muted">
-            {[child.followUpStart && t.children.since(formatDate(child.followUpStart)), t.children.reasonMeta(child.referralReason)]
+            {[child.followUpStart && t.children.since(i18n.date(child.followUpStart)), t.children.reasonMeta(child.referralReason)]
               .filter(Boolean)
               .join(" · ")}
           </p>
@@ -87,11 +98,11 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
           <EditableSection child={child} section="identity" title={t.sections.identity.title} hint={t.sections.identity.hint}>
             <InfoList
               items={[
-                { label: f.initials, value: child.initials },
-                { label: f.birthDate, value: child.birthDate && `${formatDate(child.birthDate)}${age ? ` (${age})` : ""}` },
+                { label: f.initials, value: <bdi>{child.initials}</bdi> },
+                { label: f.birthDate, value: child.birthDate && `${i18n.date(child.birthDate)}${age ? ` (${age})` : ""}` },
                 { label: f.referralReason, value: child.referralReason, wide: true },
                 { label: f.schoolLevel, value: child.schoolLevel },
-                { label: f.followUpStart, value: formatDate(child.followUpStart) },
+                { label: f.followUpStart, value: i18n.date(child.followUpStart) },
               ]}
             />
           </EditableSection>
@@ -142,11 +153,31 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
           </EditableSection>
 
           <Card>
+            <CardHeader title={t.episodes.childCardTitle} hint={t.episodes.childCardHint} />
+            <div className="space-y-4 px-5 pb-5">
+              <OpenEpisodes items={openEpisodes.map((episode) => ({ episode, child }))} />
+              {!archived && <StartButtons childId={child.id} />}
+              {recentEpisodes.length === 0 ? (
+                <p className="text-[13px] text-ink-muted">{t.episodes.none}</p>
+              ) : (
+                <div>
+                  <p className="mb-1 text-[11.5px] font-medium text-ink-muted">{t.episodes.recent}</p>
+                  <div className="-mx-5 border-y border-line">
+                    <EpisodeList items={recentEpisodes.map((episode) => ({ episode, child }))} />
+                  </div>
+                </div>
+              )}
+              <Link href={`/children/${child.id}/episodes`} className="inline-block text-[12.5px] font-medium text-primary hover:underline">
+                {t.episodes.seeHistory}
+              </Link>
+            </div>
+          </Card>
+
+          <Card>
             <CardHeader title={t.children.upcoming.title} />
             <ul className="space-y-2 px-5 pb-5">
               {[
                 { icon: FileText, title: t.children.upcoming.reports, body: t.children.upcoming.reportsBody },
-                { icon: Activity, title: t.children.upcoming.crises, body: t.children.upcoming.crisesBody },
               ].map(({ icon: Icon, title, body }) => (
                 <li key={title} className="flex items-start gap-3 rounded-lg bg-surface-muted px-4 py-3">
                   <Icon className="mt-0.5 size-4 shrink-0 text-ink-muted" />

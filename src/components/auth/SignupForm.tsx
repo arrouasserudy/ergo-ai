@@ -7,18 +7,19 @@ import type { FormState } from "@/app/actions/children";
 import { Button } from "@/components/ui/Button";
 import { InputField } from "@/components/ui/Field";
 import { FormError } from "@/components/ui/FormError";
-import { t } from "@/i18n/fr";
-
-const f = t.fields;
+import { useI18n } from "@/i18n/client";
 
 export function SignupForm() {
+  const i18n = useI18n();
+  const { t } = i18n;
+  const f = t.fields;
   const [state, action, pending] = useActionState<FormState, FormData>(signup, { ok: false });
   const values = (state.values ?? {}) as Record<string, string>;
   const errors = state.errors ?? {};
 
   return (
     <form action={action} noValidate className="space-y-4">
-      <FormError message={errors.form} />
+      <FormError message={i18n.error(errors.form)} />
       <InputField name="accountName" label={f.accountName} placeholder={f.accountNamePlaceholder} defaultValue={values.accountName} error={errors.accountName} autoComplete="organization" required />
       <InputField name="name" label={f.yourName} placeholder={f.therapistNamePlaceholder} defaultValue={values.name} error={errors.name} autoComplete="name" required />
       <InputField name="email" type="email" label={f.email} placeholder={f.emailPlaceholder} defaultValue={values.email} error={errors.email} autoComplete="email" required />

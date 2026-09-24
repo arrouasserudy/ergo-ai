@@ -18,8 +18,8 @@ export type FormState = {
   values?: Record<string, unknown>;
   /** Timestamp of the last successful save, so client forms can react. */
   savedAt?: number;
-  /** Optional success message to display. */
-  message?: string;
+  /** Name of the therapist just added (account page confirmation). */
+  addedName?: string;
 };
 
 export async function createChild(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -44,7 +44,7 @@ export async function updateChildSection(
   formData: FormData,
 ): Promise<FormState> {
   const { accountId } = await requireTherapist();
-  if (!SECTIONS.includes(section)) return { ok: false, errors: { form: "unknown section" } };
+  if (!SECTIONS.includes(section)) return { ok: false, errors: { form: "generic" } };
 
   const input = formDataToInput(section, formData);
   const parsed = sectionSchemas[section].safeParse(input);
@@ -55,7 +55,7 @@ export async function updateChildSection(
     .set({ ...parsed.data, updatedAt: sql`(CURRENT_TIMESTAMP)` })
     .where(and(eq(children.id, id), eq(children.accountId, accountId)))
     .run();
-  if (result.changes === 0) return { ok: false, errors: { form: "not found" } };
+  if (result.changes === 0) return { ok: false, errors: { form: "generic" } };
 
   revalidatePath("/children");
   revalidatePath(`/children/${id}`);

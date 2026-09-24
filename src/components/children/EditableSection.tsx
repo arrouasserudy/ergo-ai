@@ -6,7 +6,7 @@ import { updateChildSection, type FormState } from "@/app/actions/children";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import type { Child } from "@/db/schema";
-import { t } from "@/i18n/fr";
+import { useI18n } from "@/i18n/client";
 import type { Section } from "@/lib/validation";
 import { HistoryFields, IdentityFields, SensoryFields } from "./SectionFields";
 
@@ -24,6 +24,7 @@ type EditableSectionProps = {
 
 /** A card that shows a read-only view and switches in place to its edit form. */
 export function EditableSection({ child, section, title, hint, empty, children }: EditableSectionProps) {
+  const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [state, action, pending] = useActionState<FormState, FormData>(async (prev, formData) => {
     const result = await updateChildSection(child.id, section, prev, formData);
@@ -64,7 +65,7 @@ export function EditableSection({ child, section, title, hint, empty, children }
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="flex w-full items-center gap-3 rounded-lg border border-dashed border-line-strong bg-surface-muted px-4 py-4 text-left transition-colors hover:border-primary/40 hover:bg-tint"
+            className="flex w-full items-center gap-3 rounded-lg border border-dashed border-line-strong bg-surface-muted px-4 py-4 text-start transition-colors hover:border-primary/40 hover:bg-tint"
           >
             <span className="grid size-8 shrink-0 place-items-center rounded-full bg-tint text-tint-ink">
               <Plus className="size-4" />

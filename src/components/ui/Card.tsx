@@ -20,7 +20,7 @@ export function CardHeader({
     <header className="flex items-start justify-between gap-4 px-5 pt-5 pb-3">
       <div className="min-w-0">
         <h2 className="font-serif text-[19px] leading-tight font-medium">
-          {number !== undefined && <span className="mr-1">{number}.</span>}
+          {number !== undefined && <span className="me-1">{number}.</span>}
           {title}
         </h2>
         {hint && <p className="mt-1 text-[12.5px] text-ink-muted">{hint}</p>}

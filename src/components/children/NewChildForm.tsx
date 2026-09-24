@@ -3,10 +3,11 @@
 import { useActionState } from "react";
 import { createChild, type FormState } from "@/app/actions/children";
 import { Button, LinkButton } from "@/components/ui/Button";
-import { t } from "@/i18n/fr";
+import { useI18n } from "@/i18n/client";
 import { IdentityFields } from "./SectionFields";
 
 export function NewChildForm() {
+  const { t } = useI18n();
   const [state, action, pending] = useActionState<FormState, FormData>(createChild, { ok: false });
 
   return (

@@ -4,12 +4,13 @@ import clsx from "clsx";
 import { Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { t } from "@/i18n/fr";
+import { useI18n } from "@/i18n/client";
 import type { StatusFilter } from "@/lib/children";
 
 const FILTERS: StatusFilter[] = ["active", "archived", "all"];
 
 export function ChildrenFilters({ search, status }: { search: string; status: StatusFilter }) {
+  const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -42,14 +43,14 @@ export function ChildrenFilters({ search, status }: { search: string; status: St
     <div className="flex flex-col gap-2 sm:flex-row">
       <label className="relative flex-1">
         <span className="sr-only">{t.children.searchPlaceholder}</span>
-        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-muted" />
+        <Search className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-ink-muted" />
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t.children.searchPlaceholder}
           className={clsx(
-            "h-10 w-full rounded-lg border border-line-strong bg-surface pr-3 pl-9 text-[14px] placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none",
+            "h-10 w-full rounded-lg border border-line-strong bg-surface pe-3 ps-9 text-[14px] placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none",
             pending && "opacity-80",
           )}
         />

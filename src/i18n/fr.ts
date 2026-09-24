@@ -1,4 +1,4 @@
-/** French UI copy. All user-facing text goes through this dictionary. */
+/** French UI copy (default locale). Every other locale must match this shape: see `Dictionary`. */
 export const fr = {
   app: {
     name: "Ergo.AI",
@@ -38,6 +38,9 @@ export const fr = {
     months: (n: number) => `${n} mois`,
     yearsAndHalf: (n: number) => `${n} ans ½`,
   },
+  language: {
+    label: "Langue",
+  },
   auth: {
     loginTitle: "Connexion",
     loginSubtitle: "Accédez aux dossiers de votre cabinet.",
@@ -71,6 +74,140 @@ export const fr = {
     saved: "Enregistré.",
     columns: { name: "Nom", email: "Email", role: "Rôle", since: "Depuis" },
   },
+  episodes: {
+    navTitle: "Crises et difficultés",
+    navSubtitle: "Crises en cours, difficultés du quotidien et historique de tous les enfants.",
+    kind: { crisis: "Crise", difficulty: "Difficulté" } as Record<string, string>,
+    startCrisis: "Crise en cours",
+    startDifficulty: "Noter une difficulté",
+    inProgress: { crisis: "Crise en cours", difficulty: "Difficulté en cours" } as Record<string, string>,
+    minutes: (n: number) => `${n} min`,
+    since: (time: string) => `depuis ${time}`,
+    resume: "Reprendre",
+    openBanner: (kind: string, minutes: number) => `${kind} en cours depuis ${minutes} min`,
+
+    liveHint: "Check-list issue de l'entretien et de l'historique de l'enfant",
+    checklistTitle: "À vérifier, dans cet ordre",
+    checklistHint: "Classé selon ce qui est déjà revenu pour cet enfant. Cochez ce qui était en jeu.",
+    knownTriggers: "Déclencheurs connus (entretien) :",
+    moreCauses: "Autres pistes",
+    customCause: "Autre cause…",
+    source: {
+      history: (n: number) => (n <= 1 ? "Revenu 1 fois" : `Revenu ${n} fois`),
+      interview: "Entretien",
+      situation: "Situation",
+      general: "Général",
+    },
+    groups: {
+      sensory: "Sensoriel",
+      body: "Douleur et signaux corporels",
+      background: "Facteurs de fond",
+      environment: "Environnement et routine",
+      task: "Tâche et émotions",
+    } as Record<string, string>,
+    bodyReminder:
+      "Un changement de comportement peut venir d'une douleur, d'une blessure passée inaperçue ou d'un inconfort sensoriel — pensez à le vérifier.",
+
+    situationLabel: "Situation",
+    situationHint: "Dans quelle situation l'enfant refuse ou est en difficulté ?",
+    situationRequired: "Choisissez une situation.",
+    customSituation: "Autre situation…",
+    antecedent: "Avant",
+    antecedentPlaceholder: "Ce qui s'est passé juste avant…",
+    behavior: { crisis: "Crise", difficulty: "Comportement" } as Record<string, string>,
+    behaviorPlaceholder: "Ce que l'enfant a fait…",
+    helped: { crisis: "Ce qui a apaisé", difficulty: "Ce qui a aidé" } as Record<string, string>,
+    notes: "Notes",
+    notesPlaceholder: "Observations, pistes à partager avec l'équipe…",
+
+    finish: { crisis: "Crise terminée", difficulty: "Terminer" } as Record<string, string>,
+    later: "Noter plus tard",
+    saving: "Enregistrement…",
+    saved: "Enregistré",
+    saveError: "Non enregistré — vérifiez la connexion",
+    delete: "Supprimer",
+    confirmDelete: "Confirmer la suppression",
+    closedMeta: (date: string, minutes: number | null) => (minutes ? `${date} · ${minutes} min` : date),
+    recordedBy: (name: string) => `Noté par ${name}`,
+
+    historyTitle: "Ce que montre l'historique",
+    historyEmpty: "Aucun épisode enregistré pour l'instant. Chaque crise ou difficulté notée affinera la check-list.",
+    patternsTooFew: "Les schémas apparaîtront à partir de deux épisodes semblables.",
+    patternTrigger: "Déclencheur fréquent",
+    patternBackground: "Facteur de fond",
+    patternTime: "Moment de la journée",
+    patternHelped: "Ce qui aide le plus",
+    patternCount: (count: number, total: number, kind: string) =>
+      kind === "crisis" ? `Retenu dans ${count} des ${total} dernières crises` : `Retenu dans ${count} des ${total} dernières difficultés`,
+    patternTimeCount: (count: number, total: number, when: string, kind: string) =>
+      `${count} ${kind === "crisis" ? "crises" : "difficultés"} sur ${total} ${when}`,
+    panelTitle: { crisis: "Crises", difficulty: "Difficultés du quotidien" } as Record<string, string>,
+    timeOfDay: {
+      morning: "le matin",
+      midday: "autour du déjeuner",
+      afternoon: "l'après-midi",
+      evening: "en fin de journée",
+    } as Record<string, string>,
+    columns: { date: "Date", before: "Avant", episode: "Épisode", helped: "Ce qui a aidé" },
+    guardrail: "Une aide pour chercher plus vite. Le jugement clinique reste le vôtre.",
+    abcNote: "Grille Avant · Épisode · Ce qui a aidé, inspirée de l'analyse A-B-C.",
+
+    childCardTitle: "Crises et difficultés",
+    childCardHint: "Check-list issue de l'entretien, affinée à chaque épisode.",
+    recent: "Derniers épisodes",
+    seeHistory: "Voir tout l'historique",
+    none: "Aucun épisode enregistré.",
+    historyPageTitle: "Crises et difficultés",
+    allEpisodes: "Tous les épisodes",
+    backToChild: (initials: string) => `Fiche ${initials}`,
+
+    startTitle: "Démarrer pour un enfant",
+    startHint: "Ouvrez l'enfant concerné pour lancer la check-list.",
+    openNow: "En cours",
+    recentAll: "Épisodes récents",
+    noChildren: "Ajoutez d'abord un enfant.",
+  },
+  situations: {
+    eating: "Refus de manger",
+    hygiene: "Refus de la douche / de l'hygiène",
+    enteringRoom: "Refus d'entrer dans une pièce",
+    closedDoor: "Porte fermée",
+    activity: "Refus d'une activité ou d'une consigne",
+    transition: "Transition difficile",
+  } as Record<string, string>,
+  causes: {
+    clothing: { label: "Vêtement qui gêne", hint: "Chaussette, étiquette, couture, ceinture" },
+    noise: { label: "Bruit ambiant", hint: "Couloir, porte, voix fortes, sèche-mains" },
+    light: { label: "Lumière", hint: "Néons, soleil, écran" },
+    touch: { label: "Contact physique", hint: "Être touché, bousculé, tenu" },
+    smells: { label: "Odeurs", hint: "Cantine, produits, parfum" },
+    textures: { label: "Textures", hint: "Aliments, matières, sable, colle" },
+    crowd: { label: "Trop de monde", hint: "Groupe, agitation, espace réduit" },
+    pain: { label: "Douleur", hint: "Dents, oreilles, ventre, tête" },
+    injury: { label: "Blessure passée inaperçue", hint: "Chute récente, bras ou jambe peu utilisé" },
+    movementChange: { label: "Changement dans la façon de bouger", hint: "Boite, bouge moins, évite un geste" },
+    unusualHypersensitivity: { label: "Hypersensibilité inhabituelle", hint: "Réagit plus fort que d'habitude" },
+    hyporeactivity: { label: "Hyporéactivité", hint: "Perçoit moins la douleur, le froid, la faim" },
+    seeksPressure: { label: "Recherche de pression profonde", hint: "Se jette, serre, cherche la résistance" },
+    mealChanges: { label: "Changement pendant les repas", hint: "Mange plus, moins, trop vite" },
+    oralChange: { label: "Sensations orales", hint: "Goûts, textures, température en bouche" },
+    toilet: { label: "Besoin d'aller aux toilettes", hint: "Inconfort, couche, constipation" },
+    sleep: { label: "Nuit courte", hint: "Demander aux parents ce matin" },
+    fatigue: { label: "Fatigue", hint: "Fin de journée, activité longue" },
+    hunger: { label: "Faim", hint: "Dernier repas, collation" },
+    thirst: { label: "Soif", hint: "Dernière boisson, chaleur" },
+    illness: { label: "Malade ou fiévreux", hint: "Rhume, otite, traitement" },
+    routineChange: { label: "Changement de routine", hint: "Horaire, salle, intervenant différent" },
+    transition: { label: "Transition", hint: "Arrêter une activité, changer de lieu" },
+    waiting: { label: "Attente", hint: "File, temps mort, retard" },
+    closedDoor: { label: "Porte fermée", hint: "Ne voit pas ce qu'il y a derrière" },
+    unfamiliarPlace: { label: "Lieu inconnu", hint: "Nouvelle salle, salle de soin" },
+    personChange: { label: "Personne différente", hint: "Remplaçant, nouvel adulte" },
+    tooDifficult: { label: "Tâche trop difficile", hint: "Exercice en cours au moment de l'épisode" },
+    demand: { label: "Consigne ou demande", hint: "Trop de demandes, consigne floue" },
+    frustration: { label: "Frustration", hint: "Refus, objet retiré, perdre à un jeu" },
+    lossOfControl: { label: "Perte de contrôle", hint: "Imprévu, ne sait pas ce qui va suivre" },
+  } as Record<string, { label: string; hint: string }>,
   status: {
     active: "Actif",
     archived: "Archivé",
@@ -111,8 +248,6 @@ export const fr = {
       title: "À venir pour cet enfant",
       reports: "Comptes-rendus",
       reportsBody: "Notes de séance et comptes-rendus pour les parents, le médecin et l'école.",
-      crises: "Crises",
-      crisesBody: "Check-list personnalisée et historique des crises.",
     },
   },
   sections: {
@@ -218,19 +353,9 @@ export const fr = {
     invalidEmail: "Adresse email invalide.",
     passwordTooShort: "8 caractères minimum.",
     emailTaken: "Un compte existe déjà avec cet email.",
+    invalidCredentials: "Email ou mot de passe incorrect.",
+    situationRequired: "Choisissez une situation.",
   },
 };
 
-export const t = fr;
-
-/** Label for a preset tag key, or the raw value for custom tags. */
-export function tagLabel(value: string): string {
-  return fr.tags[value] ?? value;
-}
-
-export function formatDate(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const date = new Date(`${iso.slice(0, 10)}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return iso;
-  return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
-}
+export type Dictionary = typeof fr;

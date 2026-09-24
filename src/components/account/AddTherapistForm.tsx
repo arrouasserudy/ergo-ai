@@ -6,21 +6,21 @@ import { addTherapist } from "@/app/actions/account";
 import type { FormState } from "@/app/actions/children";
 import { Button } from "@/components/ui/Button";
 import { InputField } from "@/components/ui/Field";
-import { t } from "@/i18n/fr";
-
-const f = t.fields;
+import { useI18n } from "@/i18n/client";
 
 export function AddTherapistForm() {
+  const { t } = useI18n();
+  const f = t.fields;
   const [state, action, pending] = useActionState<FormState, FormData>(addTherapist, { ok: false });
   const values = (state.values ?? {}) as Record<string, string>;
   const errors = state.errors ?? {};
 
   return (
     <form action={action} noValidate className="space-y-4">
-      {state.ok && state.message && (
+      {state.ok && state.addedName && (
         <p role="status" className="flex items-center gap-2 rounded-lg bg-ok px-3 py-2 text-[13px] text-ok-ink">
           <CheckCircle2 className="size-4" />
-          {state.message}
+          {t.account.added(state.addedName)}
         </p>
       )}
       <div className="grid gap-4 sm:grid-cols-3">

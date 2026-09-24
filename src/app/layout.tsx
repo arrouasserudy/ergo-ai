@@ -1,20 +1,32 @@
 import type { Metadata } from "next";
-import { Newsreader, Public_Sans } from "next/font/google";
-import { t } from "@/i18n/fr";
+import { Frank_Ruhl_Libre, Heebo, Newsreader, Public_Sans } from "next/font/google";
+import { I18nProvider } from "@/i18n/client";
+import { getI18n } from "@/i18n/server";
+import { APP_TIME_ZONE } from "@/lib/time";
 import "./globals.css";
 
+// Latin fonts first; the Hebrew fonts supply the glyphs the Latin ones lack.
 const publicSans = Public_Sans({ variable: "--font-public-sans", subsets: ["latin"] });
 const newsreader = Newsreader({ variable: "--font-newsreader", subsets: ["latin"], style: ["normal", "italic"] });
+const heebo = Heebo({ variable: "--font-heebo", subsets: ["hebrew"] });
+const frankRuhl = Frank_Ruhl_Libre({ variable: "--font-frank-ruhl", subsets: ["hebrew"] });
 
-export const metadata: Metadata = {
-  title: t.app.title,
-  description: t.app.description,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.app.title, description: t.app.description };
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const { locale, dir } = await getI18n();
+  const fonts = [publicSans, newsreader, heebo, frankRuhl].map((f) => f.variable).join(" ");
+
   return (
-    <html lang="fr" className={`${publicSans.variable} ${newsreader.variable} h-full antialiased`}>
-      <body className="min-h-full font-sans text-[15px]">{children}</body>
+    <html lang={locale} dir={dir} className={`${fonts} h-full antialiased`}>
+      <body className="min-h-full font-sans text-[15px]">
+        <I18nProvider locale={locale} timeZone={APP_TIME_ZONE}>
+          {children}
+        </I18nProvider>
+      </body>
     </html>
   );
 }

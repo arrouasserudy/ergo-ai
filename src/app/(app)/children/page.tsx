@@ -4,18 +4,22 @@ import { ChildrenFilters } from "@/components/children/ChildrenFilters";
 import { StatusBadge } from "@/components/children/StatusBadge";
 import { Avatar } from "@/components/ui/Avatar";
 import { LinkButton } from "@/components/ui/Button";
-import { formatDate, t } from "@/i18n/fr";
-import { formatAge } from "@/lib/age";
+import { getI18n } from "@/i18n/server";
 import { listChildren, type StatusFilter } from "@/lib/children";
 import { requireTherapist } from "@/lib/session";
 
-export const metadata = { title: `${t.children.listTitle} · ${t.app.name}` };
+export async function generateMetadata() {
+  const { t } = await getI18n();
+  return { title: `${t.children.listTitle} · ${t.app.name}` };
+}
 
 function parseStatus(value: unknown): StatusFilter {
   return value === "archived" || value === "all" ? value : "active";
 }
 
 export default async function ChildrenPage(props: PageProps<"/children">) {
+  const i18n = await getI18n();
+  const { t } = i18n;
   const { accountId } = await requireTherapist();
   const sp = await props.searchParams;
   const search = typeof sp.q === "string" ? sp.q : "";
@@ -77,15 +81,15 @@ export default async function ChildrenPage(props: PageProps<"/children">) {
                     <span className="flex items-center gap-3">
                       <Avatar initials={child.initials} />
                       <span>
-                        <span className="block text-[14px] font-medium">{child.initials}</span>
-                        <span className="block text-[11.5px] text-ink-muted">{formatAge(child.birthDate) ?? "—"}</span>
+                        <bdi className="block text-[14px] font-medium">{child.initials}</bdi>
+                        <span className="block text-[11.5px] text-ink-muted">{i18n.age(child.birthDate) ?? "—"}</span>
                       </span>
                     </span>
-                    <span className="col-start-1 truncate pl-11 text-[13px] text-ink-soft md:col-start-auto md:pl-0">
+                    <span className="col-start-1 truncate ps-11 text-[13px] text-ink-soft md:col-start-auto md:ps-0">
                       {child.referralReason}
                     </span>
                     <span className="hidden text-[13px] text-ink-soft md:block">{child.schoolLevel ?? "—"}</span>
-                    <span className="hidden text-[13px] text-ink-soft md:block">{formatDate(child.followUpStart) || "—"}</span>
+                    <span className="hidden text-[13px] text-ink-soft md:block">{i18n.date(child.followUpStart) || "—"}</span>
                     <span className="col-start-2 row-start-1 md:col-start-auto md:row-start-auto">
                       <StatusBadge status={child.status} />
                     </span>

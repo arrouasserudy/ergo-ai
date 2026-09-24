@@ -151,3 +151,49 @@ export const children = sqliteTable(
 
 export type Child = typeof children.$inferSelect;
 export type NewChild = typeof children.$inferInsert;
+
+export const EPISODE_KINDS = ["crisis", "difficulty"] as const;
+export type EpisodeKind = (typeof EPISODE_KINDS)[number];
+
+export const EPISODE_STATUSES = ["open", "closed"] as const;
+export type EpisodeStatus = (typeof EPISODE_STATUSES)[number];
+
+/**
+ * A crisis, or an everyday difficulty (refusing to eat, to enter a room…),
+ * recorded as an A-B-C entry: what came before, what happened, what helped.
+ * The checked causes feed the child's history and reorder future check-lists.
+ */
+export const episodes = sqliteTable(
+  "episodes",
+  {
+    id: id(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    childId: text("child_id")
+      .notNull()
+      .references(() => children.id, { onDelete: "cascade" }),
+    recordedBy: text("recorded_by").references(() => therapists.id, { onDelete: "set null" }),
+
+    kind: text("kind", { enum: EPISODE_KINDS }).notNull(),
+    status: text("status", { enum: EPISODE_STATUSES }).notNull().default("open"),
+    /** Everyday situation key (see lib/episode-catalog.ts) or free text. Required for difficulties. */
+    situation: text("situation"),
+    startedAt: integer("started_at", { mode: "timestamp_ms" }).notNull(),
+    endedAt: integer("ended_at", { mode: "timestamp_ms" }),
+
+    antecedent: text("antecedent"), // A: what happened just before
+    behavior: text("behavior"), // B: what the child did
+    causes: text("causes", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+    helped: text("helped", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`), // C: what helped
+    notes: text("notes"),
+
+    ...timestamps(),
+  },
+  (table) => [
+    index("episodes_child_started_idx").on(table.childId, table.startedAt),
+    index("episodes_account_started_idx").on(table.accountId, table.startedAt),
+  ],
+);
+
+export type Episode = typeof episodes.$inferSelect;

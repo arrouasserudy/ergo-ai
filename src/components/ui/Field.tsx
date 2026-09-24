@@ -1,5 +1,8 @@
+"use client";
+
 import clsx from "clsx";
 import type { ComponentProps, ReactNode } from "react";
+import { useI18n } from "@/i18n/client";
 
 const control =
   "w-full rounded-lg border bg-surface px-3 text-[14px] text-ink placeholder:text-ink-muted/70 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
@@ -10,6 +13,7 @@ type FieldShellProps = {
   name: string;
   label: string;
   help?: string;
+  /** Error code from validation ("required", "tooLong:200"…); translated here. */
   error?: string;
   required?: boolean;
   className?: string;
@@ -18,16 +22,17 @@ type FieldShellProps = {
 
 export function FieldShell({ id, name, label, help, error, required, className, children }: FieldShellProps) {
   const fieldId = id ?? name;
+  const message = useI18n().error(error);
   return (
     <div className={clsx("flex flex-col gap-1.5", className)}>
       <label htmlFor={fieldId} className="text-[12.5px] font-medium text-ink-soft">
         {label}
-        {required && <span className="ml-0.5 text-warn-ink">*</span>}
+        {required && <span className="ms-0.5 text-warn-ink">*</span>}
       </label>
       {children}
-      {error ? (
+      {message ? (
         <p id={`${fieldId}-error`} className="text-[12px] text-danger">
-          {error}
+          {message}
         </p>
       ) : (
         help && <p className="text-[12px] text-ink-muted">{help}</p>
@@ -42,6 +47,7 @@ export function InputField({ id, name, label, help, error, required, className, 
   return (
     <FieldShell id={id} name={name} label={label} help={help} error={error} required={required} className={className}>
       <input
+        dir="auto"
         id={id ?? name}
         name={name}
         required={required}
@@ -60,6 +66,7 @@ export function TextareaField({ id, name, label, help, error, required, classNam
   return (
     <FieldShell id={id} name={name} label={label} help={help} error={error} required={required} className={className}>
       <textarea
+        dir="auto"
         id={id ?? name}
         name={name}
         rows={rows}

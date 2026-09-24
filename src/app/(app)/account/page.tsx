@@ -4,11 +4,14 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
-import { formatDate, t } from "@/i18n/fr";
+import { getI18n } from "@/i18n/server";
 import { requireTherapist } from "@/lib/session";
 import { listTherapists } from "@/lib/therapists";
 
-export const metadata = { title: `${t.nav.account} · ${t.app.name}` };
+export async function generateMetadata() {
+  const { t } = await getI18n();
+  return { title: `${t.nav.account} · ${t.app.name}` };
+}
 
 const initialsOf = (name: string) =>
   name
@@ -19,6 +22,8 @@ const initialsOf = (name: string) =>
     .join("");
 
 export default async function AccountPage() {
+  const i18n = await getI18n();
+  const { t } = i18n;
   const { account, accountId, role, therapist } = await requireTherapist();
   const team = listTherapists(accountId);
   const isOwner = role === "owner";
@@ -54,14 +59,14 @@ export default async function AccountPage() {
                 <Avatar initials={initialsOf(member.name)} />
                 <span className="truncate text-[14px] font-medium">
                   {member.name}
-                  {member.id === therapist.id && <span className="ml-1.5 text-[12px] font-normal text-ink-muted">({t.account.you})</span>}
+                  {member.id === therapist.id && <span className="ms-1.5 text-[12px] font-normal text-ink-muted">({t.account.you})</span>}
                 </span>
               </span>
-              <span className="col-start-1 truncate pl-11 text-[13px] text-ink-soft sm:col-start-auto sm:pl-0">{member.email}</span>
+              <span className="col-start-1 truncate ps-11 text-[13px] text-ink-soft sm:col-start-auto sm:ps-0">{member.email}</span>
               <span className="col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto">
                 <Badge tone={member.role === "owner" ? "tint" : "muted"}>{t.account.roles[member.role]}</Badge>
               </span>
-              <span className="hidden text-[13px] text-ink-soft sm:block">{formatDate(member.createdAt.toISOString())}</span>
+              <span className="hidden text-[13px] text-ink-soft sm:block">{i18n.date(member.createdAt.toISOString())}</span>
             </li>
           ))}
         </ul>

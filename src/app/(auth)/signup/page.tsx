@@ -1,12 +1,17 @@
 import { redirect } from "next/navigation";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { Card } from "@/components/ui/Card";
-import { t } from "@/i18n/fr";
+import { getI18n } from "@/i18n/server";
 import { getSession } from "@/lib/session";
 
-export const metadata = { title: `${t.auth.signupTitle} · ${t.app.name}` };
+export async function generateMetadata() {
+  const { t } = await getI18n();
+  return { title: `${t.auth.signupTitle} · ${t.app.name}` };
+}
 
 export default async function SignupPage() {
+  const i18n = await getI18n();
+  const { t } = i18n;
   if (await getSession()) redirect("/children");
 
   return (

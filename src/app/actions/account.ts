@@ -4,7 +4,6 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { accounts } from "@/db/schema";
-import { t } from "@/i18n/fr";
 import { requireOwner } from "@/lib/session";
 import { createTherapist, EmailTakenError } from "@/lib/therapists";
 import { accountNameSchema, formDataToStrings, newTherapistSchema, toFieldErrors } from "@/lib/validation";
@@ -31,9 +30,9 @@ export async function addTherapist(_prev: FormState, formData: FormData): Promis
   try {
     await createTherapist({ ...parsed.data, accountId, role: "member" });
   } catch (error) {
-    if (error instanceof EmailTakenError) return { ok: false, errors: { email: t.errors.emailTaken }, values };
+    if (error instanceof EmailTakenError) return { ok: false, errors: { email: "emailTaken" }, values };
     throw error;
   }
   revalidatePath("/account");
-  return { ok: true, savedAt: Date.now(), message: t.account.added(parsed.data.name) };
+  return { ok: true, savedAt: Date.now(), addedName: parsed.data.name };
 }

@@ -21,26 +21,29 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { signOut } from "@/app/actions/auth";
-import { t } from "@/i18n/fr";
+import { useI18n } from "@/i18n/client";
+import type { Dictionary } from "@/i18n/fr";
+import { LocaleSwitcher } from "./LocaleSwitcher";
 
-type NavItem = { label: string; icon: LucideIcon; href?: string };
+type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href?: string };
 
 const NAV: NavItem[] = [
-  { label: t.nav.children, icon: UserRound, href: "/children" },
-  { label: t.nav.account, icon: Building2, href: "/account" },
+  { label: "children", icon: UserRound, href: "/children" },
+  { label: "crises", icon: Activity, href: "/crises" },
+  { label: "account", icon: Building2, href: "/account" },
 ];
 
 // Modules planned for later phases, shown disabled.
 const UPCOMING: NavItem[] = [
-  { label: t.nav.newReport, icon: Plus },
-  { label: t.nav.reports, icon: ListChecks },
-  { label: t.nav.crises, icon: Activity },
-  { label: t.nav.expert, icon: MessageCircle },
-  { label: t.nav.exercises, icon: NotebookPen },
-  { label: t.nav.templates, icon: LayoutTemplate },
+  { label: "newReport", icon: Plus },
+  { label: "reports", icon: ListChecks },
+  { label: "expert", icon: MessageCircle },
+  { label: "exercises", icon: NotebookPen },
+  { label: "templates", icon: LayoutTemplate },
 ];
 
 function Logo() {
+  const { t } = useI18n();
   return (
     <Link href="/children" className="flex items-center gap-2.5">
       <span className="grid size-7 place-items-center rounded-md bg-primary text-white">
@@ -52,6 +55,7 @@ function Logo() {
 }
 
 function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-5">
       <NavItems items={NAV} pathname={pathname} onNavigate={onNavigate} />
@@ -64,6 +68,7 @@ function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
 }
 
 function NavItems({ items, pathname, onNavigate }: { items: NavItem[]; pathname: string; onNavigate?: () => void }) {
+  const { t } = useI18n();
   return (
     <ul className="space-y-0.5">
       {items.map(({ label, icon: Icon, href }) => {
@@ -71,7 +76,7 @@ function NavItems({ items, pathname, onNavigate }: { items: NavItem[]; pathname:
         const content = (
           <>
             <Icon className="size-4 shrink-0" strokeWidth={1.75} />
-            <span className="truncate">{label}</span>
+            <span className="truncate">{t.nav[label]}</span>
           </>
         );
         const base = "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px]";
@@ -101,6 +106,7 @@ function NavItems({ items, pathname, onNavigate }: { items: NavItem[]; pathname:
 type SidebarProps = { therapistName: string; accountName: string };
 
 function Footer({ therapistName, accountName }: SidebarProps) {
+  const { t } = useI18n();
   return (
     <div className="space-y-3">
       <div className="flex gap-2 rounded-lg bg-sidebar-active p-3 text-[11.5px] leading-relaxed text-sidebar-ink">
@@ -123,11 +129,15 @@ function Footer({ therapistName, accountName }: SidebarProps) {
           </button>
         </form>
       </div>
+      <div className="px-1">
+        <LocaleSwitcher tone="dark" />
+      </div>
     </div>
   );
 }
 
 export function Sidebar(props: SidebarProps) {
+  const { t } = useI18n();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
