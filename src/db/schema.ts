@@ -197,3 +197,104 @@ export const episodes = sqliteTable(
 );
 
 export type Episode = typeof episodes.$inferSelect;
+
+/**
+ * A conversation with the "collègue expert". Private to the therapist who started it.
+ * An optional child gives the assistant pseudonymized context (never a name).
+ */
+export const conversations = sqliteTable(
+  "conversations",
+  {
+    id: id(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    therapistId: text("therapist_id")
+      .notNull()
+      .references(() => therapists.id, { onDelete: "cascade" }),
+    childId: text("child_id").references(() => children.id, { onDelete: "set null" }),
+    title: text("title").notNull(),
+    /** Chat provider; history is stored in that provider's message format, so it can't change. */
+    provider: text("provider", { enum: ["anthropic", "openai"] }).notNull().default("anthropic"),
+    ...timestamps(),
+  },
+  (table) => [index("conversations_therapist_updated_idx").on(table.therapistId, table.updatedAt)],
+);
+
+export const CHAT_ROLES = ["user", "assistant", "tool"] as const;
+
+/**
+ * One API message, stored exactly as sent/received (content blocks as JSON), so the
+ * history can be replayed unchanged: thinking blocks, tool calls and tool results
+ * (search results) included.
+ */
+export const chatMessages = sqliteTable(
+  "chat_messages",
+  {
+    id: id(),
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    /** Scoping + daily limit without a join. */
+    accountId: text("account_id").notNull(),
+    role: text("role", { enum: CHAT_ROLES }).notNull(),
+    content: text("content", { mode: "json" }).$type<unknown>().notNull(),
+    /** True for the user's own typed message (not a tool-result turn). */
+    isPrompt: integer("is_prompt", { mode: "boolean" }).notNull().default(false),
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index("chat_messages_conversation_idx").on(table.conversationId, table.createdAt),
+    index("chat_messages_account_created_idx").on(table.accountId, table.createdAt),
+  ],
+);
+
+export type Conversation = typeof conversations.$inferSelect;
+export type ChatMessageRow = typeof chatMessages.$inferSelect;
+
+export const DOCUMENT_STATUSES = ["processing", "ready", "failed"] as const;
+
+/**
+ * A PDF uploaded by a cabinet to the expert's library (course notes, guidelines…).
+ * Searchable only within that cabinet. Full-text and vector indexes are virtual
+ * tables created in a custom migration (document_chunks_fts, document_chunks_vec).
+ */
+export const documents = sqliteTable(
+  "documents",
+  {
+    id: id(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    uploadedBy: text("uploaded_by").references(() => therapists.id, { onDelete: "set null" }),
+    title: text("title").notNull(),
+    filename: text("filename").notNull(),
+    pages: integer("pages"),
+    /** Embedding model of this document's vectors; search ignores other models. */
+    embedModel: text("embed_model"),
+    status: text("status", { enum: DOCUMENT_STATUSES }).notNull().default("processing"),
+    ...timestamps(),
+  },
+  (table) => [index("documents_account_idx").on(table.accountId)],
+);
+
+export const documentChunks = sqliteTable(
+  "document_chunks",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documents.id, { onDelete: "cascade" }),
+    accountId: text("account_id").notNull(),
+    page: integer("page"),
+    ordinal: integer("ordinal").notNull(),
+    text: text("text").notNull(),
+  },
+  (table) => [index("document_chunks_document_idx").on(table.documentId)],
+);
+
+export type UploadedDocument = typeof documents.$inferSelect;

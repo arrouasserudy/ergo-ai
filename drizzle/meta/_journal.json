@@ -15,6 +15,34 @@
       "when": 1790281934049,
       "tag": "0001_mysterious_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790284907434,
+      "tag": "0002_magenta_purple_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1790285259682,
+      "tag": "0003_smooth_vulcan",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1790285260342,
+      "tag": "0004_upload_search_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1790286330396,
+      "tag": "0005_naive_randall_flagg",
+      "breakpoints": true
     }
   ]
 }

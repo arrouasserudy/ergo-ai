@@ -1,9 +1,10 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HistoryPanel } from "@/components/episodes/HistoryPanel";
 import { OpenEpisodes } from "@/components/episodes/OpenEpisodes";
 import { StartButtons } from "@/components/episodes/StartButtons";
+import { LinkButton } from "@/components/ui/Button";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { EPISODE_KINDS } from "@/db/schema";
 import { isolate } from "@/i18n";
@@ -43,7 +44,13 @@ export default async function ChildEpisodesPage(props: PageProps<"/children/[id]
           <Eyebrow>{t.episodes.historyPageTitle}</Eyebrow>
           <h1 className="mt-1 font-serif text-[32px] leading-tight font-medium">{childTitle(child, i18n)}</h1>
         </div>
-        <StartButtons childId={child.id} />
+        <div className="flex flex-wrap gap-2">
+          <StartButtons childId={child.id} />
+          <LinkButton href={`/expert?child=${child.id}`} variant="secondary">
+            <MessageCircle className="size-4" />
+            {t.expert.askExpert}
+          </LinkButton>
+        </div>
       </header>
       <OpenEpisodes items={open.map((episode) => ({ episode, child }))} />
       {EPISODE_KINDS.map((kind) => (

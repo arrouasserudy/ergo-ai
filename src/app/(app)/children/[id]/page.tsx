@@ -1,4 +1,4 @@
-import { Archive, ChevronLeft, FileText, RotateCcw } from "lucide-react";
+import { Archive, ChevronLeft, FileText, MessageCircle, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { setChildStatus } from "@/app/actions/children";
@@ -9,7 +9,7 @@ import { StartButtons } from "@/components/episodes/StartButtons";
 import { InfoList } from "@/components/children/InfoList";
 import { StatusBadge } from "@/components/children/StatusBadge";
 import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Button, LinkButton } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { TagList } from "@/components/ui/TagList";
@@ -79,12 +79,18 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
               .join(" · ")}
           </p>
         </div>
-        <form action={toggleStatus}>
+        <div className="flex flex-wrap gap-2">
+          <LinkButton href={`/expert?child=${child.id}`} variant="secondary">
+            <MessageCircle className="size-4" />
+            {t.expert.askExpert}
+          </LinkButton>
+          <form action={toggleStatus}>
           <Button type="submit" variant="secondary">
             {archived ? <RotateCcw className="size-4" /> : <Archive className="size-4" />}
             {archived ? t.children.reactivate : t.children.archive}
           </Button>
-        </form>
+          </form>
+        </div>
       </header>
 
       {archived && (

@@ -13,6 +13,20 @@ Demo logins (password `demo1234`): `michaela@demo.local` (owner), `colleague@dem
 
 The SQLite database is created in `data/ergoai.db` and migrated automatically on startup.
 
+## Collègue expert (literature chat)
+
+Needs a chat key (`ANTHROPIC_API_KEY` or `OPENAI_API_KEY`) and an embedding key (`VOYAGE_API_KEY`, or the OpenAI key) in `.env.local`, and as Fly secrets in production. See `.env.example` for the options.
+The shared library of open-access articles is built on your machine, then pushed to the server:
+
+```bash
+pnpm corpus:fetch    # download CC BY / CC0 pediatric OT articles from PubMed Central (data/corpus/raw)
+pnpm corpus:build    # passages + Voyage embeddings → data/library.db (embeddings cached, resumable)
+pnpm corpus:push     # upload to the Fly volume and swap it in
+pnpm expert:search "weighted vest attention"   # see what the chat would retrieve (embedding key only)
+```
+
+Cabinets add their own PDFs from `/expert/library`.
+
 ## Production database (Fly.io)
 
 SQLite lives on the Fly volume at `/data/ergoai.db`. For the live shell, wake the machine first (open the site or `fly machine start`):

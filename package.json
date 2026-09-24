@@ -12,18 +12,28 @@
     "typecheck": "next typegen && tsc --noEmit",
     "db:studio": "drizzle-kit studio",
     "db:studio-prod": "scripts/studio-prod.sh",
-    "test": "vitest run"
+    "test": "vitest run",
+    "corpus:fetch": "tsx scripts/corpus/fetch-pmc.ts",
+    "corpus:build": "tsx --env-file-if-exists=.env.local scripts/corpus/build.ts",
+    "corpus:push": "scripts/corpus/push.sh",
+    "expert:search": "tsx --env-file-if-exists=.env.local scripts/expert-search.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
     "better-auth": "^1.7.5",
     "better-sqlite3": "^13.0.3",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.3",
+    "fast-xml-parser": "^5.11.1",
     "lucide-react": "^1.47.0",
     "next": "16.3.6",
+    "openai": "^7.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-markdown": "^10.1.0",
     "server-only": "^0.0.1",
+    "sqlite-vec": "^0.1.9",
+    "unpdf": "^1.8.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {

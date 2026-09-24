@@ -30,6 +30,7 @@ type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href?: string
 const NAV: NavItem[] = [
   { label: "children", icon: UserRound, href: "/children" },
   { label: "crises", icon: Activity, href: "/crises" },
+  { label: "expert", icon: MessageCircle, href: "/expert" },
   { label: "account", icon: Building2, href: "/account" },
 ];
 
@@ -37,7 +38,6 @@ const NAV: NavItem[] = [
 const UPCOMING: NavItem[] = [
   { label: "newReport", icon: Plus },
   { label: "reports", icon: ListChecks },
-  { label: "expert", icon: MessageCircle },
   { label: "exercises", icon: NotebookPen },
   { label: "templates", icon: LayoutTemplate },
 ];

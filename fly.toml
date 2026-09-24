@@ -8,8 +8,8 @@ primary_region = "cdg"
   DATABASE_PATH = "/data/ergoai.db"
   # The practice's local time: display and time-of-day patterns (the server runs in UTC).
   APP_TIME_ZONE = "Asia/Jerusalem"
-  # Keep the heap well under the 256 MB machine (peak usage measured ~110 MB).
-  NODE_OPTIONS = "--max-old-space-size=180"
+  # Heap cap under the 512 MB machine (PDF parsing for the expert's library needs headroom).
+  NODE_OPTIONS = "--max-old-space-size=380"
 
 # SQLite lives on a persistent volume attached to the single machine.
 [mounts]
@@ -32,4 +32,4 @@ primary_region = "cdg"
 
 [[vm]]
   size = "shared-cpu-1x"
-  memory = "256mb"
+  memory = "512mb"
