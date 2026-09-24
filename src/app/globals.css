@@ -1,26 +1,55 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Surfaces */
+  --color-canvas: #efede5;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f7f5ef;
+  --color-line: #e4e1d8;
+  --color-line-strong: #d6d2c6;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Text */
+  --color-ink: #1f2624;
+  --color-ink-soft: #4a524f;
+  --color-ink-muted: #7c837f;
+
+  /* Sidebar */
+  --color-sidebar: #1e2624;
+  --color-sidebar-hover: #27302d;
+  --color-sidebar-active: #2e3935;
+  --color-sidebar-ink: #c9cfcb;
+  --color-sidebar-muted: #7f8984;
+
+  /* Brand */
+  --color-primary: #2a6b5c;
+  --color-primary-hover: #235a4d;
+  --color-primary-ink: #ffffff;
+  --color-tint: #e6f0ec;
+  --color-tint-ink: #24584b;
+
+  /* Status */
+  --color-warn: #f8e3d3;
+  --color-warn-ink: #a9522a;
+  --color-ok: #e2efe6;
+  --color-ok-ink: #2e6a45;
+  --color-muted-badge: #e8e7f4;
+  --color-muted-badge-ink: #55568a;
+  --color-danger: #b3412e;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+::selection {
+  background: var(--color-tint);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }

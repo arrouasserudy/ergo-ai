@@ -1,0 +1,153 @@
+import { sql } from "drizzle-orm";
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+
+const id = () =>
+  text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID());
+
+/** Auth timestamps are stored as epoch milliseconds, as Better Auth expects Date values. */
+const timestamps = () => ({
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date())
+    .$onUpdateFn(() => new Date()),
+});
+
+/** A practice (cabinet). Owns children; therapists belong to exactly one account. */
+export const accounts = sqliteTable("accounts", {
+  id: id(),
+  name: text("name").notNull(),
+  ...timestamps(),
+});
+
+export const THERAPIST_ROLES = ["owner", "member"] as const;
+export type TherapistRole = (typeof THERAPIST_ROLES)[number];
+
+/** Better Auth's `user` model. */
+export const therapists = sqliteTable(
+  "therapists",
+  {
+    id: id(),
+    name: text("name").notNull(),
+    email: text("email").notNull().unique(),
+    emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
+    image: text("image"),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    role: text("role", { enum: THERAPIST_ROLES }).notNull().default("member"),
+    ...timestamps(),
+  },
+  (table) => [index("therapists_account_id_idx").on(table.accountId)],
+);
+
+/** Better Auth's `session` model. */
+export const sessions = sqliteTable(
+  "sessions",
+  {
+    id: id(),
+    token: text("token").notNull().unique(),
+    expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => therapists.id, { onDelete: "cascade" }),
+    ...timestamps(),
+  },
+  (table) => [index("sessions_user_id_idx").on(table.userId)],
+);
+
+/**
+ * Better Auth's `account` model (login credentials per provider), renamed
+ * to avoid confusion with practice `accounts`. Holds the password hash.
+ */
+export const authCredentials = sqliteTable(
+  "auth_credentials",
+  {
+    id: id(),
+    accountId: text("account_id").notNull(), // provider-side id, not a practice account
+    providerId: text("provider_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => therapists.id, { onDelete: "cascade" }),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: integer("access_token_expires_at", { mode: "timestamp_ms" }),
+    refreshTokenExpiresAt: integer("refresh_token_expires_at", { mode: "timestamp_ms" }),
+    scope: text("scope"),
+    password: text("password"),
+    ...timestamps(),
+  },
+  (table) => [index("auth_credentials_user_id_idx").on(table.userId)],
+);
+
+/** Better Auth's `verification` model. */
+export const verifications = sqliteTable("verifications", {
+  id: id(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+  ...timestamps(),
+});
+
+export type Account = typeof accounts.$inferSelect;
+export type Therapist = typeof therapists.$inferSelect;
+
+export const CHILD_STATUSES = ["active", "archived"] as const;
+export type ChildStatus = (typeof CHILD_STATUSES)[number];
+
+/**
+ * A child followed by the therapist. Pseudonymized by design:
+ * only initials are stored, never a full name.
+ */
+export const children = sqliteTable(
+  "children",
+  {
+    id: id(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    createdBy: text("created_by").references(() => therapists.id, { onDelete: "set null" }),
+
+    // Identity
+    initials: text("initials").notNull(),
+    birthDate: text("birth_date"), // ISO date (YYYY-MM-DD)
+    referralReason: text("referral_reason").notNull(),
+    schoolLevel: text("school_level"),
+    followUpStart: text("follow_up_start"), // ISO date
+    status: text("status", { enum: CHILD_STATUSES }).notNull().default("active"),
+
+    // Medical and family history
+    medicalHistory: text("medical_history"),
+    birthHistory: text("birth_history"),
+    surgicalHistory: text("surgical_history"),
+    geneticDiagnoses: text("genetic_diagnoses"),
+    familyHistory: text("family_history"),
+    familyComposition: text("family_composition"),
+    siblingsCount: integer("siblings_count"),
+    otherInfo: text("other_info"),
+
+    // Sensory profile and triggers
+    knownTriggers: text("known_triggers"),
+    hyperSensitivities: text("hyper_sensitivities", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+    hypoReactivities: text("hypo_reactivities", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+    seeksDeepPressure: integer("seeks_deep_pressure", { mode: "boolean" }).notNull().default(false),
+    backgroundFactors: text("background_factors", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+    warningSigns: text("warning_signs"),
+    calmingStrategies: text("calming_strategies", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+    interests: text("interests", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+
+    createdAt: text("created_at").notNull().default(sql`(CURRENT_TIMESTAMP)`),
+    updatedAt: text("updated_at").notNull().default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => [index("children_account_id_idx").on(table.accountId)],
+);
+
+export type Child = typeof children.$inferSelect;
+export type NewChild = typeof children.$inferInsert;
