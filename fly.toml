@@ -6,6 +6,8 @@ primary_region = "cdg"
 [env]
   BETTER_AUTH_URL = "https://ergo-ai.fly.dev"
   DATABASE_PATH = "/data/ergoai.db"
+  # Keep the heap well under the 256 MB machine (peak usage measured ~110 MB).
+  NODE_OPTIONS = "--max-old-space-size=180"
 
 # SQLite lives on a persistent volume attached to the single machine.
 [mounts]
@@ -28,4 +30,4 @@ primary_region = "cdg"
 
 [[vm]]
   size = "shared-cpu-1x"
-  memory = "512mb"
+  memory = "256mb"
