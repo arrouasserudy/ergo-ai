@@ -3,7 +3,7 @@
  * pseudonymized children (the ones from the PRD mockups).
  * Skips if data exists; pass --reset to wipe first.
  *
- * Logins (password "demo1234"):
+ * Logins (password "demo1234", or $SEED_PASSWORD):
  *   michaela@demo.local   owner  · Cabinet Démo
  *   colleague@demo.local  member · Cabinet Démo
  *   other@demo.local      owner  · Autre cabinet (isolation check)
@@ -12,7 +12,8 @@ import { hashPassword } from "better-auth/crypto";
 import { db } from "./index";
 import { accounts, authCredentials, children, therapists, type NewChild, type TherapistRole } from "./schema";
 
-const DEMO_PASSWORD = "demo1234";
+// Override with SEED_PASSWORD when seeding anything reachable from the internet.
+const DEMO_PASSWORD = process.env.SEED_PASSWORD ?? "demo1234";
 
 const yearsAgo = (years: number, month = 3, day = 12) => {
   const d = new Date();
