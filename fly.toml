@@ -1,0 +1,31 @@
+app = "ergo-ai"
+primary_region = "cdg"
+
+[build]
+
+[env]
+  BETTER_AUTH_URL = "https://ergo-ai.fly.dev"
+  DATABASE_PATH = "/data/ergoai.db"
+
+# SQLite lives on a persistent volume attached to the single machine.
+[mounts]
+  source = "ergo_ai_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/login"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
