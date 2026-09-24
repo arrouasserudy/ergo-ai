@@ -10,7 +10,8 @@
     "db:generate": "drizzle-kit generate",
     "db:seed": "tsx src/db/seed.ts",
     "typecheck": "next typegen && tsc --noEmit",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:studio-prod": "scripts/studio-prod.sh"
   },
   "dependencies": {
     "better-auth": "^1.7.5",
