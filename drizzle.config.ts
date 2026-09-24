@@ -4,5 +4,6 @@ export default defineConfig({
   dialect: "sqlite",
   schema: "./src/db/schema.ts",
   out: "./drizzle",
-  dbCredentials: { url: "./data/ergoai.db" },
+  // Same default as src/db/index.ts; set DATABASE_PATH to open another file (e.g. a prod snapshot).
+  dbCredentials: { url: process.env.DATABASE_PATH ?? "./data/ergoai.db" },
 });

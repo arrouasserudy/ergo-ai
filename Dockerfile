@@ -21,6 +21,8 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
 RUN pnpm build
 
 FROM node:22-slim AS runner
+# sqlite3 CLI for inspecting the database over `fly ssh console`.
+RUN apt-get update && apt-get install -y --no-install-recommends sqlite3 && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 COPY --from=build /app/.next/standalone ./
