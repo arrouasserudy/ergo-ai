@@ -57,6 +57,13 @@ describe("partsFromMarkers (OpenAI citations)", () => {
     expect(answer.sources).toEqual([]);
   });
 
+  it("resolves bare ids only when they match one retrieved passage", () => {
+    const answer = buildAnswer(partsFromMarkers("Vests help [1][7]. See step [3].", known));
+    expect(answer.markdown).toBe("Vests help [1](#cite-1) [2](#cite-2). See step [3].");
+    const ambiguous = new Map([...known, ["upload:1", passage("upload:1")]]);
+    expect(buildAnswer(partsFromMarkers("A claim [1].", ambiguous)).sources).toEqual([]);
+  });
+
   it("hides markers while streaming, including a half-written one", () => {
     expect(stripMarkers("Vests help [library:1]. More [libr")).toBe("Vests help . More [libr");
     expect(stripMarkers("Pads [upload:")).toBe("Pads ");

@@ -22,8 +22,19 @@ export function partsFromAnthropic(blocks: unknown[]): AnswerPart[] {
   return parts;
 }
 
-/** Matches `[library:12]`, `[upload:3]`, and grouped forms like `[library:12, upload:3]`. */
-export const MARKER = /\[((?:library|upload):\d+(?:\s*[,;]\s*(?:library|upload):\d+)*)\]/g;
+/**
+ * Matches `[library:12]`, `[upload:3]`, grouped forms like `[library:12, upload:3]`, and
+ * bare ids like `[12]` (smaller models often drop the prefix).
+ */
+const ID = String.raw`(?:(?:library|upload):)?\d+`;
+export const MARKER = new RegExp(String.raw`\[(${ID}(?:\s*[,;]\s*${ID})*)\]`, "g");
+
+/** A bare number counts only when it matches exactly one retrieved passage. */
+function resolve(id: string, passages: Map<string, CitablePassage>): CitablePassage | undefined {
+  if (!/^\d+$/.test(id)) return passages.get(id);
+  const matches = [passages.get(`library:${id}`), passages.get(`upload:${id}`)].filter(Boolean);
+  return matches.length === 1 ? matches[0] : undefined;
+}
 
 /**
  * Text with citation markers → parts. Markers are removed from the text; ids that were
@@ -33,9 +44,11 @@ export function partsFromMarkers(text: string, passages: Map<string, CitablePass
   const parts: AnswerPart[] = [];
   let last = 0;
   for (const m of text.matchAll(MARKER)) {
-    const citations = m[1]
-      .split(/\s*[,;]\s*/)
-      .map((id) => passages.get(id))
+    const ids = m[1].split(/\s*[,;]\s*/);
+    const resolved = ids.map((id) => resolve(id, passages));
+    // A bare "[3]" that isn't a retrieved passage is ordinary text, not a citation.
+    if (ids.every((id) => /^\d+$/.test(id)) && !resolved.some(Boolean)) continue;
+    const citations = resolved
       .filter((p): p is CitablePassage => Boolean(p))
       .map((p) => ({ source: p.source, title: p.title, citedText: p.text }));
     // Drop the space the model usually leaves before a marker.
@@ -48,5 +61,5 @@ export function partsFromMarkers(text: string, passages: Map<string, CitablePass
 
 /** For live streaming display: hide raw markers until the final parts arrive. */
 export function stripMarkers(text: string): string {
-  return text.replace(MARKER, "").replace(/\[(?:library|upload):\d*$/, "");
+  return text.replace(MARKER, "").replace(/\[(?:(?:library|upload):)?\d*$/, "");
 }
