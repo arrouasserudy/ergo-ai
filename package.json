@@ -16,7 +16,9 @@
     "corpus:fetch": "tsx scripts/corpus/fetch-pmc.ts",
     "corpus:build": "tsx --env-file-if-exists=.env.local scripts/corpus/build.ts",
     "corpus:push": "scripts/corpus/push.sh",
-    "expert:search": "tsx --env-file-if-exists=.env.local scripts/expert-search.ts"
+    "expert:search": "tsx --env-file-if-exists=.env.local scripts/expert-search.ts",
+    "corpus:candidates": "tsx scripts/corpus/candidates.ts",
+    "corpus:review": "tsx scripts/corpus/review-page.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",

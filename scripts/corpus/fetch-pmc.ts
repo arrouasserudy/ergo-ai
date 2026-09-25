@@ -2,7 +2,7 @@
  * Downloads open-access pediatric OT articles from PubMed Central (BioC JSON) into
  * data/corpus/raw/. Already-downloaded articles are skipped, so it can be re-run.
  *
- *   pnpm corpus:fetch                 # 150 per topic
+ *   pnpm corpus:fetch                 # 100 per topic
  *   pnpm corpus:fetch --per-topic 6   # small development corpus
  */
 import fs from "node:fs";
@@ -10,7 +10,7 @@ import path from "node:path";
 import { COMMON_FILTER, TOPICS } from "./topics";
 
 const RAW_DIR = path.join(process.cwd(), "data", "corpus", "raw");
-const perTopic = Number(process.argv[process.argv.indexOf("--per-topic") + 1]) || 150;
+const perTopic = Number(process.argv[process.argv.indexOf("--per-topic") + 1]) || 100;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function search(query: string, retmax: number): Promise<string[]> {
@@ -39,12 +39,19 @@ async function fetchBioc(pmcId: string): Promise<string | null> {
 async function main() {
   fs.mkdirSync(RAW_DIR, { recursive: true });
   const ids = new Set<string>();
+  // Which topics found each article (grouping on the review page).
+  const manifestFile = path.join(RAW_DIR, "..", "candidates.json");
+  const manifest: Record<string, string[]> = fs.existsSync(manifestFile) ? JSON.parse(fs.readFileSync(manifestFile, "utf8")) : {};
   for (const topic of TOPICS) {
     console.log(`Topic ${topic.key}`);
-    // Ask for more than needed: some articles have no full text in BioC.
-    for (const id of await search(topic.query, perTopic)) ids.add(id);
+    for (const id of await search(topic.query, perTopic)) {
+      ids.add(id);
+      const topics = (manifest[`PMC${id}`] ??= []);
+      if (!topics.includes(topic.key)) topics.push(topic.key);
+    }
     await sleep(400); // NCBI: max 3 requests/s without an API key
   }
+  fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, 1));
 
   let saved = 0;
   let skipped = 0;

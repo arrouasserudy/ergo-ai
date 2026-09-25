@@ -16,6 +16,7 @@ import * as sqliteVec from "sqlite-vec";
 import { chunkParagraphs, indexedText, type Paragraph } from "../../src/lib/expert/chunking";
 import { createLibrarySchema, insertLibraryDocument, type LibraryDocument } from "../../src/lib/expert/library-schema";
 import { EMBED_DIMS, type EmbedderInfo } from "../../src/lib/expert/embed-types";
+import { DECISIONS_FILE, readJson, SCREENING_FILE, type Screening } from "./bioc";
 import { activeEmbedder } from "../../src/lib/expert/embeddings";
 
 const CORPUS_DIR = path.join(process.cwd(), "data", "corpus");
@@ -37,6 +38,9 @@ type BiocPassage = { infons: Record<string, string>; text: string };
 function licenseLabel(text: string | undefined): string | null {
   if (!text) return null;
   const t = text.toLowerCase();
+  // The license URL is authoritative (some CC BY notices add "non-commercial uses are permitted").
+  const url = /creativecommons\.org\/(licenses\/[a-z-]+|publicdomain\/zero)/.exec(t)?.[1];
+  if (url) return url === "licenses/by" ? "CC BY" : url === "publicdomain/zero" ? "CC0" : null;
   // Paid product: anything non-commercial is excluded.
   if (/non-?commercial|by-nc|cc by-nc/.test(t)) return null;
   if (/cc0|public domain/.test(t)) return "CC0";
@@ -138,9 +142,26 @@ async function main() {
   const files = fs.existsSync(RAW_DIR) ? fs.readdirSync(RAW_DIR).filter((f) => f.endsWith(".json")) : [];
   if (files.length === 0) throw new Error("No articles in data/corpus/raw — run `pnpm corpus:fetch` first.");
 
+  // Which articles go in: the clinician's exported decisions, else the screening, else all.
+  const decisions = readJson<{ decisions?: Record<string, "keep" | "drop"> }>(DECISIONS_FILE, {}).decisions;
+  const screening = readJson<Record<string, Screening>>(SCREENING_FILE, {});
+  const included = (id: string) => (decisions ? decisions[id] === "keep" : Object.keys(screening).length ? screening[id]?.keep === true : true);
+  console.log(
+    decisions
+      ? `Using the clinician's decisions (${DECISIONS_FILE}).`
+      : Object.keys(screening).length
+        ? "No decisions.json yet: using the screening suggestions."
+        : "No screening yet: including every downloaded article.",
+  );
+
   const articles: { doc: LibraryDocument; chunks: ReturnType<typeof chunkParagraphs>; indexed: string[] }[] = [];
   let rejected = 0;
+  let excluded = 0;
   for (const file of files.sort()) {
+    if (!included(file.replace(".json", ""))) {
+      excluded++;
+      continue;
+    }
     const parsed = parseArticle(fs.readFileSync(path.join(RAW_DIR, file), "utf8"), file.replace(".json", ""));
     if (!parsed) {
       rejected++;
@@ -150,7 +171,7 @@ async function main() {
     articles.push({ doc: parsed.doc, chunks, indexed: chunks.map((c) => indexedText(parsed.doc.title, c)) });
   }
   const totalChunks = articles.reduce((n, a) => n + a.chunks.length, 0);
-  console.log(`${articles.length} articles usable (${rejected} skipped: license or no text), ${totalChunks} passages.`);
+  console.log(`${articles.length} articles usable (${excluded} not selected, ${rejected} skipped: license or no text), ${totalChunks} passages.`);
 
   const embedder = activeEmbedder();
   if (!embedder) throw new Error("No embedding provider: set VOYAGE_API_KEY or OPENAI_API_KEY in .env.local.");
