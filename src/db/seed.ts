@@ -10,7 +10,20 @@
  */
 import { hashPassword } from "better-auth/crypto";
 import { db } from "./index";
-import { accounts, authCredentials, children, episodes, therapists, type NewChild, type TherapistRole } from "./schema";
+import {
+  accounts,
+  authCredentials,
+  children,
+  episodes,
+  reports,
+  reportVariants,
+  therapists,
+  type NewChild,
+  type ReportDocType,
+  type ReportRecipient,
+  type ReportSection,
+  type TherapistRole,
+} from "./schema";
 
 // Override with SEED_PASSWORD when seeding anything reachable from the internet.
 const DEMO_PASSWORD = process.env.SEED_PASSWORD ?? "demo1234";
@@ -124,6 +137,147 @@ function episodeRows(seeds: EpisodeSeed[], accountId: string, childId: string, r
   });
 }
 
+type ReportSeed = {
+  initials: string;
+  docType: ReportDocType;
+  days: number;
+  notes: string;
+  /** Recipients with a generated version; `state` applies to all of them. */
+  variants: Partial<Record<ReportRecipient, ReportSection[]>>;
+  recipients: ReportRecipient[];
+  state: "draft" | "validated" | "exported";
+};
+
+const LM_NOTES = `- tenue du crayon : pince tripode plus stable qu'en juin, encore fatigue après ~10 min
+- découpage ciseaux : suit une ligne courbe avec aide verbale
+- boutonnage : 3 boutons sur 5 seul
+- sensoriel : recherche de pression au début, s'apaise avec le coussin lesté
+- attention : bonne sur 15 min, décroche au bruit du couloir
+- à la maison : parents signalent moins de crises à l'habillage
+- à proposer : poursuite pâte à modeler + pinces à linge, aménagement place au calme en classe`;
+
+// The "Mes comptes-rendus" mockup: one draft being written, the rest validated or exported.
+const REPORTS: ReportSeed[] = [
+  {
+    initials: "L. M.",
+    docType: "follow_up",
+    days: 1,
+    notes: LM_NOTES,
+    recipients: ["parents", "doctor", "school"],
+    state: "draft",
+    variants: {
+      parents: [
+        { heading: "Ce qui avance", body: "L. M. tient son crayon de façon plus stable qu'en juin. Il arrive à boutonner seul 3 boutons sur 5, et vous nous dites que l'habillage se passe mieux à la maison : c'est une belle progression." },
+        { heading: "Ce qui reste difficile", body: "Sa main se fatigue encore après une dizaine de minutes d'écriture, et il a besoin qu'on le guide pour découper une ligne courbe." },
+        { heading: "À la maison cette semaine", body: "- 5 minutes par jour de pâte à modeler\n- un jeu avec des pinces à linge pour renforcer les doigts" },
+      ],
+    },
+  },
+  {
+    initials: "N. A.",
+    docType: "initial_assessment",
+    days: 2,
+    notes: "- bilan graphomotricité GS\n- tenue crayon palmaire, changements de main fréquents\n- copie de formes : cercle ok, carré difficile\n- à proposer : suivi hebdomadaire 3 mois",
+    recipients: ["doctor"],
+    state: "validated",
+    variants: {
+      doctor: [
+        { heading: "Contexte", body: "Bilan initial demandé pour des difficultés de graphomotricité en grande section." },
+        { heading: "Observations et résultats", body: "- Prise du crayon palmaire, changements de main fréquents\n- Copie de formes : cercle réussi, carré non réussi" },
+        { heading: "Recommandations", body: "Suivi hebdomadaire en ergothérapie sur 3 mois, puis réévaluation." },
+      ],
+    },
+  },
+  {
+    initials: "Y. B.",
+    docType: "follow_up",
+    days: 3,
+    notes: "- écriture plus lisible, vitesse toujours lente\n- ordinateur en classe : essai concluant",
+    recipients: ["parents", "school"],
+    state: "exported",
+    variants: {
+      parents: [{ heading: "Ce qui avance", body: "Son écriture est plus lisible. L'essai de l'ordinateur en classe est concluant." }],
+      school: [{ heading: "Aménagements proposés en classe", body: "- Ordinateur pour les écrits longs\n- Temps supplémentaire pour la copie" }],
+    },
+  },
+  {
+    initials: "S. K.",
+    docType: "letter",
+    days: 6,
+    notes: "- courrier pédiatre : progrès habillage, demande de renouvellement de prise en charge",
+    recipients: ["doctor"],
+    state: "exported",
+    variants: { doctor: [{ heading: "Objet", body: "Demande de renouvellement de la prise en charge en ergothérapie : progrès nets à l'habillage, autonomie encore partielle." }] },
+  },
+  {
+    initials: "E. D.",
+    docType: "follow_up",
+    days: 8,
+    notes: "- casque anti-bruit bien accepté\n- moins de crises à la cantine",
+    recipients: ["parents"],
+    state: "validated",
+    variants: { parents: [{ heading: "Ce qui avance", body: "Le casque anti-bruit est bien accepté et il y a moins de crises à la cantine." }] },
+  },
+  {
+    initials: "T. R.",
+    docType: "initial_assessment",
+    days: 10,
+    notes: "- bilan alimentation : hyporéactivité orale, mange très vite\n- à proposer : cuillère lestée à essayer",
+    recipients: ["parents", "doctor"],
+    state: "exported",
+    variants: {
+      parents: [{ heading: "Ce que nous avons observé", body: "T. R. sent peu ce qui se passe dans sa bouche, ce qui l'amène à manger très vite." }],
+      doctor: [{ heading: "Observations", body: "Hyporéactivité orale, prise alimentaire rapide. Essai d'une cuillère lestée proposé." }],
+    },
+  },
+  {
+    initials: "M. L.",
+    docType: "recommendations",
+    days: 13,
+    notes: "- aménagements CM2 : place au calme, consignes écrites",
+    recipients: ["school"],
+    state: "exported",
+    variants: { school: [{ heading: "Aménagements proposés en classe", body: "- Place au calme, loin de la porte\n- Consignes données aussi par écrit" }] },
+  },
+];
+
+function seedReports(seeds: ReportSeed[], accountId: string, authorId: string, kidId: (initials: string) => string) {
+  for (const seed of seeds) {
+    const date = daysAgo(seed.days, 12);
+    const report = db
+      .insert(reports)
+      .values({
+        accountId,
+        childId: kidId(seed.initials),
+        authorId,
+        docType: seed.docType,
+        sessionDate: date.toISOString().slice(0, 10),
+        notes: seed.notes,
+        recipients: seed.recipients,
+        status: seed.state,
+        createdAt: date,
+        updatedAt: date,
+      })
+      .returning({ id: reports.id })
+      .get();
+    for (const [recipient, sections] of Object.entries(seed.variants)) {
+      db.insert(reportVariants)
+        .values({
+          reportId: report.id,
+          accountId,
+          recipient: recipient as ReportRecipient,
+          generated: sections,
+          sections,
+          model: "seed",
+          generatedAt: date,
+          validatedAt: seed.state === "draft" ? null : date,
+          exportedAt: seed.state === "exported" ? date : null,
+        })
+        .run();
+    }
+  }
+}
+
 async function createTherapist(accountId: string, role: TherapistRole, name: string, email: string) {
   const therapist = db.insert(therapists).values({ accountId, role, name, email }).returning().get();
   db.insert(authCredentials)
@@ -133,7 +287,11 @@ async function createTherapist(accountId: string, role: TherapistRole, name: str
 }
 
 async function seed() {
-  const demo = db.insert(accounts).values({ name: "Cabinet Démo" }).returning().get();
+  const demo = db
+    .insert(accounts)
+    .values({ name: "Cabinet Démo", letterhead: "12 rue des Lilas, 75011 Paris\n01 23 45 67 89 · contact@cabinet-demo.fr\nN° ADELI 759312345" })
+    .returning()
+    .get();
   const owner = await createTherapist(demo.id, "owner", "Michaela Cohen", "michaela@demo.local");
   await createTherapist(demo.id, "member", "Sarah Levy", "colleague@demo.local");
   const demoKids = db
@@ -148,6 +306,7 @@ async function seed() {
       ...episodeRows(TR_EPISODES, demo.id, kidId("T. R."), owner.id),
     ])
     .run();
+  seedReports(REPORTS, demo.id, owner.id, kidId);
 
   const other = db.insert(accounts).values({ name: "Autre cabinet" }).returning().get();
   const otherOwner = await createTherapist(other.id, "owner", "Noa Dubois", "other@demo.local");
@@ -167,7 +326,7 @@ async function main() {
   }
   await seed();
   console.log(
-    `Seeded 2 accounts, 3 therapists (password "${DEMO_PASSWORD}"), ${DEMO_CHILDREN.length + OTHER_CHILDREN.length} children, ${LM_EPISODES.length + TR_EPISODES.length} episodes.`,
+    `Seeded 2 accounts, 3 therapists (password "${DEMO_PASSWORD}"), ${DEMO_CHILDREN.length + OTHER_CHILDREN.length} children, ${LM_EPISODES.length + TR_EPISODES.length} episodes, ${REPORTS.length} reports.`,
   );
 }
 

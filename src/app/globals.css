@@ -53,3 +53,23 @@ body {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
+
+/* Exported report (ExportDialog): only it is printed, the app is hidden. */
+.print-root {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 18mm 16mm;
+  }
+  body {
+    background: white;
+  }
+  body > *:not(.print-root) {
+    display: none !important;
+  }
+  .print-root {
+    display: block;
+  }
+}

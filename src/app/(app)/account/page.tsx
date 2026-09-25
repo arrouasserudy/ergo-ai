@@ -1,5 +1,6 @@
 import { AccountNameForm } from "@/components/account/AccountNameForm";
 import { AddTherapistForm } from "@/components/account/AddTherapistForm";
+import { LetterheadForm } from "@/components/account/LetterheadForm";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader } from "@/components/ui/Card";
@@ -41,6 +42,19 @@ export default async function AccountPage() {
         <CardHeader title={t.account.detailsTitle} hint={isOwner ? undefined : t.account.ownerOnly} />
         <div className="px-5 pb-5">
           {isOwner ? <AccountNameForm name={account.name} /> : <p className="text-[15px]">{account.name}</p>}
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader title={t.account.letterheadTitle} hint={isOwner ? t.account.letterheadHint : t.account.ownerOnly} />
+        <div className="px-5 pb-5">
+          {isOwner ? (
+            <LetterheadForm letterhead={account.letterhead} />
+          ) : (
+            <p dir="auto" className="text-[14px] whitespace-pre-line text-ink-soft">
+              {account.letterhead ?? t.account.letterheadEmpty}
+            </p>
+          )}
         </div>
       </Card>
 

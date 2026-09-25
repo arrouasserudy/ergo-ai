@@ -1,14 +1,14 @@
-import { Archive, ChevronLeft, FileText, MessageCircle, RotateCcw } from "lucide-react";
+import { Archive, ChevronLeft, MessageCircle, Plus, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { setChildStatus } from "@/app/actions/children";
 import { EditableSection } from "@/components/children/EditableSection";
 import { EpisodeList } from "@/components/episodes/EpisodeList";
 import { OpenEpisodes } from "@/components/episodes/OpenEpisodes";
+import { ReportRows } from "@/components/reports/ReportRows";
 import { StartButtons } from "@/components/episodes/StartButtons";
 import { InfoList } from "@/components/children/InfoList";
 import { StatusBadge } from "@/components/children/StatusBadge";
-import { Badge } from "@/components/ui/Badge";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
@@ -18,6 +18,7 @@ import { isolate } from "@/i18n";
 import { getI18n } from "@/i18n/server";
 import { getChild } from "@/lib/children";
 import { listChildEpisodes } from "@/lib/episodes";
+import { listReports } from "@/lib/reports/queries";
 import { requireTherapist } from "@/lib/session";
 
 export async function generateMetadata(props: PageProps<"/children/[id]">) {
@@ -51,6 +52,7 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
   const episodes = listChildEpisodes(accountId, child.id, { limit: 20 });
   const openEpisodes = episodes.filter((ep) => ep.status === "open");
   const recentEpisodes = episodes.filter((ep) => ep.status === "closed").slice(0, 3);
+  const reports = listReports(accountId, { childId: child.id });
 
   const age = i18n.age(child.birthDate);
   const archived = child.status === "archived";
@@ -180,21 +182,33 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
           </Card>
 
           <Card>
-            <CardHeader title={t.children.upcoming.title} />
-            <ul className="space-y-2 px-5 pb-5">
-              {[
-                { icon: FileText, title: t.children.upcoming.reports, body: t.children.upcoming.reportsBody },
-              ].map(({ icon: Icon, title, body }) => (
-                <li key={title} className="flex items-start gap-3 rounded-lg bg-surface-muted px-4 py-3">
-                  <Icon className="mt-0.5 size-4 shrink-0 text-ink-muted" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[13.5px] font-medium">{title}</p>
-                    <p className="text-[12.5px] text-ink-muted">{body}</p>
-                  </div>
-                  <Badge tone="warn">{t.nav.soon}</Badge>
-                </li>
-              ))}
-            </ul>
+            <CardHeader
+              title={t.reports.childCardTitle}
+              hint={t.reports.childCardHint}
+              action={
+                !archived && (
+                  <LinkButton href={`/reports/new?child=${child.id}`} size="sm">
+                    <Plus className="size-3.5" />
+                    {t.reports.newButton}
+                  </LinkButton>
+                )
+              }
+            />
+            {reports.length === 0 ? (
+              <p className="px-5 pb-5 text-[13px] text-ink-muted">{t.reports.childNone}</p>
+            ) : (
+              <>
+                <div className="border-t border-line">
+                  <ReportRows rows={reports.slice(0, 3)} showChild={false} />
+                </div>
+                <Link
+                  href={`/reports?child=${child.id}`}
+                  className="block border-t border-line px-5 py-3 text-[12.5px] font-medium text-primary hover:underline"
+                >
+                  {t.reports.seeAll}
+                </Link>
+              </>
+            )}
           </Card>
         </div>
       </div>

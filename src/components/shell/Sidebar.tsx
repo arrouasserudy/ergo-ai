@@ -28,6 +28,8 @@ import { LocaleSwitcher } from "./LocaleSwitcher";
 type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href?: string };
 
 const NAV: NavItem[] = [
+  { label: "newReport", icon: Plus, href: "/reports/new" },
+  { label: "reports", icon: ListChecks, href: "/reports" },
   { label: "children", icon: UserRound, href: "/children" },
   { label: "crises", icon: Activity, href: "/crises" },
   { label: "expert", icon: MessageCircle, href: "/expert" },
@@ -36,8 +38,6 @@ const NAV: NavItem[] = [
 
 // Modules planned for later phases, shown disabled.
 const UPCOMING: NavItem[] = [
-  { label: "newReport", icon: Plus },
-  { label: "reports", icon: ListChecks },
   { label: "exercises", icon: NotebookPen },
   { label: "templates", icon: LayoutTemplate },
 ];
@@ -69,10 +69,15 @@ function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
 
 function NavItems({ items, pathname, onNavigate }: { items: NavItem[]; pathname: string; onNavigate?: () => void }) {
   const { t } = useI18n();
+  // The longest matching href wins, so "/reports/new" doesn't also light up "/reports".
+  const activeHref = items
+    .map((item) => item.href)
+    .filter((href): href is string => Boolean(href && pathname.startsWith(href)))
+    .sort((a, b) => b.length - a.length)[0];
   return (
     <ul className="space-y-0.5">
       {items.map(({ label, icon: Icon, href }) => {
-        const active = href && pathname.startsWith(href);
+        const active = href !== undefined && href === activeHref;
         const content = (
           <>
             <Icon className="size-4 shrink-0" strokeWidth={1.75} />

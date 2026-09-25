@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { REPORT_DOC_TYPES, REPORT_LANGUAGES, REPORT_RECIPIENTS } from "@/db/schema";
 
 /**
  * Error messages are codes ("required", "tooLong:200"…), translated where they are
@@ -133,6 +134,32 @@ export const episodeSchema = z.object({
 
 export type EpisodeInput = z.input<typeof episodeSchema>;
 
+/** Autosaved inputs of a report: notes, attached test results, recipients. */
+export const reportSchema = z.object({
+  docType: z.enum(REPORT_DOC_TYPES),
+  sessionDate: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, e.invalidDate),
+  notes: z.string().max(20000, e.tooLong(20000)),
+  tests: z
+    .array(z.object({ name: z.string().trim().max(120, e.tooLong(120)), results: z.string().trim().max(1000, e.tooLong(1000)) }))
+    .max(20)
+    .transform((tests) => tests.filter((t) => t.name || t.results)),
+  recipients: z
+    .array(z.enum(REPORT_RECIPIENTS))
+    .min(1, e.required)
+    .transform((r) => REPORT_RECIPIENTS.filter((k) => r.includes(k))),
+  language: z.enum(REPORT_LANGUAGES),
+});
+
+export type ReportInput = z.input<typeof reportSchema>;
+
+/** A report version as edited by the therapist. */
+export const reportSectionsSchema = z
+  .array(z.object({ heading: z.string().max(200, e.tooLong(200)), body: z.string().max(10000, e.tooLong(10000)) }))
+  .max(30);
+
 const email = z.string().trim().toLowerCase().pipe(z.email(e.invalidEmail));
 const newPassword = z.string().min(8, e.passwordTooShort).max(128, e.tooLong(128));
 
@@ -142,6 +169,8 @@ export const loginSchema = z.object({
 });
 
 export const accountNameSchema = z.object({ name: requiredText(120) });
+
+export const letterheadSchema = z.object({ letterhead: optionalText(600) });
 
 export const newTherapistSchema = z.object({
   name: requiredText(120),

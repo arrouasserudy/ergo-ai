@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 const id = () =>
   text("id")
@@ -21,6 +21,8 @@ const timestamps = () => ({
 export const accounts = sqliteTable("accounts", {
   id: id(),
   name: text("name").notNull(),
+  /** Letterhead printed at the top of exported reports (address, phone, registration number…). */
+  letterhead: text("letterhead"),
   ...timestamps(),
 });
 
@@ -298,3 +300,109 @@ export const documentChunks = sqliteTable(
 );
 
 export type UploadedDocument = typeof documents.$inferSelect;
+
+export const REPORT_DOC_TYPES = ["follow_up", "initial_assessment", "letter", "recommendations"] as const;
+export type ReportDocType = (typeof REPORT_DOC_TYPES)[number];
+
+export const REPORT_RECIPIENTS = ["parents", "doctor", "school"] as const;
+export type ReportRecipient = (typeof REPORT_RECIPIENTS)[number];
+
+export const REPORT_STATUSES = ["draft", "validated", "exported"] as const;
+export type ReportStatus = (typeof REPORT_STATUSES)[number];
+
+export const REPORT_LANGUAGES = ["fr", "he"] as const;
+
+/** One titled block of a generated report. The body is light markdown (paragraphs, "-" lists, **bold**). */
+export type ReportSection = { heading: string; body: string };
+/** A standardized test result attached to the notes. */
+export type ReportTest = { name: string; results: string };
+
+/**
+ * A report written from session notes (typed or dictated). Its text for each
+ * recipient lives in `report_variants`. The child is referred to by initials only;
+ * the first name is swapped in by the browser at export and never stored.
+ */
+export const reports = sqliteTable(
+  "reports",
+  {
+    id: id(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    childId: text("child_id")
+      .notNull()
+      .references(() => children.id, { onDelete: "cascade" }),
+    authorId: text("author_id").references(() => therapists.id, { onDelete: "set null" }),
+    docType: text("doc_type", { enum: REPORT_DOC_TYPES }).notNull(),
+    sessionDate: text("session_date").notNull(), // ISO date
+    notes: text("notes").notNull().default(""),
+    tests: text("tests", { mode: "json" }).$type<ReportTest[]>().notNull().default(sql`'[]'`),
+    recipients: text("recipients", { mode: "json" }).$type<ReportRecipient[]>().notNull().default(sql`'["parents"]'`),
+    language: text("language", { enum: REPORT_LANGUAGES }).notNull().default("fr"),
+    /** Derived from the variants (see lib/reports/status.ts), stored for list filtering. */
+    status: text("status", { enum: REPORT_STATUSES }).notNull().default("draft"),
+    ...timestamps(),
+  },
+  (table) => [index("reports_account_updated_idx").on(table.accountId, table.updatedAt), index("reports_child_idx").on(table.childId)],
+);
+
+/** The report written for one recipient: the model's draft and the therapist's edited version. */
+export const reportVariants = sqliteTable(
+  "report_variants",
+  {
+    id: id(),
+    reportId: text("report_id")
+      .notNull()
+      .references(() => reports.id, { onDelete: "cascade" }),
+    /** Scoping + daily generation limit without a join. */
+    accountId: text("account_id").notNull(),
+    recipient: text("recipient", { enum: REPORT_RECIPIENTS }).notNull(),
+    /** Exactly what the model produced; compared with `sections` to learn the therapist's style. */
+    generated: text("generated", { mode: "json" }).$type<ReportSection[]>().notNull(),
+    sections: text("sections", { mode: "json" }).$type<ReportSection[]>().notNull(),
+    model: text("model").notNull(),
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
+    generatedAt: integer("generated_at", { mode: "timestamp_ms" }).notNull(),
+    validatedAt: integer("validated_at", { mode: "timestamp_ms" }),
+    exportedAt: integer("exported_at", { mode: "timestamp_ms" }),
+  },
+  (table) => [
+    uniqueIndex("report_variants_report_recipient_idx").on(table.reportId, table.recipient),
+    index("report_variants_account_generated_idx").on(table.accountId, table.generatedAt),
+  ],
+);
+
+/**
+ * A therapist's correction of a generated report (draft → validated text), replayed as
+ * examples in later prompts so drafts come closer to her style.
+ */
+export const styleExamples = sqliteTable(
+  "style_examples",
+  {
+    id: id(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    therapistId: text("therapist_id")
+      .notNull()
+      .references(() => therapists.id, { onDelete: "cascade" }),
+    /** One example per validated version, replaced when it is validated again; deleted with the report. */
+    variantId: text("variant_id")
+      .notNull()
+      .unique()
+      .references(() => reportVariants.id, { onDelete: "cascade" }),
+    recipient: text("recipient", { enum: REPORT_RECIPIENTS }).notNull(),
+    docType: text("doc_type", { enum: REPORT_DOC_TYPES }).notNull(),
+    before: text("before", { mode: "json" }).$type<ReportSection[]>().notNull(),
+    after: text("after", { mode: "json" }).$type<ReportSection[]>().notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [index("style_examples_therapist_recipient_idx").on(table.therapistId, table.recipient, table.createdAt)],
+);
+
+export type Report = typeof reports.$inferSelect;
+export type ReportVariant = typeof reportVariants.$inferSelect;
+export type StyleExample = typeof styleExamples.$inferSelect;

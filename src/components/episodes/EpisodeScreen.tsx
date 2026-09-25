@@ -9,6 +9,7 @@ import { Button, LinkButton } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { ChipPicker } from "@/components/ui/ChipPicker";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { SaveIndicator, type SaveState } from "@/components/ui/SaveIndicator";
 import type { Episode } from "@/db/schema";
 import { useI18n } from "@/i18n/client";
 import { SITUATION_OPTIONS } from "@/lib/episode-catalog";
@@ -29,8 +30,6 @@ type EpisodeScreenProps = {
   closedMeta?: string;
   historyPanel: ReactNode;
 };
-
-type SaveState = "idle" | "saving" | "saved" | "error";
 
 export function EpisodeScreen({ episode, child, profile, history, helpedOptions, closedMeta, historyPanel }: EpisodeScreenProps) {
   const i18n = useI18n();
@@ -327,21 +326,6 @@ function TextArea({
         className="w-full resize-y rounded-lg border border-line-strong bg-surface px-3 py-2 text-[14px] leading-relaxed placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
       />
     </label>
-  );
-}
-
-function SaveIndicator({ state }: { state: SaveState }) {
-  const e = useI18n().t.episodes;
-  if (state === "idle") return null;
-  return (
-    <span
-      role="status"
-      className={clsx("flex items-center gap-1 text-[12px]", state === "error" ? "text-danger" : "text-ink-muted")}
-    >
-      {state === "saving" && <Loader2 className="size-3 animate-spin" />}
-      {state === "saved" && <Check className="size-3" />}
-      {state === "saving" ? e.saving : state === "saved" ? e.saved : e.saveError}
-    </span>
   );
 }
 
