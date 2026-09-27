@@ -4,14 +4,12 @@ import clsx from "clsx";
 import {
   Activity,
   FileText,
-  LayoutTemplate,
   Building2,
   ListChecks,
   Lock,
   LogOut,
   Menu,
   MessageCircle,
-  NotebookPen,
   Plus,
   Settings,
   UserRound,
@@ -26,7 +24,7 @@ import { useI18n } from "@/i18n/client";
 import type { Dictionary } from "@/i18n/fr";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 
-type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href?: string };
+type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href: string };
 
 const NAV: NavItem[] = [
   { label: "newReport", icon: Plus, href: "/reports/new" },
@@ -36,12 +34,6 @@ const NAV: NavItem[] = [
   { label: "expert", icon: MessageCircle, href: "/expert" },
   { label: "account", icon: Building2, href: "/account" },
   { label: "settings", icon: Settings, href: "/settings" },
-];
-
-// Modules planned for later phases, shown disabled.
-const UPCOMING: NavItem[] = [
-  { label: "exercises", icon: NotebookPen },
-  { label: "templates", icon: LayoutTemplate },
 ];
 
 function Logo() {
@@ -58,51 +50,28 @@ function Logo() {
 
 function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   const { t } = useI18n();
-  return (
-    <div className="space-y-5">
-      <NavItems items={NAV} pathname={pathname} onNavigate={onNavigate} />
-      <div>
-        <p className="mb-1.5 px-3 text-[10px] font-medium tracking-[0.14em] text-sidebar-muted uppercase">{t.nav.soon}</p>
-        <NavItems items={UPCOMING} pathname={pathname} />
-      </div>
-    </div>
-  );
-}
-
-function NavItems({ items, pathname, onNavigate }: { items: NavItem[]; pathname: string; onNavigate?: () => void }) {
-  const { t } = useI18n();
   // The longest matching href wins, so "/reports/new" doesn't also light up "/reports".
-  const activeHref = items
-    .map((item) => item.href)
-    .filter((href): href is string => Boolean(href && pathname.startsWith(href)))
+  const activeHref = NAV.map((item) => item.href)
+    .filter((href) => pathname.startsWith(href))
     .sort((a, b) => b.length - a.length)[0];
   return (
     <ul className="space-y-0.5">
-      {items.map(({ label, icon: Icon, href }) => {
-        const active = href !== undefined && href === activeHref;
-        const content = (
-          <>
-            <Icon className="size-4 shrink-0" strokeWidth={1.75} />
-            <span className="truncate">{t.nav[label]}</span>
-          </>
-        );
-        const base = "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px]";
+      {NAV.map(({ label, icon: Icon, href }) => {
+        const active = href === activeHref;
         return (
           <li key={label}>
-            {href ? (
-              <Link
-                href={href}
-                onClick={onNavigate}
-                aria-current={active ? "page" : undefined}
-                className={clsx(base, "transition-colors", active ? "bg-sidebar-active text-white" : "text-sidebar-ink hover:bg-sidebar-hover hover:text-white")}
-              >
-                {content}
-              </Link>
-            ) : (
-              <span aria-disabled className={clsx(base, "cursor-default text-sidebar-muted")}>
-                {content}
-              </span>
-            )}
+            <Link
+              href={href}
+              onClick={onNavigate}
+              aria-current={active ? "page" : undefined}
+              className={clsx(
+                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-colors",
+                active ? "bg-sidebar-active text-white" : "text-sidebar-ink hover:bg-sidebar-hover hover:text-white",
+              )}
+            >
+              <Icon className="size-4 shrink-0" strokeWidth={1.75} />
+              <span className="truncate">{t.nav[label]}</span>
+            </Link>
           </li>
         );
       })}
