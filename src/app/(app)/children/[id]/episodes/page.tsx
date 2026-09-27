@@ -19,7 +19,7 @@ export async function generateMetadata(props: PageProps<"/children/[id]/episodes
   const { t } = i18n;
   const { accountId } = await requireTherapist();
   const child = getChild(accountId, (await props.params).id);
-  return { title: `${t.episodes.historyPageTitle} · ${child ? isolate(child.name) : ""} · ${t.app.name}` };
+  return { title: `${t.episodes.historyPageTitle} · ${child ? isolate(i18n.childName(child)) : ""} · ${t.app.name}` };
 }
 
 export default async function ChildEpisodesPage(props: PageProps<"/children/[id]/episodes">) {
@@ -37,7 +37,7 @@ export default async function ChildEpisodesPage(props: PageProps<"/children/[id]
     <div className="mx-auto max-w-4xl space-y-5">
       <Link href={`/children/${child.id}`} className="inline-flex items-center gap-1 text-[13px] text-ink-muted hover:text-ink">
         <ChevronLeft className="size-4 rtl:rotate-180" />
-        {t.episodes.backToChild(isolate(child.name))}
+        {t.episodes.backToChild(isolate(i18n.childName(child)))}
       </Link>
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>

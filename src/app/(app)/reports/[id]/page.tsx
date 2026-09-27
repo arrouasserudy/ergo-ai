@@ -22,9 +22,10 @@ async function load(id: string) {
 }
 
 export async function generateMetadata(props: PageProps<"/reports/[id]">) {
-  const { t } = await getI18n();
+  const i18n = await getI18n();
+  const { t } = i18n;
   const found = await load((await props.params).id);
-  return { title: `${found ? `${isolate(found.child.name)} · ` : ""}${t.reports.listTitle} · ${t.app.name}` };
+  return { title: `${found ? `${isolate(i18n.childName(found.child))} · ` : ""}${t.reports.listTitle} · ${t.app.name}` };
 }
 
 export default async function ReportPage(props: PageProps<"/reports/[id]">) {
@@ -46,7 +47,7 @@ export default async function ReportPage(props: PageProps<"/reports/[id]">) {
       <ReportEditor
         report={report}
         variants={listVariants(report.id)}
-        child={{ name: child.name, title: childTitle(child, i18n), referralReason: child.referralReason }}
+        child={{ name: child.name, displayName: i18n.childName(child), title: childTitle(child, i18n), referralReason: child.referralReason }}
         exportContext={{ accountName: account.name, letterhead: account.letterhead, therapistName: author?.name ?? therapist.name, timeZone: APP_TIME_ZONE }}
         dictationAvailable={transcriptionAvailable()}
       />

@@ -26,7 +26,7 @@ type ChatViewProps = {
 type Pending = { parts: AnswerPart[]; live: string; searches: string[] };
 
 export function ChatView({ conversationId: initialId, initialTurns, childOptions, child }: ChatViewProps) {
-  const { t } = useI18n();
+  const { t, childName } = useI18n();
   const e = t.expert;
   const router = useRouter();
 
@@ -142,7 +142,7 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
         {attached && (
           <span className="rounded-full bg-warn px-3 py-1 text-[12px] text-warn-ink">
             {e.contextBadge("")}
-            <bdi>{attached.name}</bdi>
+            <bdi>{childName(attached)}</bdi>
           </span>
         )}
       </header>
@@ -209,7 +209,7 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
                 <option value="">{e.noContext}</option>
                 {childOptions.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name}
+                    {childName(c)}
                   </option>
                 ))}
               </select>

@@ -51,7 +51,7 @@ export default async function CrisesPage() {
                   <span className="flex items-center gap-3">
                     <Avatar name={child.name} />
                     <span>
-                      <bdi className="block text-[14px] font-medium">{child.name}</bdi>
+                      <bdi className="block text-[14px] font-medium">{i18n.childName(child)}</bdi>
                       <span className="block text-[11.5px] text-ink-muted">{i18n.age(child.birthDate) ?? "—"}</span>
                     </span>
                   </span>

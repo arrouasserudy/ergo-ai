@@ -3,6 +3,7 @@
  * Server components get an instance from `getI18n()` (i18n/server.ts),
  * client components from `useI18n()` (i18n/client.tsx).
  */
+import { maskedName } from "@/lib/child-name";
 import { fr, type Dictionary } from "./fr";
 import { he } from "./he";
 
@@ -10,6 +11,8 @@ export const LOCALES = ["fr", "he"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "fr";
 export const LOCALE_COOKIE = "locale";
+/** Set when hidden mode is on (settings): child names are replaced by initials + id. */
+export const HIDE_NAMES_COOKIE = "hide_names";
 
 /** Name of each language in its own language, for the switcher. */
 export const LOCALE_NAMES: Record<Locale, string> = { fr: "Français", he: "עברית" };
@@ -48,7 +51,7 @@ function translateError(t: Dictionary, code: string): string {
   return typeof message === "string" ? message : t.errors.generic;
 }
 
-export function createI18n(locale: Locale, timeZone: string) {
+export function createI18n(locale: Locale, timeZone: string, hideNames = false) {
   const t = dictionaries[locale];
   const intl = intlLocales[locale];
 
@@ -61,6 +64,10 @@ export function createI18n(locale: Locale, timeZone: string) {
     cause: (value: string) => t.causes[value]?.label ?? value,
     situation: (value: string) => t.situations[value] ?? value,
     error: (code: string | undefined) => (code ? translateError(t, code) : undefined),
+
+    hideNames,
+    /** The child's name for display: initials + id in hidden mode. */
+    childName: (child: { id: string; name: string }) => (hideNames ? maskedName(child) : child.name),
 
     /** Date-only ISO string (YYYY-MM-DD), e.g. "15 janv. 2026". */
     date: (iso: string | null | undefined) => {

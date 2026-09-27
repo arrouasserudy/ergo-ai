@@ -13,6 +13,7 @@ const e = {
   invalidNumber: "invalidNumber",
   invalidEmail: "invalidEmail",
   passwordTooShort: "passwordTooShort",
+  passwordMismatch: "passwordMismatch",
 };
 
 /** Empty strings from form fields become null. */
@@ -160,6 +161,17 @@ export const newTherapistSchema = z.object({
   email,
   password: newPassword,
 });
+
+/** The signed-in therapist's own profile (settings page). */
+export const profileSchema = z.object({ name: requiredText(120) });
+
+export const passwordChangeSchema = z
+  .object({
+    currentPassword: z.string().min(1, e.required),
+    newPassword,
+    confirmPassword: z.string(),
+  })
+  .refine((v) => v.newPassword === v.confirmPassword, { message: e.passwordMismatch, path: ["confirmPassword"] });
 
 export const signupSchema = newTherapistSchema.extend({ accountName: requiredText(120) });
 

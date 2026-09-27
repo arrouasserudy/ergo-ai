@@ -1,14 +1,7 @@
 import clsx from "clsx";
+import { initialsOf } from "@/lib/child-name";
 
 /** "Léa Martin" → "LM", "L. M." → "LM". */
-const initialsOf = (name: string) =>
-  name
-    .split(/[\s.]+/)
-    .map((w) => w.match(/\p{L}/u)?.[0]?.toUpperCase())
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("");
-
 export function Avatar({ name, size = "md" }: { name: string; size?: "md" | "lg" }) {
   return (
     <span
@@ -19,7 +12,7 @@ export function Avatar({ name, size = "md" }: { name: string; size?: "md" | "lg"
         size === "md" ? "size-8 text-[10.5px]" : "size-12 text-sm",
       )}
     >
-      {initialsOf(name)}
+      {initialsOf(name).join("")}
     </span>
   );
 }

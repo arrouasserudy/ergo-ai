@@ -1,7 +1,8 @@
 import { isolate, type I18n } from "@/i18n";
 
-/** "L. M. · 7 ans" / "L. M. · גיל 7" */
-export function childTitle(child: { name: string; birthDate: string | null }, i18n: I18n): string {
+/** "Léa Martin · 7 ans" / "L. M. #3F2A1C · גיל 7" (hidden mode) */
+export function childTitle(child: { id: string; name: string; birthDate: string | null }, i18n: I18n): string {
   const age = i18n.age(child.birthDate);
-  return age ? `${isolate(child.name)} · ${age}` : isolate(child.name);
+  const name = isolate(i18n.childName(child));
+  return age ? `${name} · ${age}` : name;
 }

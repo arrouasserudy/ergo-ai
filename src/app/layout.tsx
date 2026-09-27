@@ -17,13 +17,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const { locale, dir } = await getI18n();
+  const { locale, dir, hideNames } = await getI18n();
   const fonts = [publicSans, newsreader, heebo, frankRuhl].map((f) => f.variable).join(" ");
 
   return (
     <html lang={locale} dir={dir} className={`${fonts} h-full antialiased`}>
       <body className="min-h-full font-sans text-[15px]">
-        <I18nProvider locale={locale} timeZone={APP_TIME_ZONE}>
+        <I18nProvider locale={locale} timeZone={APP_TIME_ZONE} hideNames={hideNames}>
           {children}
         </I18nProvider>
       </body>

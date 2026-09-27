@@ -16,7 +16,18 @@ type Kind = "pdf" | "word" | "copy";
  * First name + export buttons, under a validated version. The name only lives in
  * this component's state: it is substituted in the browser and never sent anywhere.
  */
-export function ExportBar({ input, disabled, onExported }: { input: Omit<ExportInput, "firstName">; disabled: boolean; onExported: () => void }) {
+export function ExportBar({
+  input,
+  nameHint,
+  disabled,
+  onExported,
+}: {
+  input: Omit<ExportInput, "firstName">;
+  /** The child's name as displayed (masked in hidden mode); `input.name` stays the real one for the export. */
+  nameHint: string;
+  disabled: boolean;
+  onExported: () => void;
+}) {
   const { t } = useI18n();
   const r = t.reports;
   const [firstName, setFirstName] = useState("");
@@ -76,7 +87,7 @@ export function ExportBar({ input, disabled, onExported }: { input: Omit<ExportI
         onChange={(e) => setFirstName(e.target.value)}
         autoComplete="off"
         maxLength={60}
-        placeholder={input.name}
+        placeholder={nameHint}
         disabled={disabled}
       />
       <FormError message={error ?? undefined} />

@@ -13,6 +13,7 @@ import {
   MessageCircle,
   NotebookPen,
   Plus,
+  Settings,
   UserRound,
   X,
   type LucideIcon,
@@ -34,6 +35,7 @@ const NAV: NavItem[] = [
   { label: "crises", icon: Activity, href: "/crises" },
   { label: "expert", icon: MessageCircle, href: "/expert" },
   { label: "account", icon: Building2, href: "/account" },
+  { label: "settings", icon: Settings, href: "/settings" },
 ];
 
 // Modules planned for later phases, shown disabled.

@@ -18,7 +18,7 @@ export async function OpenEpisodes({ items }: { items: { episode: Episode; child
           >
             <span className="size-2 shrink-0 animate-pulse rounded-full bg-warn-ink" />
             <span className="min-w-0 flex-1 text-[13.5px]">
-              <bdi className="font-semibold">{child.name}</bdi> · {t.episodes.inProgress[episode.kind]}{" "}
+              <bdi className="font-semibold">{i18n.childName(child)}</bdi> · {t.episodes.inProgress[episode.kind]}{" "}
               {t.episodes.since(i18n.time(episode.startedAt))}
               {episode.situation && ` · ${i18n.situation(episode.situation)}`}
             </span>

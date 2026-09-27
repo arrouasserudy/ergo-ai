@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { identitySchema, reportSchema, toFieldErrors } from "./validation";
+import { identitySchema, passwordChangeSchema, reportSchema, toFieldErrors } from "./validation";
 
 const parse = (name: string) => identitySchema.safeParse({ name, referralReason: "x", birthDate: "", schoolLevel: "", followUpStart: "" });
 
@@ -35,5 +35,24 @@ describe("reportSchema", () => {
     expect(reportSchema.safeParse({ ...valid, recipients: [] }).success).toBe(false);
     expect(reportSchema.safeParse({ ...valid, sessionDate: "24/09/2026" }).success).toBe(false);
     expect(reportSchema.safeParse({ ...valid, recipients: ["nurse"] }).success).toBe(false);
+  });
+});
+
+describe("passwordChangeSchema", () => {
+  const errors = (input: Record<string, string>) => {
+    const parsed = passwordChangeSchema.safeParse(input);
+    return parsed.success ? {} : toFieldErrors(parsed.error);
+  };
+
+  it("accepts a matching new password", () => {
+    expect(errors({ currentPassword: "old", newPassword: "longenough", confirmPassword: "longenough" })).toEqual({});
+  });
+
+  it("flags a mismatch on the confirmation field", () => {
+    expect(errors({ currentPassword: "old", newPassword: "longenough", confirmPassword: "different1" })).toEqual({ confirmPassword: "passwordMismatch" });
+  });
+
+  it("requires the current password and a long enough new one", () => {
+    expect(errors({ currentPassword: "", newPassword: "short", confirmPassword: "short" })).toEqual({ currentPassword: "required", newPassword: "passwordTooShort" });
   });
 });

@@ -24,7 +24,7 @@ export async function EpisodeList({ items, showChild = false }: { items: Item[];
               {showChild && <Avatar name={child.name} />}
               <span className="min-w-0 flex-1">
                 <span className="flex flex-wrap items-center gap-2 text-[13.5px]">
-                  {showChild && <bdi className="font-medium">{child.name}</bdi>}
+                  {showChild && <bdi className="font-medium">{i18n.childName(child)}</bdi>}
                   <Badge tone={episode.kind === "crisis" ? "warn" : "muted"}>{t.episodes.kind[episode.kind]}</Badge>
                   <span className="text-ink-muted">{i18n.dateTime(episode.startedAt)}</span>
                 </span>

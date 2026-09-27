@@ -26,7 +26,7 @@ export async function generateMetadata(props: PageProps<"/children/[id]">) {
   const { t } = i18n;
   const { accountId } = await requireTherapist();
   const child = getChild(accountId, (await props.params).id);
-  return { title: `${child ? isolate(child.name) : t.children.listTitle} · ${t.app.name}` };
+  return { title: `${child ? isolate(i18n.childName(child)) : t.children.listTitle} · ${t.app.name}` };
 }
 
 const hasHistory = (c: Child) =>
@@ -70,7 +70,7 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
           <Eyebrow>{t.children.detailEyebrow}</Eyebrow>
           <div className="mt-1 flex flex-wrap items-center gap-3">
             <h1 className="font-serif text-[32px] leading-tight font-medium">
-              <bdi>{child.name}</bdi>
+              <bdi>{i18n.childName(child)}</bdi>
               {age && <span> · {age}</span>}
             </h1>
             <StatusBadge status={child.status} />
@@ -106,7 +106,7 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
           <EditableSection child={child} section="identity" title={t.sections.identity.title} hint={t.sections.identity.hint}>
             <InfoList
               items={[
-                { label: f.name, value: <bdi>{child.name}</bdi> },
+                { label: f.name, value: <bdi>{i18n.childName(child)}</bdi> },
                 { label: f.birthDate, value: child.birthDate && `${i18n.date(child.birthDate)}${age ? ` (${age})` : ""}` },
                 { label: f.referralReason, value: child.referralReason, wide: true },
                 { label: f.schoolLevel, value: child.schoolLevel },
