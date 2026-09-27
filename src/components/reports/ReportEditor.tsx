@@ -12,7 +12,6 @@ import { SaveIndicator, type SaveState } from "@/components/ui/SaveIndicator";
 import {
   REPORT_DOC_TYPES,
   REPORT_LANGUAGES,
-  REPORT_RECIPIENTS,
   type Report,
   type ReportRecipient,
   type ReportSection,
@@ -97,13 +96,6 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
   const current = recipients.includes(active) ? active : recipients[0];
   const variant = current ? variants[current] : undefined;
   const missing = recipients.filter((k) => !variants[k]);
-
-  const toggleRecipient = (k: ReportRecipient) => {
-    const next = recipients.includes(k) ? recipients.filter((x) => x !== k) : REPORT_RECIPIENTS.filter((x) => x === k || recipients.includes(x));
-    if (next.length === 0) return;
-    update({ recipients: next });
-    if (!recipients.includes(k)) setActive(k);
-  };
 
   const generate = async (targets: ReportRecipient[]) => {
     setConfirmRegenerate(false);
@@ -279,43 +271,30 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
             }
           />
           <div className="space-y-4 px-5 pb-5">
-            <fieldset className="flex flex-wrap items-center gap-2">
-              <legend className="sr-only">{r.recipientsLabel}</legend>
-              <span aria-hidden className="me-1 text-[12.5px] font-medium text-ink-soft">
-                {r.recipientsLabel}
-              </span>
-              {REPORT_RECIPIENTS.map((k) => (
-                <label
-                  key={k}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-full border border-line-strong px-3 py-1 text-[12.5px] has-checked:border-primary has-checked:bg-tint has-checked:text-tint-ink"
-                >
-                  <input type="checkbox" checked={recipients.includes(k)} onChange={() => toggleRecipient(k)} className="accent-primary" />
-                  {r.recipient[k]}
-                </label>
-              ))}
-            </fieldset>
-
-            <div role="tablist" className="flex rounded-lg bg-surface-muted p-1">
-              {recipients.map((k) => (
-                <button
-                  key={k}
-                  type="button"
-                  role="tab"
-                  aria-selected={k === current}
-                  onClick={() => {
-                    setActive(k);
-                    setConfirmRegenerate(false);
-                  }}
-                  className={clsx(
-                    "flex h-9 flex-1 items-center justify-center gap-2 rounded-md text-[13.5px] transition-colors",
-                    k === current ? "bg-surface font-medium shadow-sm" : "text-ink-muted hover:text-ink",
-                  )}
-                >
-                  <VariantDot variant={variants[k]} />
-                  {r.recipient[k]}
-                </button>
-              ))}
-            </div>
+            {/* One generic report (for parents); older reports may still hold one version per recipient. */}
+            {recipients.length > 1 && (
+              <div role="tablist" className="flex rounded-lg bg-surface-muted p-1">
+                {recipients.map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    role="tab"
+                    aria-selected={k === current}
+                    onClick={() => {
+                      setActive(k);
+                      setConfirmRegenerate(false);
+                    }}
+                    className={clsx(
+                      "flex h-9 flex-1 items-center justify-center gap-2 rounded-md text-[13.5px] transition-colors",
+                      k === current ? "bg-surface font-medium shadow-sm" : "text-ink-muted hover:text-ink",
+                    )}
+                  >
+                    <VariantDot variant={variants[k]} />
+                    {r.recipient[k]}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {genError && <FormError message={genError} />}
             {confirmRegenerate && (
@@ -343,7 +322,7 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
                 {current && (
                   <Button variant="secondary" onClick={() => generate([current])} disabled={isGenerating}>
                     <Sparkles className="size-4" />
-                    {r.generateOne(r.recipient[current])}
+                    {recipients.length > 1 ? r.generateOne(r.recipient[current]) : r.generateAll(1)}
                   </Button>
                 )}
               </div>
@@ -391,7 +370,6 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
                     language: data.language,
                     timeZone: exportContext.timeZone,
                     docType: data.docType,
-                    recipient: variant.recipient,
                     sessionDate: data.sessionDate,
                     name: child.name,
                     accountName: exportContext.accountName,

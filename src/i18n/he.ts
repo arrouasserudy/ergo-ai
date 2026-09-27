@@ -262,7 +262,7 @@ export const he: Dictionary = {
     searchPlaceholder: "חיפוש ילד/ה לפי ראשי תיבות…",
     statusFilter: { all: "כל הסטטוסים", draft: "טיוטות", validated: "מאושרים", exported: "יוצאו" } as Record<string, string>,
     thisMonth: "החודש",
-    columns: { child: "ילד/ה", type: "סוג", recipients: "נמענים", date: "תאריך", status: "סטטוס" },
+    columns: { child: "ילד/ה", type: "סוג", date: "תאריך", status: "סטטוס" },
     count: (n: number) => (n === 1 ? "סיכום אחד" : `${n} סיכומים`),
     emptyTitle: "אין עדיין סיכומים",
     emptyBody: "אחרי מפגש, הכתיבו או הקלידו את ההערות: הסיכום נכתב לכל נמען.",
@@ -270,8 +270,12 @@ export const he: Dictionary = {
 
     docType: {
       follow_up: "מעקב",
-      initial_assessment: "אבחון ראשוני",
-      letter: "מכתב",
+      initial_assessment: "הערכה ראשונית",
+      feeding_observation: "הערכת תצפית אכילה",
+      home_visit: "ביקור בית",
+      parent_guidance: "הדרכת הורים",
+      year_start_summary: "דו״ח סיכום תחילת שנה",
+      year_end_summary: "דו״ח סיכום סוף שנה",
       recommendations: "המלצות",
     } as Record<string, string>,
     recipient: { parents: "הורים", doctor: "רופא/ה", school: "בית ספר" } as Record<string, string>,
@@ -314,7 +318,6 @@ export const he: Dictionary = {
     dictationHint: "הטקסט המוכתב מתווסף לסוף ההערות. ההקלטה אינה נשמרת.",
 
     reportTitle: "הסיכום שנוצר",
-    recipientsLabel: "נמענים",
     generate: "יצירה",
     generateAll: (n: number) => (n === 1 ? "יצירת הסיכום" : `יצירת ${n} הגרסאות`),
     generateOne: (recipient: string) => `יצירת הגרסה עבור ${recipient}`,
@@ -346,19 +349,18 @@ export const he: Dictionary = {
     document: {
       title: {
         follow_up: "סיכום מפגש ריפוי בעיסוק",
-        initial_assessment: "אבחון ראשוני בריפוי בעיסוק",
-        letter: "מכתב",
+        initial_assessment: "הערכה ראשונית בריפוי בעיסוק",
+        feeding_observation: "הערכת תצפית אכילה",
+        home_visit: "סיכום ביקור בית",
+        parent_guidance: "סיכום הדרכת הורים",
+        year_start_summary: "דו״ח סיכום תחילת שנה",
+        year_end_summary: "דו״ח סיכום סוף שנה",
         recommendations: "המלצות ריפוי בעיסוק",
-      } as Record<string, string>,
-      to: {
-        parents: "לכבוד ההורים",
-        doctor: "לכבוד הרופא/ה המטפל/ת",
-        school: "לכבוד צוות בית הספר",
       } as Record<string, string>,
       child: (name: string) => `ילד/ה: ${name}`,
       session: (date: string) => `מפגש מתאריך ${date}`,
       therapist: "מרפא/ה בעיסוק",
-      fileName: (docType: string, recipient: string, date: string) => `${docType}-${recipient}-${date}`.replace(/\s+/g, "-"),
+      fileName: (docType: string, date: string) => `${docType}-${date}`.replace(/\s+/g, "-"),
     },
 
     childCardTitle: "סיכומי טיפול",

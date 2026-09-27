@@ -202,7 +202,7 @@ const REPORTS: ReportSeed[] = [
   },
   {
     name: "S. K.",
-    docType: "letter",
+    docType: "follow_up",
     days: 6,
     notes: "- courrier pédiatre : progrès habillage, demande de renouvellement de prise en charge",
     recipients: ["doctor"],

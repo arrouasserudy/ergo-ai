@@ -126,7 +126,6 @@ function PrintDocument({ doc }: { doc: ExportDocument }) {
         ))}
       </header>
       <h1 className="font-serif text-[20pt] leading-tight">{doc.title}</h1>
-      <p className="mt-1 text-neutral-700">{doc.to}</p>
       <div className="mt-2 mb-6 text-[10pt]">
         {doc.meta.map((line) => (
           <p key={line}>{line}</p>

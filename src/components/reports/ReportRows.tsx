@@ -5,7 +5,7 @@ import { getI18n } from "@/i18n/server";
 import { ReportStatusBadge } from "./ReportStatusBadge";
 
 export type ReportRow = {
-  report: Pick<Report, "id" | "docType" | "recipients" | "sessionDate" | "status">;
+  report: Pick<Report, "id" | "docType" | "sessionDate" | "status">;
   child: { id: string; name: string; birthDate: string | null };
 };
 
@@ -14,7 +14,7 @@ export async function ReportRows({ rows, showChild = true }: { rows: ReportRow[]
   const i18n = await getI18n();
   const { t } = i18n;
   const r = t.reports;
-  const grid = showChild ? "md:grid-cols-[1.2fr_1fr_1.6fr_1fr_0.8fr]" : "md:grid-cols-[1fr_1.6fr_1fr_0.8fr]";
+  const grid = showChild ? "md:grid-cols-[1.2fr_1.6fr_1fr_0.8fr]" : "md:grid-cols-[1.6fr_1fr_0.8fr]";
 
   return (
     <>
@@ -23,7 +23,6 @@ export async function ReportRows({ rows, showChild = true }: { rows: ReportRow[]
       >
         {showChild && <span>{r.columns.child}</span>}
         <span>{r.columns.type}</span>
-        <span>{r.columns.recipients}</span>
         <span>{r.columns.date}</span>
         <span>{r.columns.status}</span>
       </div>
@@ -47,7 +46,6 @@ export async function ReportRows({ rows, showChild = true }: { rows: ReportRow[]
                 {r.docType[report.docType]}
                 <span className="text-ink-muted md:hidden"> · {i18n.date(report.sessionDate)}</span>
               </span>
-              <span className="hidden text-[13px] text-ink-soft md:block">{report.recipients.map((k) => r.recipient[k]).join(" · ")}</span>
               <span className="hidden text-[13px] text-ink-soft md:block">{i18n.date(report.sessionDate)}</span>
               <span className="col-start-2 row-start-1 md:col-start-auto md:row-start-auto">
                 <ReportStatusBadge status={report.status} />

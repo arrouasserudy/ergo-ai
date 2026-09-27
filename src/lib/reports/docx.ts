@@ -35,7 +35,6 @@ export async function buildDocx(doc: ExportDocument): Promise<Blob> {
   });
 
   children.push(para([run(doc.title)], { heading: HeadingLevel.TITLE, after: 80 }));
-  children.push(para([run(doc.to, { color: "4A524F" })], { after: 80 }));
   for (const line of doc.meta) children.push(para([run(line)], { after: 40 }));
   children.push(para([], { after: 120 }));
 

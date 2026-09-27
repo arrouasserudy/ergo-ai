@@ -18,7 +18,11 @@ export const TO_COMPLETE: Record<Locale, string> = { fr: "[à compléter]", he: 
 const DOC_TYPES: Record<ReportDocType, string> = {
   follow_up: "a follow-up report after a therapy session",
   initial_assessment: "an initial assessment report",
-  letter: "a letter",
+  feeding_observation: "a feeding observation assessment (the child observed during a meal: posture, oral-motor skills, sensory responses to food, behaviour at the table)",
+  home_visit: "a home visit report (the child's routines and environment at home, with practical adaptations)",
+  parent_guidance: "a parent guidance session summary (what was discussed with the parents and the strategies agreed to try at home)",
+  year_start_summary: "a start-of-year summary report (where the child stands at the start of the school year, and the therapy goals for the year)",
+  year_end_summary: "an end-of-year summary report (progress over the school year, which goals were reached, and recommendations for next year)",
   recommendations: "a set of practical recommendations",
 };
 

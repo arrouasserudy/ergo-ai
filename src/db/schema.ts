@@ -301,7 +301,16 @@ export const documentChunks = sqliteTable(
 
 export type UploadedDocument = typeof documents.$inferSelect;
 
-export const REPORT_DOC_TYPES = ["follow_up", "initial_assessment", "letter", "recommendations"] as const;
+export const REPORT_DOC_TYPES = [
+  "follow_up",
+  "initial_assessment",
+  "feeding_observation",
+  "home_visit",
+  "parent_guidance",
+  "year_start_summary",
+  "year_end_summary",
+  "recommendations",
+] as const;
 export type ReportDocType = (typeof REPORT_DOC_TYPES)[number];
 
 export const REPORT_RECIPIENTS = ["parents", "doctor", "school"] as const;
