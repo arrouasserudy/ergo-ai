@@ -4,20 +4,20 @@ import { db } from "@/db";
 import { chatMessages, conversations } from "@/db/schema";
 import { getLocale } from "@/i18n/server";
 import { getChild } from "@/lib/children";
-import { childContextText } from "@/lib/expert/child-context";
+import { contextFor } from "@/lib/expert/context";
 import { DAILY_QUESTION_LIMIT, getConversation, listMessages, questionsToday } from "@/lib/expert/conversations";
 import type { ChatEvent } from "@/lib/expert/events";
 import { defaultProvider, providerAvailable, runProvider } from "@/lib/expert/providers";
 import { ProviderUnavailableError } from "@/lib/expert/providers/types";
-import { listChildEpisodes } from "@/lib/episodes";
 import { getSession } from "@/lib/session";
-import { APP_TIME_ZONE } from "@/lib/time";
 
 const bodySchema = z.object({
   conversationId: z.string().uuid().nullable(),
   message: z.string().trim().min(1).max(4000),
   /** Only used when starting a conversation. */
   childId: z.string().uuid().nullable(),
+  /** Episode in progress to ask help about (starting a conversation only). */
+  episodeId: z.string().uuid().nullable().default(null),
 });
 
 export async function POST(request: Request) {
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return new Response("Bad request", { status: 400 });
-  const { message, childId } = parsed.data;
+  const { message, childId, episodeId } = parsed.data;
 
   const locale = await getLocale();
   const encoder = new TextEncoder();
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
         let prompt = message;
         if (!conversation) {
           const child = childId ? getChild(accountId, childId) : null;
-          if (child) prompt = `${childContextText(child, listChildEpisodes(accountId, child.id, { limit: 20 }), APP_TIME_ZONE)}\n\n${message}`;
+          if (child) prompt = `${contextFor(accountId, child, episodeId)}\n\n${message}`;
           conversation = db
             .insert(conversations)
             .values({ accountId, therapistId, childId: child?.id ?? null, title: message.slice(0, 80), provider })

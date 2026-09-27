@@ -112,6 +112,7 @@ export const fr = {
     minutes: (n: number) => `${n} min`,
     since: (time: string) => `depuis ${time}`,
     resume: "Reprendre",
+    askAmit: "Demander de l'aide à Amit",
     openBanner: (kind: string, minutes: number) => `${kind} en cours depuis ${minutes} min`,
 
     liveHint: "Check-list issue de l'entretien et de l'historique de l'enfant",
@@ -219,6 +220,11 @@ export const fr = {
     you: "Vous",
     guardrail: "Il ne voit pas l'enfant, ne pose pas de diagnostic et ne remplace pas un avis médical. Vérifiez les sources.",
     askExpert: "Demander à Amit",
+    /** Sent automatically when help is asked from an episode in progress. */
+    askHelp: {
+      crisis: "Crise en cours. Que puis-je essayer maintenant pour l'aider à s'apaiser, et quelles causes vérifier en priorité ?",
+      difficulty: "Difficulté en cours. Comment l'aider maintenant, et quelles causes vérifier en priorité ?",
+    } as Record<string, string>,
     library: {
       link: "Bibliothèque",
       title: "Bibliothèque du cabinet",

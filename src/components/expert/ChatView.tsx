@@ -20,12 +20,14 @@ type ChatViewProps = {
   childOptions: ChildOption[];
   /** Preselected (new conversation) or attached (existing one) child. */
   child: ChildOption | null;
+  /** Episode in progress of the preselected child: sent as context, help asked on arrival. */
+  liveEpisode?: { id: string; kind: string } | null;
 };
 
 /** The answer being streamed: finished assistant messages + the text still arriving. */
 type Pending = { parts: AnswerPart[]; live: string; searches: string[] };
 
-export function ChatView({ conversationId: initialId, initialTurns, childOptions, child }: ChatViewProps) {
+export function ChatView({ conversationId: initialId, initialTurns, childOptions, child, liveEpisode = null }: ChatViewProps) {
   const { t, childName } = useI18n();
   const e = t.expert;
   const router = useRouter();
@@ -40,23 +42,26 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
   const [showPreview, setShowPreview] = useState(false);
   const [, startPreview] = useTransition();
   const bottom = useRef<HTMLDivElement>(null);
+  const autoAsked = useRef(false);
 
   const isNew = conversationId === null;
   const busy = pending !== null;
   const attached = isNew ? childOptions.find((c) => c.id === childId) ?? null : child;
+  // The episode goes with its child: picking another child drops it.
+  const episodeId = isNew && liveEpisode && childId === child?.id ? liveEpisode.id : null;
 
   // Load the exact context that will be shared, whenever the picked child changes.
   useEffect(() => {
     if (!isNew || !childId) return;
     let cancelled = false;
     startPreview(async () => {
-      const text = await previewChildContext(childId);
+      const text = await previewChildContext(childId, episodeId);
       if (!cancelled) setPreview(text);
     });
     return () => {
       cancelled = true;
     };
-  }, [childId, isNew]);
+  }, [childId, episodeId, isNew]);
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -76,7 +81,7 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
       const res = await fetch("/api/expert/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ conversationId, message: text, childId: isNew ? childId : null }),
+        body: JSON.stringify({ conversationId, message: text, childId: isNew ? childId : null, episodeId }),
       });
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
@@ -126,6 +131,14 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
     if (failed) setError(failed);
     router.refresh(); // conversation list
   }
+
+  // Coming from an episode in progress: ask for help right away (once, even under Strict Mode).
+  useEffect(() => {
+    if (!liveEpisode || autoAsked.current) return;
+    autoAsked.current = true;
+    ask(e.askHelp[liveEpisode.kind] ?? e.askHelp.crisis);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const pendingAnswer = useMemo(() => (pending ? buildAnswer(pending.parts) : null), [pending]);
 

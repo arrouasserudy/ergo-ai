@@ -1,7 +1,8 @@
 "use client";
 
 import clsx from "clsx";
-import { Check, ChevronDown, CircleAlert, Info, Loader2, Trash2 } from "lucide-react";
+import { Check, ChevronDown, CircleAlert, Info, Loader2, MessageCircle, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { deleteEpisode, finishEpisode, saveEpisode } from "@/app/actions/episodes";
 import { Badge } from "@/components/ui/Badge";
@@ -45,6 +46,8 @@ export function EpisodeScreen({ episode, child, profile, history, helpedOptions,
   });
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [finishing, startFinishing] = useTransition();
+  const [asking, startAsking] = useTransition();
+  const router = useRouter();
   const [finishError, setFinishError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showMore, setShowMore] = useState(false);
@@ -96,6 +99,13 @@ export function EpisodeScreen({ episode, child, profile, history, helpedOptions,
       if (result && !result.ok) setFinishError(t.errors.generic);
     });
 
+  // Save what was just checked (the autosave may still be pending) so Amit sees it.
+  const askAmit = () =>
+    startAsking(async () => {
+      if (dirty.current) await saveEpisode(episode.id, data).catch(() => null);
+      router.push(`/expert?child=${child.id}&episode=${episode.id}`);
+    });
+
   return (
     <div className="mx-auto max-w-6xl space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-4">
@@ -115,6 +125,12 @@ export function EpisodeScreen({ episode, child, profile, history, helpedOptions,
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <SaveIndicator state={saveState} />
+          {isOpen && (
+            <Button variant="secondary" onClick={askAmit} disabled={asking}>
+              {asking ? <Loader2 className="size-4 animate-spin" /> : <MessageCircle className="size-4" />}
+              {e.askAmit}
+            </Button>
+          )}
           {isOpen && (
             <LinkButton href={`/children/${child.id}`} variant="secondary">
               {e.later}

@@ -118,6 +118,7 @@ export const he: Dictionary = {
     minutes: (n: number) => `${n} דק׳`,
     since: (time: string) => `מאז ${time}`,
     resume: "המשך",
+    askAmit: "בקשת עזרה מעמית",
     openBanner: (kind: string, minutes: number) => `${kind} פעיל כבר ${minutes} דק׳`,
 
     liveHint: "רשימת בדיקה מבוססת הראיון עם ההורים וההיסטוריה של הילד/ה",
@@ -224,6 +225,10 @@ export const he: Dictionary = {
     you: "אני",
     guardrail: "הוא לא רואה את הילד/ה, לא מאבחן ולא מחליף ייעוץ רפואי. כדאי לבדוק את המקורות.",
     askExpert: "התייעצות עם עמית",
+    askHelp: {
+      crisis: "יש משבר עכשיו. מה אפשר לנסות כרגע כדי לעזור לילד/ה להירגע, ואילו סיבות כדאי לבדוק קודם?",
+      difficulty: "יש קושי עכשיו. איך אפשר לעזור כרגע, ואילו סיבות כדאי לבדוק קודם?",
+    } as Record<string, string>,
     library: {
       link: "ספרייה",
       title: "ספריית הקליניקה",
