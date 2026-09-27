@@ -6,7 +6,7 @@ import { setLocale } from "@/app/actions/locale";
 import { LOCALES, LOCALE_NAMES } from "@/i18n";
 import { useI18n } from "@/i18n/client";
 
-/** FR / עב toggle; the choice is kept in a cookie. */
+/** Language toggle (Français / עברית / English); the choice is kept in a cookie. */
 export function LocaleSwitcher({ tone = "light" }: { tone?: "light" | "dark" }) {
   const { locale, t } = useI18n();
   const [pending, startTransition] = useTransition();

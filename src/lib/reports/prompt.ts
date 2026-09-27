@@ -10,10 +10,10 @@ export const CHILD_PLACEHOLDER = "{{child}}";
 /** At most this many past corrections are replayed as style examples. */
 export const MAX_STYLE_EXAMPLES = 3;
 
-const LANGUAGE: Record<Locale, string> = { fr: "French", he: "Hebrew" };
+const LANGUAGE: Record<Locale, string> = { fr: "French", he: "Hebrew", en: "English" };
 
 /** Marker for information the notes do not give; the therapist fills it in. */
-export const TO_COMPLETE: Record<Locale, string> = { fr: "[à compléter]", he: "[להשלמה]" };
+export const TO_COMPLETE: Record<Locale, string> = { fr: "[à compléter]", he: "[להשלמה]", en: "[to complete]" };
 
 const DOC_TYPES: Record<ReportDocType, string> = {
   follow_up: "a follow-up report after a therapy session",

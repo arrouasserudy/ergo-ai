@@ -5,9 +5,10 @@
  */
 import { maskedName } from "@/lib/child-name";
 import { fr, type Dictionary } from "./fr";
+import { en } from "./en";
 import { he } from "./he";
 
-export const LOCALES = ["fr", "he"] as const;
+export const LOCALES = ["fr", "he", "en"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "fr";
 export const LOCALE_COOKIE = "locale";
@@ -15,10 +16,10 @@ export const LOCALE_COOKIE = "locale";
 export const HIDE_NAMES_COOKIE = "hide_names";
 
 /** Name of each language in its own language, for the switcher. */
-export const LOCALE_NAMES: Record<Locale, string> = { fr: "Français", he: "עברית" };
+export const LOCALE_NAMES: Record<Locale, string> = { fr: "Français", he: "עברית", en: "English" };
 
-const dictionaries: Record<Locale, Dictionary> = { fr, he };
-const intlLocales: Record<Locale, string> = { fr: "fr-FR", he: "he-IL" };
+const dictionaries: Record<Locale, Dictionary> = { fr, he, en };
+const intlLocales: Record<Locale, string> = { fr: "fr-FR", he: "he-IL", en: "en-GB" };
 
 /**
  * Wraps text in Unicode direction isolates so Latin initials keep their order inside

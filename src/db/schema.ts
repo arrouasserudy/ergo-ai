@@ -310,7 +310,7 @@ export type ReportRecipient = (typeof REPORT_RECIPIENTS)[number];
 export const REPORT_STATUSES = ["draft", "validated", "exported"] as const;
 export type ReportStatus = (typeof REPORT_STATUSES)[number];
 
-export const REPORT_LANGUAGES = ["fr", "he"] as const;
+export const REPORT_LANGUAGES = ["fr", "he", "en"] as const;
 
 /** One titled block of a generated report. The body is light markdown (paragraphs, "-" lists, **bold**). */
 export type ReportSection = { heading: string; body: string };

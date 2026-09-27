@@ -11,6 +11,7 @@ export const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
 const VOCABULARY: Record<Locale, string> = {
   fr: "Notes de séance d'ergothérapie pédiatrique : motricité fine, graphomotricité, pince tripode, praxies, régulation sensorielle, proprioception, coussin lesté, bilan, M-ABC-2, BHK, Beery VMI, Profil sensoriel de Dunn.",
   he: "סיכום טיפול בריפוי בעיסוק לילדים: מוטוריקה עדינה, גרפומוטוריקה, אחיזת עיפרון, ויסות חושי, פרופריוספציה, כרית משקולת, אבחון, M-ABC-2, Beery VMI.",
+  en: "Pediatric occupational therapy session notes: fine motor skills, handwriting, tripod grasp, praxis, sensory regulation, proprioception, weighted cushion, assessment, M-ABC-2, Beery VMI, Dunn Sensory Profile.",
 };
 
 export function transcriptionAvailable(): boolean {

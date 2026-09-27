@@ -1,6 +1,6 @@
 import type { Locale } from "@/i18n";
 
-const LANGUAGE: Record<Locale, string> = { fr: "French", he: "Hebrew" };
+const LANGUAGE: Record<Locale, string> = { fr: "French", he: "Hebrew", en: "English" };
 
 /** Marker the UI uses to render the "what I don't know" box. */
 export const LIMITS_MARKER = "[LIMITS]";
