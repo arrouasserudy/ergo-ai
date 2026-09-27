@@ -2,8 +2,8 @@ import type { Child, ReportDocType, ReportRecipient, ReportSection, ReportTest }
 import { ageInMonths, type Locale } from "@/i18n";
 
 /**
- * The model never sees the child's initials: it writes this placeholder wherever it
- * names the child, and the server swaps in the initials before storing the text.
+ * The model never sees the child's name: it writes this placeholder wherever it
+ * names the child, and the server swaps in the name before storing the text.
  */
 export const CHILD_PLACEHOLDER = "{{child}}";
 
@@ -71,7 +71,7 @@ export function sectionsToText(sections: ReportSection[]): string {
   return sections.map((s) => `## ${s.heading}\n${s.body}`).join("\n\n");
 }
 
-/** Pseudonymized: age, referral reason, school level. No initials, no name. */
+/** Pseudonymized: age, referral reason, school level. No name. */
 function childContext(child: ReportPromptInput["child"], sessionDate: string): string[] {
   const lines: string[] = [];
   if (child.birthDate) {
@@ -108,8 +108,8 @@ export function reportUserPrompt(input: ReportPromptInput): string {
   return parts.join("\n\n");
 }
 
-/** Replaces the placeholder the model wrote with the child's initials. */
-export function fillChildPlaceholder(sections: ReportSection[], initials: string): ReportSection[] {
-  const fill = (text: string) => text.split(CHILD_PLACEHOLDER).join(initials);
+/** Replaces the placeholder the model wrote with the child's name. */
+export function fillChildPlaceholder(sections: ReportSection[], name: string): ReportSection[] {
+  const fill = (text: string) => text.split(CHILD_PLACEHOLDER).join(name);
   return sections.map((s) => ({ heading: fill(s.heading).trim(), body: fill(s.body).trim() }));
 }

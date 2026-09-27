@@ -17,8 +17,8 @@ export function listChildren(accountId: string, { search = "", status = "active"
     const compact = `%${term.replace(/[\s.]/g, "").split("").join("%")}%`;
     conditions.push(
       or(
-        like(children.initials, pattern),
-        like(children.initials, compact),
+        like(children.name, pattern),
+        like(children.name, compact),
         like(children.referralReason, pattern),
         like(children.schoolLevel, pattern),
       )!,

@@ -17,7 +17,7 @@ export async function generateMetadata(props: PageProps<"/children/[id]/episodes
   const { accountId } = await requireTherapist();
   const { id } = await props.params;
   const child = getChild(accountId, id);
-  return { title: `${t.nav.crises} · ${child ? isolate(child.initials) : ""} · ${t.app.name}` };
+  return { title: `${t.nav.crises} · ${child ? isolate(child.name) : ""} · ${t.app.name}` };
 }
 
 export default async function EpisodePage(props: PageProps<"/children/[id]/episodes/[episodeId]">) {

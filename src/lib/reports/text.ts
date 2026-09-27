@@ -1,28 +1,29 @@
 import type { ReportSection } from "@/db/schema";
 
 /**
- * Client-side helpers for export. The child's first name is only ever substituted
- * here, in the browser, and never sent to the server.
+ * Client-side helpers for export. The first name typed at export is only ever
+ * substituted here, in the browser, and never sent to the server.
  */
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
- * Replaces the child's initials ("L. M.", also typed as "L.M." or "L. M") with the
- * first name. An empty name leaves the text unchanged.
+ * Replaces the child's stored name ("Léa Martin", or initials "L. M." also typed as
+ * "L.M." or "L. M") with the first name. An empty first name leaves the text unchanged.
  */
-export function substituteName(text: string, initials: string, firstName: string): string {
-  const name = firstName.trim();
-  const letters = initials.match(/\p{Lu}|[א-ת]/gu) ?? [];
-  if (!name || letters.length === 0) return text;
-  // Letters separated by optional dots/spaces; the final dot is optional.
-  const pattern = letters.map(escapeRegExp).join("\\.?\\s?") + "\\.?";
+export function substituteName(text: string, childName: string, firstName: string): string {
+  const replacement = firstName.trim();
+  const words = childName.split(/[\s.-]+/).filter(Boolean);
+  if (!replacement || words.length === 0) return text;
+  // Words separated by optional dots/spaces/hyphens; initials may end with a dot.
+  const isInitials = words.every((w) => [...w].length === 1);
+  const pattern = words.map(escapeRegExp).join("[\\s.-]*") + (isInitials ? "\\.?" : "");
   // Not preceded or followed by a letter, so "L. M." inside a word is left alone.
-  return text.replace(new RegExp(`(?<![\\p{L}])${pattern}(?![\\p{L}])`, "gu"), name);
+  return text.replace(new RegExp(`(?<![\\p{L}])${pattern}(?![\\p{L}])`, "gu"), replacement);
 }
 
-export function substituteSections(sections: ReportSection[], initials: string, firstName: string): ReportSection[] {
-  return sections.map((s) => ({ heading: substituteName(s.heading, initials, firstName), body: substituteName(s.body, initials, firstName) }));
+export function substituteSections(sections: ReportSection[], childName: string, firstName: string): ReportSection[] {
+  return sections.map((s) => ({ heading: substituteName(s.heading, childName, firstName), body: substituteName(s.body, childName, firstName) }));
 }
 
 export type Inline = { text: string; bold: boolean };

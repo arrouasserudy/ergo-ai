@@ -22,7 +22,7 @@ export type ExportInput = {
   docType: ReportDocType;
   recipient: ReportRecipient;
   sessionDate: string;
-  initials: string;
+  name: string;
   /** Typed at export, used in memory only. */
   firstName: string;
   accountName: string;
@@ -43,8 +43,8 @@ export function buildExportDocument(input: ExportInput): ExportDocument {
     letterhead,
     title: d.title[input.docType],
     to: d.to[input.recipient],
-    meta: [d.child(substituteName(input.initials, input.initials, input.firstName)), d.session(date)],
-    sections: substituteSections(input.sections, input.initials, input.firstName),
+    meta: [d.child(substituteName(input.name, input.name, input.firstName)), d.session(date)],
+    sections: substituteSections(input.sections, input.name, input.firstName),
     signature: [input.therapistName, d.therapist],
     fileName: d.fileName(i18n.t.reports.docType[input.docType], i18n.t.reports.recipient[input.recipient], input.sessionDate),
   };

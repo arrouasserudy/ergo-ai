@@ -24,13 +24,12 @@ export function IdentityFields({ child, errors = {} }: FieldsProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <InputField
-        name="initials"
-        label={f.initials}
-        help={f.initialsHelp}
-        placeholder={f.initialsPlaceholder}
-        defaultValue={child?.initials ?? ""}
-        error={errors.initials}
-        maxLength={16}
+        name="name"
+        label={f.name}
+        placeholder={f.namePlaceholder}
+        defaultValue={child?.name ?? ""}
+        error={errors.name}
+        maxLength={100}
         autoComplete="off"
         required
       />

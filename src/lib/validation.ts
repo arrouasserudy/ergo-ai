@@ -11,7 +11,6 @@ const e = {
   invalidDate: "invalidDate",
   futureDate: "futureDate",
   invalidNumber: "invalidNumber",
-  initialsFormat: "initialsFormat",
   invalidEmail: "invalidEmail",
   passwordTooShort: "passwordTooShort",
 };
@@ -42,24 +41,8 @@ const tagList = z
   .max(40)
   .transform((tags) => [...new Set(tags)]);
 
-/**
- * One initial: an uppercase Latin letter ("L", "L."), or a Hebrew letter followed by a
- * period/geresh or a separator ("ל.", "ל׳", "ל מ"). Lowercase Latin letters and runs of
- * Hebrew letters are rejected, so a first name like "Léa" or "לאה" cannot slip through.
- */
-const INITIALS_PATTERN = /^(?:(?:\p{Lu}\.?|[\u05D0-\u05EA](?:[.'׳"״]|(?=[\s-]|$)))[\s.-]*){1,4}$/u;
-const INITIAL_LETTER = /\p{Lu}|[\u05D0-\u05EA]/gu;
-
-/** Accepts 1–4 initials ("L. M.", "LM", "J.-B. D.", "ל. מ.") and normalizes them to "L. M." / "ל. מ.". */
-const initials = z
-  .string()
-  .trim()
-  .min(1, e.required)
-  .regex(INITIALS_PATTERN, e.initialsFormat)
-  .transform((v) => (v.match(INITIAL_LETTER) ?? []).map((c) => `${c}.`).join(" "));
-
 export const identitySchema = z.object({
-  initials,
+  name: requiredText(100).transform((v) => v.replace(/\s+/g, " ")),
   birthDate: pastDate,
   referralReason: requiredText(200),
   schoolLevel: optionalText(80),

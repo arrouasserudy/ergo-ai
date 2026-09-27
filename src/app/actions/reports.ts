@@ -126,7 +126,7 @@ export async function generateReport(id: string, recipients: ReportRecipient[]):
     for (const result of results) {
       if (result.status !== "fulfilled") continue;
       const { recipient, sections: raw, model, usage } = result.value;
-      const sections = fillChildPlaceholder(raw, child.initials);
+      const sections = fillChildPlaceholder(raw, child.name);
       const values = { generated: sections, sections, model, inputTokens: usage.input, outputTokens: usage.output, generatedAt: now, validatedAt: null, exportedAt: null };
       tx.insert(reportVariants)
         .values({ reportId: id, accountId, recipient, ...values })

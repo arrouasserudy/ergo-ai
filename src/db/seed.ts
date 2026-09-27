@@ -37,7 +37,7 @@ type ChildSeed = Omit<NewChild, "accountId">;
 
 const DEMO_CHILDREN: ChildSeed[] = [
   {
-    initials: "L. M.",
+    name: "L. M.",
     birthDate: yearsAgo(7, 1, 3),
     referralReason: "Motricité fine, régulation sensorielle",
     schoolLevel: "CE1",
@@ -55,9 +55,9 @@ const DEMO_CHILDREN: ChildSeed[] = [
     calmingStrategies: ["removeCause", "weightedCushion", "quietCorner"],
     interests: ["dinosaurs", "space"],
   },
-  { initials: "N. A.", birthDate: yearsAgo(5, 6, 20), referralReason: "Bilan initial — graphomotricité", schoolLevel: "Grande section", followUpStart: "2026-09-01" },
+  { name: "N. A.", birthDate: yearsAgo(5, 6, 20), referralReason: "Bilan initial — graphomotricité", schoolLevel: "Grande section", followUpStart: "2026-09-01" },
   {
-    initials: "Y. B.",
+    name: "Y. B.",
     birthDate: yearsAgo(9, 9, 2),
     referralReason: "Écriture, organisation du geste",
     schoolLevel: "CM1",
@@ -65,9 +65,9 @@ const DEMO_CHILDREN: ChildSeed[] = [
     geneticDiagnoses: "TDC (trouble développemental de la coordination) diagnostiqué en 2025.",
     interests: ["cars"],
   },
-  { initials: "S. K.", birthDate: yearsAgo(6, 11, 8), referralReason: "Autonomie à l'habillage", schoolLevel: "CP", followUpStart: "2026-03-10" },
+  { name: "S. K.", birthDate: yearsAgo(6, 11, 8), referralReason: "Autonomie à l'habillage", schoolLevel: "CP", followUpStart: "2026-03-10" },
   {
-    initials: "E. D.",
+    name: "E. D.",
     birthDate: yearsAgo(8, 4, 17),
     referralReason: "Régulation émotionnelle, hypersensibilité auditive",
     schoolLevel: "CE2",
@@ -75,12 +75,12 @@ const DEMO_CHILDREN: ChildSeed[] = [
     hyperSensitivities: ["noise", "light"],
     calmingStrategies: ["headphones", "break"],
   },
-  { initials: "T. R.", birthDate: yearsAgo(4, 2, 25), referralReason: "Alimentation, sensibilité orale", schoolLevel: "Moyenne section", followUpStart: "2026-06-02", hypoReactivities: ["oral", "satiety"] },
-  { initials: "M. L.", birthDate: yearsAgo(10, 7, 30), referralReason: "Aménagements scolaires", schoolLevel: "CM2", followUpStart: "2024-09-16", status: "archived" },
+  { name: "T. R.", birthDate: yearsAgo(4, 2, 25), referralReason: "Alimentation, sensibilité orale", schoolLevel: "Moyenne section", followUpStart: "2026-06-02", hypoReactivities: ["oral", "satiety"] },
+  { name: "M. L.", birthDate: yearsAgo(10, 7, 30), referralReason: "Aménagements scolaires", schoolLevel: "CM2", followUpStart: "2024-09-16", status: "archived" },
 ];
 
 const OTHER_CHILDREN: ChildSeed[] = [
-  { initials: "A. P.", birthDate: yearsAgo(6, 0, 9), referralReason: "Motricité globale", schoolLevel: "CP", followUpStart: "2026-02-02" },
+  { name: "A. P.", birthDate: yearsAgo(6, 0, 9), referralReason: "Motricité globale", schoolLevel: "CP", followUpStart: "2026-02-02" },
 ];
 
 /** A date `days` ago at the given UTC time (Israel is UTC+3 in September: 10:00 UTC = 13:00 local). */
@@ -138,7 +138,7 @@ function episodeRows(seeds: EpisodeSeed[], accountId: string, childId: string, r
 }
 
 type ReportSeed = {
-  initials: string;
+  name: string;
   docType: ReportDocType;
   days: number;
   notes: string;
@@ -159,7 +159,7 @@ const LM_NOTES = `- tenue du crayon : pince tripode plus stable qu'en juin, enco
 // The "Mes comptes-rendus" mockup: one draft being written, the rest validated or exported.
 const REPORTS: ReportSeed[] = [
   {
-    initials: "L. M.",
+    name: "L. M.",
     docType: "follow_up",
     days: 1,
     notes: LM_NOTES,
@@ -174,7 +174,7 @@ const REPORTS: ReportSeed[] = [
     },
   },
   {
-    initials: "N. A.",
+    name: "N. A.",
     docType: "initial_assessment",
     days: 2,
     notes: "- bilan graphomotricité GS\n- tenue crayon palmaire, changements de main fréquents\n- copie de formes : cercle ok, carré difficile\n- à proposer : suivi hebdomadaire 3 mois",
@@ -189,7 +189,7 @@ const REPORTS: ReportSeed[] = [
     },
   },
   {
-    initials: "Y. B.",
+    name: "Y. B.",
     docType: "follow_up",
     days: 3,
     notes: "- écriture plus lisible, vitesse toujours lente\n- ordinateur en classe : essai concluant",
@@ -201,7 +201,7 @@ const REPORTS: ReportSeed[] = [
     },
   },
   {
-    initials: "S. K.",
+    name: "S. K.",
     docType: "letter",
     days: 6,
     notes: "- courrier pédiatre : progrès habillage, demande de renouvellement de prise en charge",
@@ -210,7 +210,7 @@ const REPORTS: ReportSeed[] = [
     variants: { doctor: [{ heading: "Objet", body: "Demande de renouvellement de la prise en charge en ergothérapie : progrès nets à l'habillage, autonomie encore partielle." }] },
   },
   {
-    initials: "E. D.",
+    name: "E. D.",
     docType: "follow_up",
     days: 8,
     notes: "- casque anti-bruit bien accepté\n- moins de crises à la cantine",
@@ -219,7 +219,7 @@ const REPORTS: ReportSeed[] = [
     variants: { parents: [{ heading: "Ce qui avance", body: "Le casque anti-bruit est bien accepté et il y a moins de crises à la cantine." }] },
   },
   {
-    initials: "T. R.",
+    name: "T. R.",
     docType: "initial_assessment",
     days: 10,
     notes: "- bilan alimentation : hyporéactivité orale, mange très vite\n- à proposer : cuillère lestée à essayer",
@@ -231,7 +231,7 @@ const REPORTS: ReportSeed[] = [
     },
   },
   {
-    initials: "M. L.",
+    name: "M. L.",
     docType: "recommendations",
     days: 13,
     notes: "- aménagements CM2 : place au calme, consignes écrites",
@@ -241,14 +241,14 @@ const REPORTS: ReportSeed[] = [
   },
 ];
 
-function seedReports(seeds: ReportSeed[], accountId: string, authorId: string, kidId: (initials: string) => string) {
+function seedReports(seeds: ReportSeed[], accountId: string, authorId: string, kidId: (name: string) => string) {
   for (const seed of seeds) {
     const date = daysAgo(seed.days, 12);
     const report = db
       .insert(reports)
       .values({
         accountId,
-        childId: kidId(seed.initials),
+        childId: kidId(seed.name),
         authorId,
         docType: seed.docType,
         sessionDate: date.toISOString().slice(0, 10),
@@ -297,9 +297,9 @@ async function seed() {
   const demoKids = db
     .insert(children)
     .values(DEMO_CHILDREN.map((c) => ({ ...c, accountId: demo.id, createdBy: owner.id })))
-    .returning({ id: children.id, initials: children.initials })
+    .returning({ id: children.id, name: children.name })
     .all();
-  const kidId = (initials: string) => demoKids.find((k) => k.initials === initials)!.id;
+  const kidId = (name: string) => demoKids.find((k) => k.name === name)!.id;
   db.insert(episodes)
     .values([
       ...episodeRows(LM_EPISODES, demo.id, kidId("L. M."), owner.id),

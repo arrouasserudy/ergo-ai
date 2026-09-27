@@ -10,7 +10,7 @@ export const he: Dictionary = {
     name: "Ergo.AI",
     title: "Ergo.AI — עוזר לריפוי בעיסוק",
     description: "סיכומי טיפול בריפוי בעיסוק לילדים",
-    privacyNote: "הנתונים שמורים בשם בדוי. השם המלא מוחזר רק בעת הייצוא, במחשב שלך.",
+    privacyNote: "שם הילד/ה אף פעם לא נשלח לבינה המלאכותית.",
   },
   nav: {
     newReport: "סיכום טיפול חדש",
@@ -173,7 +173,7 @@ export const he: Dictionary = {
     none: "לא תועדו אירועים.",
     historyPageTitle: "משברים וקשיים",
     allEpisodes: "כל האירועים",
-    backToChild: (initials: string) => `התיק של ${initials}`,
+    backToChild: (name: string) => `התיק של ${name}`,
 
     startTitle: "התחלה עבור ילד/ה",
     startHint: "יש לבחור את הילד/ה כדי לפתוח את רשימת הבדיקה.",
@@ -192,8 +192,8 @@ export const he: Dictionary = {
     suggestions: ["הצעה למפגש מותאם", "מה אומרת הספרות?", "איך לדבר על זה עם ההורים?"],
     context: "הקשר",
     noContext: "ללא ילד/ה",
-    contextBadge: (initials: string) => `הקשר: ${initials}`,
-    contextHint: "משותף רק מידע בשם בדוי: ללא שם וללא ראשי תיבות.",
+    contextBadge: (name: string) => `הקשר: ${name}`,
+    contextHint: "משותף רק מידע בשם בדוי: אף פעם לא השם.",
     contextPreview: "מה ישותף עם העוזר",
     searching: (query: string) => `חיפוש: ${query}`,
     thinking: "חושב…",
@@ -317,7 +317,7 @@ export const he: Dictionary = {
     backToList: "הסיכומים שלי",
 
     firstName: "השם הפרטי של הילד/ה (לא חובה)",
-    firstNameHelp: "מחליף את ראשי התיבות במסמך המיוצא. השם נשאר במחשב שלכם: הוא לא נשלח ולא נשמר.",
+    firstNameHelp: "מחליף את שם הילד/ה במסמך המיוצא. השם נשאר במחשב שלכם: הוא לא נשלח ולא נשמר.",
 
     document: {
       title: {
@@ -452,9 +452,8 @@ export const he: Dictionary = {
     },
   },
   fields: {
-    initials: "ראשי תיבות",
-    initialsHelp: "ראשי תיבות בלבד — השם המלא אף פעם לא נשמר.",
-    initialsPlaceholder: "ל. מ.",
+    name: "שם הילד/ה",
+    namePlaceholder: "נועה כהן",
     birthDate: "תאריך לידה",
     age: "גיל",
     referralReason: "סיבת הפנייה",
@@ -533,7 +532,6 @@ export const he: Dictionary = {
     invalidDate: "תאריך לא תקין.",
     futureDate: "התאריך לא יכול להיות בעתיד.",
     invalidNumber: "מספר לא תקין.",
-    initialsFormat: 'ראשי תיבות בלבד (למשל "ל. מ."), לא שם מלא.',
     generic: "אירעה שגיאה. יש לנסות שוב.",
     invalidEmail: "כתובת אימייל לא תקינה.",
     passwordTooShort: "לפחות 8 תווים.",

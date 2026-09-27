@@ -48,7 +48,7 @@ describe("reportSystemPrompt", () => {
 });
 
 describe("fillChildPlaceholder", () => {
-  it("swaps in the initials everywhere", () => {
+  it("swaps in the name everywhere", () => {
     const [s] = fillChildPlaceholder([{ heading: "Bilan de {{child}}", body: "{{child}} tient son crayon. {{child}} progresse." }], "L. M.");
     expect(s).toEqual({ heading: "Bilan de L. M.", body: "L. M. tient son crayon. L. M. progresse." });
   });

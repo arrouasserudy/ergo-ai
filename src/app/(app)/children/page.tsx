@@ -79,9 +79,9 @@ export default async function ChildrenPage(props: PageProps<"/children">) {
                     className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 px-5 py-3.5 transition-colors hover:bg-surface-muted md:grid-cols-[1.3fr_2fr_1fr_1fr_0.8fr]"
                   >
                     <span className="flex items-center gap-3">
-                      <Avatar initials={child.initials} />
+                      <Avatar name={child.name} />
                       <span>
-                        <bdi className="block text-[14px] font-medium">{child.initials}</bdi>
+                        <bdi className="block text-[14px] font-medium">{child.name}</bdi>
                         <span className="block text-[11.5px] text-ink-muted">{i18n.age(child.birthDate) ?? "—"}</span>
                       </span>
                     </span>

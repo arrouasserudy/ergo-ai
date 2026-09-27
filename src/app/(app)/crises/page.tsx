@@ -49,9 +49,9 @@ export default async function CrisesPage() {
               {kids.map((child) => (
                 <li key={child.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
                   <span className="flex items-center gap-3">
-                    <Avatar initials={child.initials} />
+                    <Avatar name={child.name} />
                     <span>
-                      <bdi className="block text-[14px] font-medium">{child.initials}</bdi>
+                      <bdi className="block text-[14px] font-medium">{child.name}</bdi>
                       <span className="block text-[11.5px] text-ink-muted">{i18n.age(child.birthDate) ?? "—"}</span>
                     </span>
                   </span>

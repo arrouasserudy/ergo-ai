@@ -4,7 +4,7 @@ export const fr = {
     name: "Ergo.AI",
     title: "Ergo.AI — Assistant ergothérapie",
     description: "Comptes-rendus d'ergothérapie pédiatrique",
-    privacyNote: "Données pseudonymisées. Le nom complet n'est réinséré qu'à l'export, sur votre poste.",
+    privacyNote: "Le nom de l'enfant n'est jamais transmis à l'IA.",
   },
   nav: {
     newReport: "Nouveau compte-rendu",
@@ -168,7 +168,7 @@ export const fr = {
     none: "Aucun épisode enregistré.",
     historyPageTitle: "Crises et difficultés",
     allEpisodes: "Tous les épisodes",
-    backToChild: (initials: string) => `Fiche ${initials}`,
+    backToChild: (name: string) => `Fiche ${name}`,
 
     startTitle: "Démarrer pour un enfant",
     startHint: "Ouvrez l'enfant concerné pour lancer la check-list.",
@@ -187,8 +187,8 @@ export const fr = {
     suggestions: ["Propose-moi une séance adaptée", "Que dit la littérature ?", "Comment en parler aux parents ?"],
     context: "Contexte",
     noContext: "Sans enfant",
-    contextBadge: (initials: string) => `Contexte : ${initials}`,
-    contextHint: "Seules des informations pseudonymisées sont partagées : ni nom ni initiales.",
+    contextBadge: (name: string) => `Contexte : ${name}`,
+    contextHint: "Seules des informations pseudonymisées sont partagées : jamais le nom.",
     contextPreview: "Ce qui sera partagé avec l'assistant",
     searching: (query: string) => `Recherche : ${query}`,
     thinking: "Réflexion…",
@@ -312,7 +312,7 @@ export const fr = {
     backToList: "Mes comptes-rendus",
 
     firstName: "Prénom de l'enfant (facultatif)",
-    firstNameHelp: "Remplace les initiales dans le document exporté. Il reste sur votre poste : il n'est ni envoyé ni enregistré.",
+    firstNameHelp: "Remplace le nom de l'enfant dans le document exporté. Il reste sur votre poste : il n'est ni envoyé ni enregistré.",
 
     /** Wording printed in the exported document (in the report's language). */
     document: {
@@ -448,9 +448,8 @@ export const fr = {
     },
   },
   fields: {
-    initials: "Initiales",
-    initialsHelp: "Initiales uniquement — le nom complet n'est jamais enregistré.",
-    initialsPlaceholder: "L. M.",
+    name: "Nom de l'enfant",
+    namePlaceholder: "Léa Martin",
     birthDate: "Date de naissance",
     age: "Âge",
     referralReason: "Motif de suivi",
@@ -529,7 +528,6 @@ export const fr = {
     invalidDate: "Date invalide.",
     futureDate: "La date ne peut pas être dans le futur.",
     invalidNumber: "Nombre invalide.",
-    initialsFormat: "Initiales uniquement (ex. « L. M. »), pas de nom complet.",
     generic: "Une erreur est survenue. Réessayez.",
     invalidEmail: "Adresse email invalide.",
     passwordTooShort: "8 caractères minimum.",

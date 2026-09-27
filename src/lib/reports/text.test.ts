@@ -19,6 +19,12 @@ describe("substituteName", () => {
     expect(substituteName("ל. מ. מחזיק עיפרון", "ל. מ.", "נועה")).toBe("נועה מחזיק עיפרון");
   });
 
+  it("replaces a full name", () => {
+    expect(substituteName("Jean-Baptiste Dupont progresse. Bravo Jean-Baptiste Dupont.", "Jean-Baptiste Dupont", "Jean")).toBe(
+      "Jean progresse. Bravo Jean.",
+    );
+  });
+
   it("changes nothing without a name", () => {
     expect(substituteName("L. M. progresse", "L. M.", "  ")).toBe("L. M. progresse");
   });

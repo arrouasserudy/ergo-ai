@@ -1,6 +1,15 @@
 import clsx from "clsx";
 
-export function Avatar({ initials, size = "md" }: { initials: string; size?: "md" | "lg" }) {
+/** "Léa Martin" → "LM", "L. M." → "LM". */
+const initialsOf = (name: string) =>
+  name
+    .split(/[\s.]+/)
+    .map((w) => w.match(/\p{L}/u)?.[0]?.toUpperCase())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("");
+
+export function Avatar({ name, size = "md" }: { name: string; size?: "md" | "lg" }) {
   return (
     <span
       aria-hidden
@@ -10,7 +19,7 @@ export function Avatar({ initials, size = "md" }: { initials: string; size?: "md
         size === "md" ? "size-8 text-[10.5px]" : "size-12 text-sm",
       )}
     >
-      {initials.replace(/\s/g, "")}
+      {initialsOf(name)}
     </span>
   );
 }

@@ -76,7 +76,7 @@ export function ExportBar({ input, disabled, onExported }: { input: Omit<ExportI
         onChange={(e) => setFirstName(e.target.value)}
         autoComplete="off"
         maxLength={60}
-        placeholder={input.initials}
+        placeholder={input.name}
         disabled={disabled}
       />
       <FormError message={error ?? undefined} />

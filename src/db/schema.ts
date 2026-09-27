@@ -105,8 +105,8 @@ export const CHILD_STATUSES = ["active", "archived"] as const;
 export type ChildStatus = (typeof CHILD_STATUSES)[number];
 
 /**
- * A child followed by the therapist. Pseudonymized by design:
- * only initials are stored, never a full name.
+ * A child followed by the therapist. `name` is whatever the therapist types (full
+ * name or initials); it is never sent to an AI model.
  */
 export const children = sqliteTable(
   "children",
@@ -118,7 +118,7 @@ export const children = sqliteTable(
     createdBy: text("created_by").references(() => therapists.id, { onDelete: "set null" }),
 
     // Identity
-    initials: text("initials").notNull(),
+    name: text("name").notNull(),
     birthDate: text("birth_date"), // ISO date (YYYY-MM-DD)
     referralReason: text("referral_reason").notNull(),
     schoolLevel: text("school_level"),
@@ -319,8 +319,9 @@ export type ReportTest = { name: string; results: string };
 
 /**
  * A report written from session notes (typed or dictated). Its text for each
- * recipient lives in `report_variants`. The child is referred to by initials only;
- * the first name is swapped in by the browser at export and never stored.
+ * recipient lives in `report_variants`. The model writes a placeholder for the child,
+ * replaced by the child's name server-side; a first name typed at export can replace
+ * it again in the browser.
  */
 export const reports = sqliteTable(
   "reports",

@@ -25,10 +25,10 @@ export function listChildEpisodes(accountId: string, childId: string, { status, 
     .all();
 }
 
-/** Recent episodes across the account, with the child's initials, open ones first. */
+/** Recent episodes across the account, with the child's name, open ones first. */
 export function listAccountEpisodes(accountId: string, limit = 50) {
   return db
-    .select({ episode: episodes, child: { id: children.id, initials: children.initials, birthDate: children.birthDate } })
+    .select({ episode: episodes, child: { id: children.id, name: children.name, birthDate: children.birthDate } })
     .from(episodes)
     .innerJoin(children, eq(children.id, episodes.childId))
     .where(eq(episodes.accountId, accountId))

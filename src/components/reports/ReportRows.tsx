@@ -6,7 +6,7 @@ import { ReportStatusBadge } from "./ReportStatusBadge";
 
 export type ReportRow = {
   report: Pick<Report, "id" | "docType" | "recipients" | "sessionDate" | "status">;
-  child: { initials: string; birthDate: string | null };
+  child: { name: string; birthDate: string | null };
 };
 
 /** Table rows of reports, shared by the list page and the child page. */
@@ -36,9 +36,9 @@ export async function ReportRows({ rows, showChild = true }: { rows: ReportRow[]
             >
               {showChild && (
                 <span className="flex items-center gap-3">
-                  <Avatar initials={child.initials} />
+                  <Avatar name={child.name} />
                   <span>
-                    <bdi className="block text-[14px] font-medium">{child.initials}</bdi>
+                    <bdi className="block text-[14px] font-medium">{child.name}</bdi>
                     <span className="block text-[11.5px] text-ink-muted">{i18n.age(child.birthDate) ?? "—"}</span>
                   </span>
                 </span>

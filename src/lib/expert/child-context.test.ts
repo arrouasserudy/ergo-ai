@@ -4,7 +4,7 @@ import { childContextText } from "./child-context";
 
 const child = {
   id: "c1",
-  initials: "L. M.",
+  name: "L. M.",
   birthDate: "2019-02-03",
   referralReason: "Fine motor skills",
   schoolLevel: "CE1",
@@ -22,7 +22,7 @@ const crisis = (causes: string[]) =>
   ({ kind: "crisis", status: "closed", causes, helped: ["removeCause"], startedAt: new Date("2026-09-01T10:00:00Z"), antecedent: "Sarah took his socks" }) as unknown as Episode;
 
 describe("childContextText", () => {
-  it("never includes initials or free-text crisis notes", () => {
+  it("never includes the name or free-text crisis notes", () => {
     const text = childContextText(child, [crisis(["clothing"]), crisis(["clothing"])], "Asia/Jerusalem");
     expect(text).not.toContain("L. M.");
     expect(text).not.toContain("Sarah");

@@ -28,7 +28,7 @@ export default async function ConversationPage(props: PageProps<"/expert/[id]">)
       conversationId={conversation.id}
       initialTurns={turns}
       childOptions={[]}
-      child={child ? { id: child.id, initials: child.initials } : null}
+      child={child ? { id: child.id, name: child.name } : null}
     />
   );
 }

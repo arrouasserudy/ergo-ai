@@ -19,11 +19,11 @@ export function listReports(
   if (term) {
     // Also match initials typed without dots/spaces ("LM" → "L. M."), as in the children list.
     const compact = `%${term.replace(/[\s.]/g, "").split("").join("%")}%`;
-    conditions.push(or(like(children.initials, `%${term}%`), like(children.initials, compact))!);
+    conditions.push(or(like(children.name, `%${term}%`), like(children.name, compact))!);
   }
 
   return db
-    .select({ report: reports, child: { id: children.id, initials: children.initials, birthDate: children.birthDate } })
+    .select({ report: reports, child: { id: children.id, name: children.name, birthDate: children.birthDate } })
     .from(reports)
     .innerJoin(children, eq(children.id, reports.childId))
     .where(and(...conditions))

@@ -11,7 +11,7 @@ import { buildAnswer, type DisplayTurn } from "@/lib/expert/display";
 import { parseEvents } from "@/lib/expert/events";
 import { AnswerView } from "./AnswerView";
 
-type ChildOption = { id: string; initials: string };
+type ChildOption = { id: string; name: string };
 
 type ChatViewProps = {
   conversationId: string | null;
@@ -142,7 +142,7 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
         {attached && (
           <span className="rounded-full bg-warn px-3 py-1 text-[12px] text-warn-ink">
             {e.contextBadge("")}
-            <bdi>{attached.initials}</bdi>
+            <bdi>{attached.name}</bdi>
           </span>
         )}
       </header>
@@ -209,7 +209,7 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
                 <option value="">{e.noContext}</option>
                 {childOptions.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.initials}
+                    {c.name}
                   </option>
                 ))}
               </select>

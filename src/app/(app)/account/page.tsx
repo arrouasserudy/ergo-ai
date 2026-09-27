@@ -14,14 +14,6 @@ export async function generateMetadata() {
   return { title: `${t.nav.account} · ${t.app.name}` };
 }
 
-const initialsOf = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]!.toUpperCase())
-    .join("");
-
 export default async function AccountPage() {
   const i18n = await getI18n();
   const { t } = i18n;
@@ -70,7 +62,7 @@ export default async function AccountPage() {
           {team.map((member) => (
             <li key={member.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 px-5 py-3 sm:grid-cols-[1.4fr_1.6fr_0.8fr_0.8fr]">
               <span className="flex min-w-0 items-center gap-3">
-                <Avatar initials={initialsOf(member.name)} />
+                <Avatar name={member.name} />
                 <span className="truncate text-[14px] font-medium">
                   {member.name}
                   {member.id === therapist.id && <span className="ms-1.5 text-[12px] font-normal text-ink-muted">({t.account.you})</span>}

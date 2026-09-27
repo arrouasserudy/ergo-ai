@@ -32,7 +32,7 @@ type Variants = Partial<Record<ReportRecipient, ReportVariant>>;
 type ReportEditorProps = {
   report: Report;
   variants: ReportVariant[];
-  child: { initials: string; title: string; referralReason: string };
+  child: { name: string; title: string; referralReason: string };
   exportContext: { accountName: string; letterhead: string | null; therapistName: string; timeZone: string };
   dictationAvailable: boolean;
 };
@@ -392,7 +392,7 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
                     docType: data.docType,
                     recipient: variant.recipient,
                     sessionDate: data.sessionDate,
-                    initials: child.initials,
+                    name: child.name,
                     accountName: exportContext.accountName,
                     letterhead: exportContext.letterhead,
                     therapistName: exportContext.therapistName,

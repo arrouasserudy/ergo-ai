@@ -11,7 +11,7 @@ export async function generateMetadata() {
 export default async function NewConversationPage(props: PageProps<"/expert">) {
   const { accountId } = await requireTherapist();
   const sp = await props.searchParams;
-  const childOptions = listChildren(accountId, { status: "active" }).map(({ id, initials }) => ({ id, initials }));
+  const childOptions = listChildren(accountId, { status: "active" }).map(({ id, name }) => ({ id, name }));
   const preselected = typeof sp.child === "string" ? (childOptions.find((c) => c.id === sp.child) ?? null) : null;
 
   // Keyed so "Nouvelle discussion" always starts from a clean state.
