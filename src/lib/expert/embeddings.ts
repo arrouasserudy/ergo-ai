@@ -11,12 +11,15 @@ const PROVIDERS = {
   openai: { key: "OPENAI_API_KEY", info: { model: `openai/${OPENAI_EMBED_MODEL}`, embed: openaiEmbed } },
 } as const;
 
+export type EmbedProvider = keyof typeof PROVIDERS;
+
+export function embedProvider(): EmbedProvider | null {
+  const forced = process.env.EMBED_PROVIDER as EmbedProvider | undefined;
+  if (forced) return PROVIDERS[forced] && process.env[PROVIDERS[forced].key] ? forced : null;
+  return (Object.keys(PROVIDERS) as EmbedProvider[]).find((p) => process.env[PROVIDERS[p].key]) ?? null;
+}
+
 export function activeEmbedder(): EmbedderInfo | null {
-  const forced = process.env.EMBED_PROVIDER as keyof typeof PROVIDERS | undefined;
-  if (forced) {
-    const p = PROVIDERS[forced];
-    return p && process.env[p.key] ? p.info : null;
-  }
-  for (const p of Object.values(PROVIDERS)) if (process.env[p.key]) return p.info;
-  return null;
+  const provider = embedProvider();
+  return provider ? PROVIDERS[provider].info : null;
 }

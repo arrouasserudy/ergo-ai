@@ -1,4 +1,5 @@
 import { FileText } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { LocaleSwitcher } from "@/components/shell/LocaleSwitcher";
 import { getI18n } from "@/i18n/server";
@@ -18,7 +19,12 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
       <div className="mt-6">
         <LocaleSwitcher />
       </div>
-      <p className="mt-8 max-w-sm text-center text-[12px] text-ink-muted">{t.app.privacyNote}</p>
+      <p className="mt-8 max-w-sm text-center text-[12px] text-ink-muted">
+        {t.app.privacyNote}{" "}
+        <Link href="/privacy" className="underline underline-offset-2 hover:text-ink">
+          {t.privacy.learnMore}
+        </Link>
+      </p>
     </div>
   );
 }

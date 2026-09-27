@@ -85,10 +85,15 @@ function Footer({ therapistName, accountName }: SidebarProps) {
   const { t } = useI18n();
   return (
     <div className="space-y-3">
-      <div className="flex gap-2 rounded-lg bg-sidebar-active p-3 text-[11.5px] leading-relaxed text-sidebar-ink">
+      <Link
+        href="/privacy"
+        className="flex gap-2 rounded-lg bg-sidebar-active p-3 text-[11.5px] leading-relaxed text-sidebar-ink transition-colors hover:bg-sidebar-hover"
+      >
         <Lock className="mt-0.5 size-3.5 shrink-0" strokeWidth={1.75} />
-        <p>{t.app.privacyNote}</p>
-      </div>
+        <p>
+          {t.app.privacyNote} <span className="underline underline-offset-2">{t.privacy.learnMore}</span>
+        </p>
+      </Link>
       <div className="flex items-center gap-2 border-t border-sidebar-active px-1 pt-3">
         <div className="min-w-0 flex-1">
           <p className="truncate text-[13px] font-medium text-white">{therapistName}</p>

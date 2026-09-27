@@ -5,6 +5,8 @@ import { ArrowUp, ChevronDown, Info, Loader2, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { previewChildContext } from "@/app/actions/expert";
+import { NameWarning } from "@/components/ui/NameWarning";
+import { PrivacyBadge } from "@/components/ui/PrivacyBadge";
 import { useI18n } from "@/i18n/client";
 import { stripMarkers, type AnswerPart } from "@/lib/expert/answer";
 import { buildAnswer, type DisplayTurn } from "@/lib/expert/display";
@@ -294,7 +296,11 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
             {busy ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
           </button>
         </form>
-        <p className="text-[11.5px] text-ink-muted">{e.guardrail}</p>
+        {attached && <NameWarning text={input} childName={attached.name} />}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[11.5px] text-ink-muted">{e.guardrail}</p>
+          <PrivacyBadge />
+        </div>
       </div>
     </section>
   );

@@ -2,7 +2,7 @@ import "server-only";
 import { and, asc, count, desc, eq, gte, inArray, like, or, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { children, reports, reportVariants, styleExamples, type ReportRecipient, type ReportStatus } from "@/db/schema";
-import { MAX_STYLE_EXAMPLES, type StylePair } from "./prompt";
+import { MAX_STYLE_EXAMPLES, pseudonymizeSections, type StylePair } from "./prompt";
 
 export type ReportStatusFilter = ReportStatus | "all";
 
@@ -51,18 +51,24 @@ export function generationsToday(accountId: string): number {
   );
 }
 
-/** The therapist's most recent corrections for these recipients, newest first. */
+/** The therapist's most recent corrections for these recipients, newest first, without their child's name. */
 export function recentStyleExamples(therapistId: string, recipients: ReportRecipient[]): Record<ReportRecipient, StylePair[]> {
   const rows = db
-    .select({ recipient: styleExamples.recipient, before: styleExamples.before, after: styleExamples.after })
+    .select({ recipient: styleExamples.recipient, before: styleExamples.before, after: styleExamples.after, childName: children.name })
     .from(styleExamples)
+    .innerJoin(reportVariants, eq(reportVariants.id, styleExamples.variantId))
+    .innerJoin(reports, eq(reports.id, reportVariants.reportId))
+    .innerJoin(children, eq(children.id, reports.childId))
     .where(and(eq(styleExamples.therapistId, therapistId), inArray(styleExamples.recipient, recipients)))
     .orderBy(desc(styleExamples.createdAt))
     .limit(MAX_STYLE_EXAMPLES * recipients.length * 4)
     .all();
   const byRecipient = { parents: [], doctor: [], school: [] } as Record<ReportRecipient, StylePair[]>;
   for (const row of rows) {
-    if (byRecipient[row.recipient].length < MAX_STYLE_EXAMPLES) byRecipient[row.recipient].push({ before: row.before, after: row.after });
+    if (byRecipient[row.recipient].length < MAX_STYLE_EXAMPLES) byRecipient[row.recipient].push({
+        before: pseudonymizeSections(row.before, row.childName),
+        after: pseudonymizeSections(row.after, row.childName),
+      });
   }
   return byRecipient;
 }

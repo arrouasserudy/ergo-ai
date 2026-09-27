@@ -1,25 +1,61 @@
 import type { ReportSection } from "@/db/schema";
 
 /**
- * Client-side helpers for export. The first name typed at export is only ever
- * substituted here, in the browser, and never sent to the server.
+ * Text helpers shared by the browser and the server. The first name typed at export
+ * is only ever substituted in the browser, and never sent to the server.
  */
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
- * Replaces the child's stored name ("Léa Martin", or initials "L. M." also typed as
- * "L.M." or "L. M") with the first name. An empty first name leaves the text unchanged.
+ * Matches the child's stored name ("Léa Martin", or initials "L. M." also typed as
+ * "L.M." or "L. M"), not preceded or followed by a letter, so "L. M." inside a word is left alone.
  */
-export function substituteName(text: string, childName: string, firstName: string): string {
-  const replacement = firstName.trim();
+function namePattern(childName: string, flags = "gu"): RegExp | null {
   const words = childName.split(/[\s.-]+/).filter(Boolean);
-  if (!replacement || words.length === 0) return text;
+  if (words.length === 0) return null;
   // Words separated by optional dots/spaces/hyphens; initials may end with a dot.
   const isInitials = words.every((w) => [...w].length === 1);
   const pattern = words.map(escapeRegExp).join("[\\s.-]*") + (isInitials ? "\\.?" : "");
-  // Not preceded or followed by a letter, so "L. M." inside a word is left alone.
-  return text.replace(new RegExp(`(?<![\\p{L}])${pattern}(?![\\p{L}])`, "gu"), replacement);
+  return new RegExp(`(?<![\\p{L}])${pattern}(?![\\p{L}])`, flags);
+}
+
+/** Replaces the child's stored name with the first name. An empty first name leaves the text unchanged. */
+export function substituteName(text: string, childName: string, firstName: string): string {
+  const replacement = firstName.trim();
+  const pattern = namePattern(childName);
+  return replacement && pattern ? text.replace(pattern, replacement) : text;
+}
+
+/** The full name, then each word of it ("Léa", "Martin"), but not lone initials, which would hit ordinary words. */
+function nameForms(childName: string): string[] {
+  return [childName, ...childName.split(/[\s.]+/).filter((w) => [...w].length > 1)];
+}
+
+/** Swaps every form of the child's name for `replacement`, whatever its case. */
+export function replaceChildName(text: string, childName: string, replacement: string): string {
+  return nameForms(childName).reduce((t, name) => {
+    const pattern = namePattern(name, "giu");
+    return pattern ? t.replace(pattern, replacement) : t;
+  }, text);
+}
+
+/** The forms of the child's name found in free text (as typed), for a warning before it is sent. */
+export function findChildName(text: string, childName: string): string[] {
+  const found = new Set<string>();
+  const covered: [number, number][] = [];
+  for (const name of nameForms(childName)) {
+    const pattern = namePattern(name, "giu");
+    for (const match of pattern ? text.matchAll(pattern) : []) {
+      const start = match.index;
+      const end = start + match[0].length;
+      // "Léa" inside an already found "Léa Martin" is the same mention.
+      if (covered.some(([s, e]) => start >= s && end <= e)) continue;
+      covered.push([start, end]);
+      found.add(match[0]);
+    }
+  }
+  return [...found];
 }
 
 export function substituteSections(sections: ReportSection[], childName: string, firstName: string): ReportSection[] {

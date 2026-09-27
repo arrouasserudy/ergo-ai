@@ -549,6 +549,76 @@ export const fr = {
     music: "Musique",
     drawing: "Dessin",
   } as Record<string, string>,
+  privacy: {
+    learnMore: "En savoir plus",
+    badge: "Pseudonymisé",
+    badgeTitle: "Le nom de l'enfant n'est jamais envoyé à l'IA. Voir ce qui est partagé.",
+    nameFound: (names: string | null) =>
+      names ? `Le nom de l'enfant apparaît dans votre texte (${names}).` : "Le nom de l'enfant apparaît dans votre texte.",
+    nameFoundHint: "Il sera envoyé à l'IA tel quel. Écrivez plutôt « l'enfant ».",
+    aiPreview: "Ce que reçoit l'IA",
+    aiPreviewHint: "Exactement ce qui sera envoyé à la génération, d'après vos notes enregistrées. Aucun nom n'y figure, sauf si vous l'avez écrit.",
+    aiInstructions: "Consignes de rédaction (identiques pour tous les comptes-rendus, sans donnée sur l'enfant)",
+    loading: "Chargement…",
+    page: {
+      title: "Confidentialité",
+      heading: "Vos données et celles des enfants",
+      intro: "Ce que l'application conserve, ce qu'elle envoie à l'IA, et ce qu'elle n'envoie jamais.",
+      essentials: [
+        "Le nom de l'enfant n'est jamais envoyé à l'IA.",
+        "Les données sont hébergées dans l'Union européenne (Paris).",
+        "Seuls les ergothérapeutes de votre cabinet voient vos enfants.",
+        "Aucun cookie publicitaire ni outil de suivi.",
+      ],
+      aiTitle: "Ce qui est envoyé à l'IA",
+      aiIntro: "Les fonctions d'IA passent par des fournisseurs externes. Voici ce que chacune leur transmet.",
+      columns: { feature: "Fonction", sent: "Ce qui est envoyé", provider: "Fournisseur" },
+      features: {
+        reports: {
+          name: "Comptes-rendus",
+          sent: "Vos notes de séance et résultats de tests, l'âge, le motif de suivi, la scolarité, les centres d'intérêt, et jusqu'à 3 de vos comptes-rendus corrigés (modèles de style, noms retirés).",
+        },
+        dictation: { name: "Dictée", sent: "L'enregistrement audio, tel quel : évitez d'y prononcer le nom de l'enfant." },
+        expert: {
+          name: "Amit",
+          sent: "Vos messages et, si vous choisissez un enfant, un résumé pseudonymisé de sa fiche (âge, motif, profil sensoriel, schémas de crises). Pour une crise en cours : les notes des crises, nom de l'enfant retiré.",
+        },
+        search: { name: "Recherche documentaire", sent: "Les recherches d'Amit (sans nom) et le texte des documents que vous ajoutez à la bibliothèque." },
+      } as Record<string, { name: string; sent: string }>,
+      providers: {
+        anthropic: "Anthropic (Claude), États-Unis",
+        openai: "OpenAI, États-Unis",
+        voyage: "Voyage AI, États-Unis",
+        none: "Non activé",
+      } as Record<string, string>,
+      providersNote:
+        "Selon les conditions de leur API, ces fournisseurs n'utilisent pas ces données pour entraîner leurs modèles ; ils peuvent les conserver pour une durée limitée afin de détecter les abus.",
+      neverSentTitle: "Jamais envoyé à l'IA",
+      neverSent: [
+        "Le nom de l'enfant. Si vous l'écrivez vous-même dans vos notes ou vos messages, il est envoyé tel quel : l'application vous prévient.",
+        "Sa date de naissance : seul l'âge est transmis.",
+        "Ses antécédents médicaux et familiaux.",
+        "Votre nom, celui de votre cabinet et votre en-tête.",
+      ],
+      storedTitle: "Ce qui est conservé",
+      stored:
+        "Sur notre serveur, hébergé dans l'Union européenne (Fly.io, Paris) : les fiches des enfants, vos notes et comptes-rendus, les crises, les discussions avec Amit et le texte des documents ajoutés à la bibliothèque.",
+      notStored: "Jamais conservés : l'audio des dictées (transcrit puis effacé) et le prénom saisi à l'export, qui reste dans votre navigateur.",
+      accessTitle: "Qui y a accès",
+      access: [
+        "Seuls les ergothérapeutes de votre cabinet voient ses enfants et ses documents ; le ou la titulaire ajoute les collègues.",
+        "Les mots de passe sont stockés sous forme chiffrée (hachée), jamais en clair.",
+        "Seuls les cookies nécessaires : la connexion, la langue et le mode masqué.",
+      ],
+      controlsTitle: "Vos contrôles",
+      controls: [
+        "Mode masqué (Paramètres) : les noms sont remplacés à l'écran par les initiales et un identifiant.",
+        "Supprimer à tout moment un compte-rendu, un épisode ou un document de la bibliothèque.",
+        "Archiver la fiche d'un enfant. Sa suppression définitive n'est pas encore disponible dans l'application.",
+      ],
+      back: "Retour",
+    },
+  },
   errors: {
     required: "Ce champ est obligatoire.",
     tooLong: (max: number) => `${max} caractères maximum.`,

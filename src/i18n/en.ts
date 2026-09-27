@@ -548,6 +548,76 @@ export const en: Dictionary = {
     music: "Music",
     drawing: "Drawing",
   } as Record<string, string>,
+  privacy: {
+    learnMore: "Learn more",
+    badge: "Pseudonymized",
+    badgeTitle: "The child's name is never sent to the AI. See what is shared.",
+    nameFound: (names: string | null) =>
+      names ? `The child's name appears in your text (${names}).` : "The child's name appears in your text.",
+    nameFoundHint: "It will be sent to the AI as written. Write “the child” instead.",
+    aiPreview: "What the AI receives",
+    aiPreviewHint: "Exactly what will be sent when generating, from your saved notes. No name is included unless you wrote it.",
+    aiInstructions: "Writing instructions (the same for every report, no data about the child)",
+    loading: "Loading…",
+    page: {
+      title: "Privacy",
+      heading: "Your data and the children's",
+      intro: "What the app keeps, what it sends to the AI, and what it never sends.",
+      essentials: [
+        "The child's name is never sent to the AI.",
+        "Data is hosted in the European Union (Paris).",
+        "Only the occupational therapists of your practice see your children.",
+        "No advertising cookies or tracking tools.",
+      ],
+      aiTitle: "What is sent to the AI",
+      aiIntro: "AI features go through external providers. Here is what each one sends them.",
+      columns: { feature: "Feature", sent: "What is sent", provider: "Provider" },
+      features: {
+        reports: {
+          name: "Reports",
+          sent: "Your session notes and test results, the age, reason for referral, school level, interests, and up to 3 of your corrected reports (style examples, names removed).",
+        },
+        dictation: { name: "Dictation", sent: "The audio recording, as is: avoid saying the child's name in it." },
+        expert: {
+          name: "Amit",
+          sent: "Your messages and, if you pick a child, a pseudonymized summary of their file (age, reason, sensory profile, crisis patterns). For a crisis in progress: the crisis notes, with the child's name removed.",
+        },
+        search: { name: "Literature search", sent: "Amit's searches (no names) and the text of the documents you add to the library." },
+      } as Record<string, { name: string; sent: string }>,
+      providers: {
+        anthropic: "Anthropic (Claude), United States",
+        openai: "OpenAI, United States",
+        voyage: "Voyage AI, United States",
+        none: "Not enabled",
+      } as Record<string, string>,
+      providersNote:
+        "Under their API terms, these providers do not use this data to train their models; they may keep it for a limited time to detect abuse.",
+      neverSentTitle: "Never sent to the AI",
+      neverSent: [
+        "The child's name. If you type it yourself in your notes or messages, it is sent as written: the app warns you.",
+        "Their date of birth: only the age is sent.",
+        "Their medical and family history.",
+        "Your name, your practice's name and your letterhead.",
+      ],
+      storedTitle: "What is kept",
+      stored:
+        "On our server, hosted in the European Union (Fly.io, Paris): children's files, your notes and reports, crises, discussions with Amit and the text of documents added to the library.",
+      notStored: "Never kept: dictation audio (transcribed, then discarded) and the first name typed at export, which stays in your browser.",
+      accessTitle: "Who has access",
+      access: [
+        "Only the occupational therapists of your practice see its children and documents; the owner adds colleagues.",
+        "Passwords are stored hashed, never in plain text.",
+        "Only the cookies that are needed: sign-in, language and hidden mode.",
+      ],
+      controlsTitle: "Your controls",
+      controls: [
+        "Hidden mode (Settings): names are replaced on screen by initials and an identifier.",
+        "Delete a report, an episode or a library document at any time.",
+        "Archive a child's file. Permanent deletion is not available in the app yet.",
+      ],
+      back: "Back",
+    },
+  },
   errors: {
     required: "This field is required.",
     tooLong: (max: number) => `${max} characters maximum.`,

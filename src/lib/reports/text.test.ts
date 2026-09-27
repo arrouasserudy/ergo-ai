@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseBody, parseInline, sectionsToPlainText, substituteName } from "./text";
+import { findChildName, parseBody, parseInline, replaceChildName, sectionsToPlainText, substituteName } from "./text";
 
 describe("substituteName", () => {
   it.each([
@@ -48,5 +48,29 @@ describe("parseBody", () => {
 describe("sectionsToPlainText", () => {
   it("drops markdown markers", () => {
     expect(sectionsToPlainText([{ heading: "Ce qui avance", body: "**Bravo**\n- un" }])).toBe("Ce qui avance\n\nBravo\n\n- un");
+  });
+});
+
+describe("findChildName", () => {
+  it("finds the full name and each word of it, whatever the case", () => {
+    expect(findChildName("Léa Martin a progressé ; léa était fière. Martine est venue.", "Léa Martin")).toEqual(["Léa Martin", "léa"]);
+  });
+
+  it("finds initials but not lone letters", () => {
+    expect(findChildName("L.M. tient mieux son crayon. L et M sont des lettres.", "L. M.")).toEqual(["L.M."]);
+  });
+
+  it("finds Hebrew names", () => {
+    expect(findChildName("נועה כהן שיחקה, נועה צחקה", "נועה כהן")).toEqual(["נועה כהן", "נועה"]);
+  });
+
+  it("returns nothing when the name is absent", () => {
+    expect(findChildName("L'enfant a progressé.", "Léa Martin")).toEqual([]);
+  });
+});
+
+describe("replaceChildName", () => {
+  it("replaces every form of the name, whatever the case", () => {
+    expect(replaceChildName("LÉA MARTIN progresse. Bravo léa !", "Léa Martin", "{{child}}")).toBe("{{child}} progresse. Bravo {{child}} !");
   });
 });

@@ -1,7 +1,7 @@
 import type { Child, Episode } from "@/db/schema";
 import { ageInMonths } from "@/i18n";
 import { computePatterns, timeOfDay } from "@/lib/episode-insights";
-import { substituteName } from "@/lib/reports/text";
+import { replaceChildName } from "@/lib/reports/text";
 import { minutesBetween } from "@/lib/time";
 
 /**
@@ -41,13 +41,9 @@ export function childContextText(child: Child, episodes: Episode[], timeZone: st
   return lines.join("\n");
 }
 
-/**
- * Swaps the child's name for "the child" in free text: the full name, and each
- * word of it ("Léa", "Martin"), but not lone initials, which would hit ordinary words.
- */
+/** Swaps the child's name (full name or any word of it) for "the child" in free text. */
 export function redactChildName(text: string, childName: string): string {
-  const words = childName.split(/[\s.]+/).filter((w) => [...w].length > 1);
-  return [childName, ...words].reduce((t, name) => substituteName(t, name, "the child"), text);
+  return replaceChildName(text, childName, "the child");
 }
 
 function episodeFacts(episode: Episode, childName: string, timeZone: string, now: Date): string[] {

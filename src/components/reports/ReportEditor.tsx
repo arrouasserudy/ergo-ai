@@ -1,13 +1,15 @@
 "use client";
 
 import clsx from "clsx";
-import { Check, CircleAlert, Info, Loader2, Plus, RotateCw, Sparkles, Trash2, X } from "lucide-react";
+import { Check, ChevronDown, CircleAlert, Info, Loader2, Plus, RotateCw, Sparkles, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { deleteReport, generateReport, markExported, saveReport, saveVariant, validateVariant } from "@/app/actions/reports";
+import { deleteReport, generateReport, markExported, previewReportPrompt, saveReport, saveVariant, validateVariant, type PromptPreview } from "@/app/actions/reports";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { FormError } from "@/components/ui/FormError";
+import { NameWarning } from "@/components/ui/NameWarning";
+import { PrivacyBadge } from "@/components/ui/PrivacyBadge";
 import { SaveIndicator, type SaveState } from "@/components/ui/SaveIndicator";
 import {
   REPORT_DOC_TYPES,
@@ -119,6 +121,15 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
       setGenError(r.errors.generic);
     }
     setGenerating([]);
+  };
+
+  /** The preview reads the saved report, like generation: save pending notes first. */
+  const loadPreview = async (recipient: ReportRecipient) => {
+    if (dirty.current) {
+      dirty.current = false;
+      if (!(await persist(data))) return null;
+    }
+    return previewReportPrompt(report.id, recipient).catch(() => null);
   };
 
   const regenerate = () => {
@@ -248,6 +259,10 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
             </label>
 
             <TestsEditor tests={data.tests} onChange={(tests) => update({ tests })} />
+
+            <NameWarning text={[data.notes, ...data.tests.flatMap((test) => [test.name, test.results])].join("\n")} childName={child.name} />
+
+            {current && <AiPreview load={() => loadPreview(current)} saveState={saveState} />}
           </div>
         </Card>
 
@@ -383,6 +398,56 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
           </div>
         </Card>
       </div>
+    </div>
+  );
+}
+
+/** Collapsible view of the exact prompt, reloaded after each autosave while open. */
+function AiPreview({ load, saveState }: { load: () => Promise<PromptPreview | null>; saveState: SaveState }) {
+  const p = useI18n().t.privacy;
+  const [open, setOpen] = useState(false);
+  const [preview, setPreview] = useState<PromptPreview | null>(null);
+
+  useEffect(() => {
+    if (!open || saveState === "saving") return;
+    let cancelled = false;
+    void load().then((result) => {
+      if (!cancelled) setPreview(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, saveState]);
+
+  return (
+    <div className="space-y-2 border-t border-line pt-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <PrivacyBadge />
+        <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="inline-flex items-center gap-1 text-[12.5px] text-primary">
+          {p.aiPreview}
+          <ChevronDown className={clsx("size-3.5 transition-transform", open && "rotate-180")} />
+        </button>
+      </div>
+      {open && (
+        <div className="space-y-2 rounded-lg bg-surface-muted px-3 py-2.5">
+          <p className="flex gap-1 text-[11.5px] text-ink-muted">
+            <Info className="mt-0.5 size-3.5 shrink-0" />
+            {p.aiPreviewHint}
+          </p>
+          <pre dir="auto" className="max-h-96 overflow-y-auto text-[12px] whitespace-pre-wrap text-ink-soft">
+            {preview?.prompt ?? p.loading}
+          </pre>
+          {preview && (
+            <details className="text-[12px]">
+              <summary className="cursor-pointer text-ink-muted">{p.aiInstructions}</summary>
+              <pre className="mt-1.5 max-h-72 overflow-y-auto whitespace-pre-wrap text-ink-soft" dir="ltr">
+                {preview.system}
+              </pre>
+            </details>
+          )}
+        </div>
+      )}
     </div>
   );
 }

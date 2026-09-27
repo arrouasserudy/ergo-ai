@@ -1,5 +1,6 @@
 import type { Child, ReportDocType, ReportRecipient, ReportSection, ReportTest } from "@/db/schema";
 import { ageInMonths, type Locale } from "@/i18n";
+import { replaceChildName } from "./text";
 
 /**
  * The model never sees the child's name: it writes this placeholder wherever it
@@ -110,6 +111,14 @@ export function reportUserPrompt(input: ReportPromptInput): string {
     );
   }
   return parts.join("\n\n");
+}
+
+/**
+ * Past corrections hold the name of the child they were written for: it is swapped
+ * back for the placeholder before they are replayed to the model.
+ */
+export function pseudonymizeSections(sections: ReportSection[], childName: string): ReportSection[] {
+  return sections.map((s) => ({ heading: replaceChildName(s.heading, childName, CHILD_PLACEHOLDER), body: replaceChildName(s.body, childName, CHILD_PLACEHOLDER) }));
 }
 
 /** Replaces the placeholder the model wrote with the child's name. */

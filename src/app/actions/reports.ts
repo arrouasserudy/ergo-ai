@@ -85,6 +85,40 @@ export async function saveReport(id: string, data: ReportInput): Promise<SaveRep
   return { ok: true };
 }
 
+type ReportRow = NonNullable<ReturnType<typeof getReport>>;
+type ChildRow = NonNullable<ReturnType<typeof getChild>>;
+
+/** The exact prompts sent to the model, one per recipient. Shared by generation and its preview. */
+function buildPrompts(report: ReportRow, child: ChildRow, therapistId: string, targets: ReportRecipient[]) {
+  const examples = recentStyleExamples(therapistId, targets);
+  const system = reportSystemPrompt(report.language);
+  const prompts = targets.map((recipient) => ({
+    recipient,
+    prompt: reportUserPrompt({
+      child,
+      docType: report.docType,
+      recipient,
+      sessionDate: report.sessionDate,
+      notes: report.notes,
+      tests: report.tests,
+      examples: examples[recipient],
+    }),
+  }));
+  return { system, prompts };
+}
+
+export type PromptPreview = { system: string; prompt: string };
+
+/** What the AI would receive for this recipient, from the saved report (shown before generating). */
+export async function previewReportPrompt(id: string, recipient: ReportRecipient): Promise<PromptPreview | null> {
+  const { accountId, therapist } = await requireTherapist();
+  const report = getReport(accountId, id);
+  const child = report && getChild(accountId, report.childId);
+  if (!report || !child || !isRecipient(recipient)) return null;
+  const { system, prompts } = buildPrompts(report, child, therapist.id, [recipient]);
+  return { system, prompt: prompts[0].prompt };
+}
+
 export type GenerateResult = { ok: true; variants: ReportVariant[] } | { ok: false; error: string };
 
 /**
@@ -104,21 +138,9 @@ export async function generateReport(id: string, recipients: ReportRecipient[]):
   if (!provider) return { ok: false, error: "unavailable" };
   if (generationsToday(accountId) + targets.length > DAILY_GENERATION_LIMIT) return { ok: false, error: "limit" };
 
-  const examples = recentStyleExamples(therapist.id, targets);
-  const system = reportSystemPrompt(report.language);
+  const { system, prompts } = buildPrompts(report, child, therapist.id, targets);
   const results = await Promise.allSettled(
-    targets.map(async (recipient) => {
-      const prompt = reportUserPrompt({
-        child,
-        docType: report.docType,
-        recipient,
-        sessionDate: report.sessionDate,
-        notes: report.notes,
-        tests: report.tests,
-        examples: examples[recipient],
-      });
-      return { recipient, ...(await generateSections(provider, system, prompt)) };
-    }),
+    prompts.map(async ({ recipient, prompt }) => ({ recipient, ...(await generateSections(provider, system, prompt)) })),
   );
 
   const now = new Date();

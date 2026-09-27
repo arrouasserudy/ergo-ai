@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHILD_PLACEHOLDER, fillChildPlaceholder, MAX_STYLE_EXAMPLES, reportSystemPrompt, reportUserPrompt, type ReportPromptInput } from "./prompt";
+import { CHILD_PLACEHOLDER, fillChildPlaceholder, MAX_STYLE_EXAMPLES, pseudonymizeSections, reportSystemPrompt, reportUserPrompt, type ReportPromptInput } from "./prompt";
 
 const base: ReportPromptInput = {
   child: { birthDate: "2019-02-03", referralReason: "Motricité fine", schoolLevel: "CE1", followUpStart: "2026-01-15", interests: ["dinosaurs"] },
@@ -51,5 +51,13 @@ describe("fillChildPlaceholder", () => {
   it("swaps in the name everywhere", () => {
     const [s] = fillChildPlaceholder([{ heading: "Bilan de {{child}}", body: "{{child}} tient son crayon. {{child}} progresse." }], "L. M.");
     expect(s).toEqual({ heading: "Bilan de L. M.", body: "L. M. tient son crayon. L. M. progresse." });
+  });
+});
+
+describe("pseudonymizeSections", () => {
+  it("puts the placeholder back in a past correction", () => {
+    expect(pseudonymizeSections([{ heading: "Léa à la maison", body: "Léa Martin progresse ; bravo LÉA." }], "Léa Martin")).toEqual([
+      { heading: `${CHILD_PLACEHOLDER} à la maison`, body: `${CHILD_PLACEHOLDER} progresse ; bravo ${CHILD_PLACEHOLDER}.` },
+    ]);
   });
 });
