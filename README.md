@@ -40,3 +40,4 @@ fly ssh console -C "sqlite3 /data/ergoai.db"          # live SQL shell (changes 
 
 pnpm db:studio-prod                                   # Drizzle Studio on a fresh snapshot (deleted on exit)
 ```
+
