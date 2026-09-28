@@ -11,6 +11,17 @@ primary_region = "cdg"
   # Heap cap under the 512 MB machine (PDF parsing for the expert's library needs headroom).
   NODE_OPTIONS = "--max-old-space-size=380"
 
+# Migrations: no release_command, because release machines don't get the volume
+# (they would migrate an empty throwaway database). The app applies pending Drizzle
+# migrations when it boots (src/instrumentation-node.ts) and exits if one fails: the
+# migrations run in one transaction (the database is left untouched), the health check
+# never passes and the deploy is reported as failed. Fix forward, or roll back with
+# `fly deploy --image <previous image>` (`fly releases --image` lists them).
+# Deploys run from GitHub Actions on every push to main (.github/workflows/deploy.yml).
+[deploy]
+  strategy = "rolling"
+  wait_timeout = "5m"
+
 # SQLite lives on a persistent volume attached to the single machine.
 [mounts]
   source = "ergo_ai_data"

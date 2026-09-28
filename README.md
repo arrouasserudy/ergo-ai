@@ -27,6 +27,10 @@ pnpm expert:search "weighted vest attention"   # see what the chat would retriev
 
 Cabinets add their own PDFs from `/expert/library`.
 
+## Deployment (Fly.io)
+
+Every push to `main` runs the checks (typecheck, lint, tests), then `flyctl deploy` (`.github/workflows/deploy.yml`; also runnable by hand from the Actions tab). It needs the `FLY_API_TOKEN` repository secret, from `fly tokens create deploy -x 999999h`. Pending migrations are applied when the new machine boots; if one fails, the database is left untouched (single transaction), the server exits and the deploy fails on its health check. Fix forward, or roll back with `fly deploy --image <previous image>` (`fly releases --image` lists them).
+
 ## Production database (Fly.io)
 
 SQLite lives on the Fly volume at `/data/ergoai.db`. For the live shell, wake the machine first (open the site or `fly machine start`):
