@@ -295,7 +295,7 @@ export const en: Dictionary = {
     notesHint: "Typed or dictated",
     notesLabel: "Notes (editable)",
     notesPlaceholder: "- pencil grasp: tripod grasp more stable…\n- cutting: follows a curved line with verbal prompts…",
-    namesHint: "Avoid names in your notes: use initials.",
+    namesHint: "Avoid the child's name in your notes: write “the child”.",
     consentReminder: "Reminder: the parents must have given written consent to the processing of their child's data.",
     sessionDate: "Session date",
     language: "Report language",
@@ -455,7 +455,7 @@ export const en: Dictionary = {
   sections: {
     identity: {
       title: "Identity",
-      hint: "Never sent to the AI.",
+      hint: "The name is never sent to the AI.",
     },
     history: {
       title: "Medical and family history",

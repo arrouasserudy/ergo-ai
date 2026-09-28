@@ -256,7 +256,7 @@ export const he: Dictionary = {
     listTitle: "הסיכומים שלי",
     listSubtitle: "טיוטות לבדיקה, מסמכים מאושרים ומסמכים שיוצאו.",
     newButton: "סיכום חדש",
-    searchPlaceholder: "חיפוש ילד/ה לפי ראשי תיבות…",
+    searchPlaceholder: "חיפוש ילד/ה לפי שם…",
     statusFilter: { all: "כל הסטטוסים", draft: "טיוטות", validated: "מאושרים", exported: "יוצאו" } as Record<string, string>,
     thisMonth: "החודש",
     columns: { child: "ילד/ה", type: "סוג", date: "תאריך", status: "סטטוס" },
@@ -298,7 +298,7 @@ export const he: Dictionary = {
     notesHint: "מוקלדות או מוכתבות",
     notesLabel: "הערות (ניתנות לעריכה)",
     notesPlaceholder: "- אחיזת עיפרון: אחיזה תלת-אצבעית יציבה יותר…\n- גזירה: עוקב/ת אחרי קו מעוגל בעזרה מילולית…",
-    namesHint: "הימנעו משמות בהערות: השתמשו בראשי תיבות.",
+    namesHint: "הימנעו משם הילד/ה בהערות: כתבו „הילד/ה”.",
     consentReminder: "תזכורת: על ההורים לתת הסכמה בכתב לעיבוד הנתונים של ילדם.",
     sessionDate: "תאריך המפגש",
     language: "שפת הסיכום",
@@ -425,9 +425,9 @@ export const he: Dictionary = {
   },
   children: {
     listTitle: "ילדים במעקב",
-    listSubtitle: "הילדים שבטיפולך, לפי ראשי תיבות.",
+    listSubtitle: "הילדים שבטיפולך.",
     addButton: "הוספת ילד/ה",
-    searchPlaceholder: "חיפוש לפי ראשי תיבות, סיבת פנייה, מסגרת…",
+    searchPlaceholder: "חיפוש לפי שם, סיבת פנייה, מסגרת…",
     filter: { active: "פעילים", archived: "בארכיון", all: "הכול" },
     columns: {
       child: "ילד/ה",
@@ -459,7 +459,7 @@ export const he: Dictionary = {
   sections: {
     identity: {
       title: "פרטי זיהוי",
-      hint: "בשם בדוי: ראשי תיבות בלבד.",
+      hint: "השם לעולם אינו נשלח לבינה המלאכותית.",
     },
     history: {
       title: "היסטוריה רפואית ומשפחתית",

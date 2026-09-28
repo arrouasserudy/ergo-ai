@@ -252,7 +252,7 @@ export const fr = {
     listTitle: "Mes comptes-rendus",
     listSubtitle: "Brouillons à relire, documents validés et exportés.",
     newButton: "Nouveau compte-rendu",
-    searchPlaceholder: "Rechercher un enfant par ses initiales…",
+    searchPlaceholder: "Rechercher un enfant par son nom…",
     statusFilter: { all: "Tous les statuts", draft: "Brouillons", validated: "Validés", exported: "Exportés" } as Record<string, string>,
     thisMonth: "Ce mois-ci",
     columns: { child: "Enfant", type: "Type", date: "Date", status: "Statut" },
@@ -294,7 +294,7 @@ export const fr = {
     notesHint: "Tapées ou dictées",
     notesLabel: "Notes (modifiables)",
     notesPlaceholder: "- tenue du crayon : pince tripode plus stable…\n- découpage : suit une ligne courbe avec aide verbale…",
-    namesHint: "Évitez les noms dans vos notes : utilisez les initiales.",
+    namesHint: "Évitez le nom de l'enfant dans vos notes : écrivez « l'enfant ».",
     consentReminder: "Rappel : les parents doivent avoir donné leur accord écrit au traitement des données de leur enfant.",
     sessionDate: "Date de la séance",
     language: "Langue du compte-rendu",
@@ -422,9 +422,9 @@ export const fr = {
   },
   children: {
     listTitle: "Enfants suivis",
-    listSubtitle: "Les enfants que vous accompagnez, désignés par leurs initiales.",
+    listSubtitle: "Les enfants que vous accompagnez.",
     addButton: "Ajouter un enfant",
-    searchPlaceholder: "Rechercher par initiales, motif, scolarité…",
+    searchPlaceholder: "Rechercher par nom, motif, scolarité…",
     filter: { active: "Actifs", archived: "Archivés", all: "Tous" },
     columns: {
       child: "Enfant",
@@ -456,7 +456,7 @@ export const fr = {
   sections: {
     identity: {
       title: "Identité",
-      hint: "Pseudonymisée : initiales uniquement.",
+      hint: "Le nom n'est jamais envoyé à l'IA.",
     },
     history: {
       title: "Historique médical et familial",
