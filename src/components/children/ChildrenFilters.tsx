@@ -50,7 +50,7 @@ export function ChildrenFilters({ search, status }: { search: string; status: St
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t.children.searchPlaceholder}
           className={clsx(
-            "h-10 w-full rounded-lg border border-line-strong bg-surface pe-3 ps-9 text-[14px] placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none",
+            "h-11 w-full rounded-lg border border-line-strong bg-surface pe-3 ps-9 text-[14px] placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none",
             pending && "opacity-80",
           )}
         />
@@ -63,7 +63,7 @@ export function ChildrenFilters({ search, status }: { search: string; status: St
             aria-pressed={status === f}
             onClick={() => navigate({ status: f })}
             className={clsx(
-              "h-8.5 flex-1 rounded-md px-3.5 text-[13px] transition-colors sm:flex-none",
+              "h-10 flex-1 rounded-md px-4 text-[13px] transition-colors sm:flex-none",
               status === f ? "bg-surface font-medium text-ink shadow-sm" : "text-ink-muted hover:text-ink",
             )}
           >

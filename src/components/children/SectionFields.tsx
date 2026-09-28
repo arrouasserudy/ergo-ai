@@ -73,8 +73,8 @@ export function SensoryFields({ child, errors = {} }: FieldsProps) {
       <TextareaField name="knownTriggers" label={f.knownTriggers} placeholder={f.knownTriggersPlaceholder} defaultValue={child?.knownTriggers ?? ""} error={errors.knownTriggers} rows={2} />
       <TagPicker name="hyperSensitivities" label={f.hyperSensitivities} options={HYPER_SENSITIVITY_OPTIONS} defaultValue={child?.hyperSensitivities} />
       <TagPicker name="hypoReactivities" label={f.hypoReactivities} options={HYPO_REACTIVITY_OPTIONS} defaultValue={child?.hypoReactivities} />
-      <label className="flex items-start gap-2.5 text-[13px] text-ink-soft">
-        <input type="checkbox" name="seeksDeepPressure" defaultChecked={child?.seeksDeepPressure ?? false} className="mt-0.5 size-4 accent-primary" />
+      <label className="flex items-start gap-3 py-1 text-[14px] text-ink-soft">
+        <input type="checkbox" name="seeksDeepPressure" defaultChecked={child?.seeksDeepPressure ?? false} className="mt-0.5 size-5 shrink-0 accent-primary" />
         {f.seeksDeepPressure}
       </label>
       <TagPicker name="backgroundFactors" label={f.backgroundFactors} options={BACKGROUND_FACTOR_OPTIONS} defaultValue={child?.backgroundFactors} />

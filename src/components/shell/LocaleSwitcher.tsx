@@ -7,7 +7,7 @@ import { LOCALES, LOCALE_NAMES } from "@/i18n";
 import { useI18n } from "@/i18n/client";
 
 /** Language toggle (Français / עברית / English); the choice is kept in a cookie. */
-export function LocaleSwitcher({ tone = "light" }: { tone?: "light" | "dark" }) {
+export function LocaleSwitcher({ tone = "light", vertical = false }: { tone?: "light" | "dark"; vertical?: boolean }) {
   const { locale, t } = useI18n();
   const [pending, startTransition] = useTransition();
 
@@ -16,7 +16,8 @@ export function LocaleSwitcher({ tone = "light" }: { tone?: "light" | "dark" }) 
       role="group"
       aria-label={t.language.label}
       className={clsx(
-        "inline-flex rounded-lg p-0.5 text-[12px]",
+        "inline-flex rounded-lg p-0.5 text-[12.5px]",
+        vertical && "w-full flex-col",
         tone === "dark" ? "bg-sidebar-active" : "border border-line-strong bg-surface-muted",
         pending && "opacity-70",
       )}
@@ -30,7 +31,7 @@ export function LocaleSwitcher({ tone = "light" }: { tone?: "light" | "dark" }) 
           disabled={pending}
           onClick={() => startTransition(() => setLocale(l))}
           className={clsx(
-            "rounded-md px-2.5 py-1 transition-colors",
+            "min-h-9 rounded-md px-2.5 py-1 transition-colors",
             locale === l
               ? tone === "dark"
                 ? "bg-sidebar-hover font-medium text-white"

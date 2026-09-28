@@ -14,7 +14,7 @@ export function ConversationLinks({ items }: { items: { id: string; title: strin
     <nav className="space-y-3">
       <Link
         href="/expert"
-        className="flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-[13px] font-medium text-white hover:bg-primary-hover"
+        className="flex items-center justify-center gap-1.5 min-h-11 rounded-lg bg-primary px-3 py-2 text-[14px] font-medium text-white hover:bg-primary-hover"
       >
         <Plus className="size-4" />
         {t.expert.newConversation}
@@ -23,7 +23,7 @@ export function ConversationLinks({ items }: { items: { id: string; title: strin
         href="/expert/library"
         aria-current={pathname === "/expert/library" ? "page" : undefined}
         className={clsx(
-          "flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px]",
+          "flex min-h-11 items-center gap-2 rounded-lg px-2.5 py-2 text-[14px]",
           pathname === "/expert/library" ? "bg-surface font-medium text-ink shadow-sm" : "text-ink-soft hover:bg-surface/70",
         )}
       >
@@ -45,7 +45,7 @@ export function ConversationLinks({ items }: { items: { id: string; title: strin
                     aria-current={active ? "page" : undefined}
                     dir="auto"
                     className={clsx(
-                      "block truncate rounded-lg px-2.5 py-2 text-[13px]",
+                      "block truncate rounded-lg px-2.5 py-3 text-[14px]",
                       active ? "bg-surface font-medium text-ink shadow-sm" : "text-ink-soft hover:bg-surface/70",
                     )}
                   >

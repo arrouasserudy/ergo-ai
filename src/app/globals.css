@@ -40,9 +40,38 @@
   --color-danger: #b3412e;
 }
 
+html {
+  /* Keep text size stable when an iPad rotates. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background: var(--color-canvas);
   color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch: no double-tap zoom delay on controls. */
+a,
+button,
+input,
+select,
+textarea,
+label,
+summary,
+[role="button"],
+[role="tab"] {
+  touch-action: manipulation;
+}
+
+/* Tablet-first: form text at 16px on touch screens so iPadOS/iOS never zooms on focus. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
 }
 
 ::selection {

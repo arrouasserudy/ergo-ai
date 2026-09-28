@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Frank_Ruhl_Libre, Heebo, Newsreader, Public_Sans } from "next/font/google";
 import { I18nProvider } from "@/i18n/client";
 import { getI18n } from "@/i18n/server";
@@ -10,6 +10,15 @@ const publicSans = Public_Sans({ variable: "--font-public-sans", subsets: ["lati
 const newsreader = Newsreader({ variable: "--font-newsreader", subsets: ["latin"], style: ["normal", "italic"] });
 const heebo = Heebo({ variable: "--font-heebo", subsets: ["hebrew"] });
 const frankRuhl = Frank_Ruhl_Libre({ variable: "--font-frank-ruhl", subsets: ["hebrew"] });
+
+// Tablet-first: fit the device width, extend under the notch/home bar (padded with safe-area insets),
+// and keep pinch-zoom available for accessibility.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#1e2624",
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n();

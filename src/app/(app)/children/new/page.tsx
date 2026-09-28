@@ -15,7 +15,7 @@ export default async function NewChildPage() {
   const { t } = i18n;
   return (
     <div className="mx-auto max-w-2xl space-y-5">
-      <Link href="/children" className="inline-flex items-center gap-1 text-[13px] text-ink-muted hover:text-ink">
+      <Link href="/children" className="-my-2 inline-flex min-h-11 items-center gap-1 text-[13.5px] text-ink-muted hover:text-ink">
         <ChevronLeft className="size-4 rtl:rotate-180" />
         {t.children.backToList}
       </Link>

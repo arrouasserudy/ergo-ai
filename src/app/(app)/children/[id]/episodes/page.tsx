@@ -35,7 +35,7 @@ export default async function ChildEpisodesPage(props: PageProps<"/children/[id]
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <Link href={`/children/${child.id}`} className="inline-flex items-center gap-1 text-[13px] text-ink-muted hover:text-ink">
+      <Link href={`/children/${child.id}`} className="-my-2 inline-flex min-h-11 items-center gap-1 text-[13.5px] text-ink-muted hover:text-ink">
         <ChevronLeft className="size-4 rtl:rotate-180" />
         {t.episodes.backToChild(isolate(i18n.childName(child)))}
       </Link>

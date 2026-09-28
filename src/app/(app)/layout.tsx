@@ -6,9 +6,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const { therapist, account } = await requireTherapist();
 
   return (
-    <div className="min-h-screen lg:flex">
+    <div className="min-h-dvh md:flex">
       <Sidebar therapistName={therapist.name} accountName={account.name} />
-      <main className="min-w-0 flex-1 px-4 py-6 sm:px-8 lg:px-10 lg:py-8">{children}</main>
+      <main className="min-w-0 flex-1 px-4 pt-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-8 md:pt-7 xl:px-10 xl:pt-8">{children}</main>
     </div>
   );
 }

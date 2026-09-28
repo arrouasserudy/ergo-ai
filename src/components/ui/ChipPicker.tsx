@@ -49,7 +49,7 @@ export function ChipPicker({
   };
 
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-2">
       {all.map((item) => {
         const on = value.includes(item);
         const isCustom = !options.includes(item);
@@ -60,11 +60,11 @@ export function ChipPicker({
             aria-pressed={on}
             onClick={() => toggle(item)}
             className={clsx(
-              "inline-flex min-h-8 items-center gap-1 rounded-full border px-3 py-1 text-[12.5px] transition-colors",
+              "inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13.5px] transition-colors",
               on ? "border-primary/40 bg-tint text-tint-ink" : "border-line-strong bg-surface text-ink-soft hover:bg-surface-muted",
             )}
           >
-            {on && (isCustom ? <X className="size-3" aria-label={t.common.remove} /> : <Check className="size-3" />)}
+            {on && (isCustom ? <X className="size-3.5" aria-label={t.common.remove} /> : <Check className="size-3.5" />)}
             {label(item)}
           </button>
         );
@@ -88,15 +88,15 @@ export function ChipPicker({
                 setAdding(false);
               }
             }}
-            className="h-8 w-44 rounded-full border border-primary/40 bg-surface px-3 text-[12.5px] focus:outline-none"
+            className="h-10 w-48 rounded-full border border-primary/40 bg-surface px-3.5 text-[13.5px] focus:outline-none"
           />
         ) : (
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="inline-flex h-8 items-center gap-1 rounded-full border border-dashed border-line-strong px-3 text-[12.5px] text-ink-muted hover:bg-surface-muted"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full border border-dashed border-line-strong px-3.5 text-[13.5px] text-ink-muted hover:bg-surface-muted"
           >
-            <Plus className="size-3" />
+            <Plus className="size-3.5" />
             {t.common.other}
           </button>
         ))}

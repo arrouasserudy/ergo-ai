@@ -227,7 +227,7 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
                   type="date"
                   value={data.sessionDate}
                   onChange={(e) => e.target.value && update({ sessionDate: e.target.value })}
-                  className="h-10 rounded-lg border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+                  className="h-11 rounded-lg border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
                 />
               </label>
               <SelectField label={r.language} value={data.language} onChange={(v) => update({ language: v as ReportInput["language"] })}>
@@ -300,7 +300,7 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
                       setConfirmRegenerate(false);
                     }}
                     className={clsx(
-                      "flex h-9 flex-1 items-center justify-center gap-2 rounded-md text-[13.5px] transition-colors",
+                      "flex h-10 flex-1 items-center justify-center gap-2 rounded-md text-[13.5px] transition-colors",
                       k === current ? "bg-surface font-medium shadow-sm" : "text-ink-muted hover:text-ink",
                     )}
                   >
@@ -424,7 +424,7 @@ function AiPreview({ load, saveState }: { load: () => Promise<PromptPreview | nu
     <div className="space-y-2 border-t border-line pt-4">
       <div className="flex flex-wrap items-center gap-2">
         <PrivacyBadge />
-        <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="inline-flex items-center gap-1 text-[12.5px] text-primary">
+        <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="inline-flex min-h-10 items-center gap-1 text-[13px] text-primary">
           {p.aiPreview}
           <ChevronDown className={clsx("size-3.5 transition-transform", open && "rotate-180")} />
         </button>
@@ -459,7 +459,7 @@ function SelectField({ label, value, onChange, children }: { label: string; valu
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-10 rounded-lg border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+        className="h-11 rounded-lg border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
       >
         {children}
       </select>
@@ -471,7 +471,7 @@ function TestsEditor({ tests, onChange }: { tests: ReportInput["tests"]; onChang
   const r = useI18n().t.reports;
   const set = (i: number, patch: Partial<ReportInput["tests"][number]>) => onChange(tests.map((test, k) => (k === i ? { ...test, ...patch } : test)));
   const input =
-    "h-8 rounded-md border border-line-strong bg-surface px-2.5 text-[13px] placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
+    "h-10 rounded-md border border-line-strong bg-surface px-2.5 text-[14px] placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
 
   return (
     <div className="space-y-2">
@@ -491,7 +491,7 @@ function TestsEditor({ tests, onChange }: { tests: ReportInput["tests"]; onChang
             type="button"
             onClick={() => onChange(tests.filter((_, k) => k !== i))}
             aria-label={r.removeTest}
-            className="rounded-md p-1.5 text-ink-muted hover:bg-surface hover:text-ink"
+            className="grid size-10 place-items-center rounded-md text-ink-muted hover:bg-surface hover:text-ink"
           >
             <X className="size-4" />
           </button>
@@ -500,7 +500,7 @@ function TestsEditor({ tests, onChange }: { tests: ReportInput["tests"]; onChang
       <button
         type="button"
         onClick={() => onChange([...tests, { name: "", results: "" }])}
-        className="inline-flex items-center gap-1 rounded-full border border-dashed border-line-strong px-3 py-1 text-[12.5px] text-ink-soft hover:border-primary hover:text-primary"
+        className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-dashed border-line-strong px-3.5 py-1.5 text-[13px] text-ink-soft hover:border-primary hover:text-primary"
       >
         <Plus className="size-3.5" />
         {r.addTest}
@@ -523,16 +523,16 @@ function SectionsEditor({ sections, dir, onChange }: { sections: ReportSection[]
               onChange={(e) => set(i, { heading: e.target.value })}
               aria-label={r.sectionHeading}
               placeholder={r.sectionHeading}
-              className="min-w-0 flex-1 rounded-md bg-transparent px-1.5 py-0.5 text-[14px] font-semibold focus:bg-surface focus:ring-2 focus:ring-primary/15 focus:outline-none"
+              className="min-w-0 flex-1 rounded-md bg-transparent px-1.5 py-1.5 text-[14px] font-semibold focus:bg-surface focus:ring-2 focus:ring-primary/15 focus:outline-none"
             />
             <button
               type="button"
               onClick={() => onChange(sections.filter((_, k) => k !== i))}
               aria-label={r.removeSection}
               title={r.removeSection}
-              className="rounded-md p-1 text-ink-muted opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 hover:bg-surface hover:text-ink focus:opacity-100"
+              className="grid size-10 shrink-0 place-items-center rounded-md text-ink-muted opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 hover:bg-surface hover:text-ink focus:opacity-100 pointer-coarse:opacity-100"
             >
-              <X className="size-3.5" />
+              <X className="size-4" />
             </button>
           </div>
           <textarea
@@ -546,7 +546,7 @@ function SectionsEditor({ sections, dir, onChange }: { sections: ReportSection[]
       <button
         type="button"
         onClick={() => onChange([...sections, { heading: "", body: "" }])}
-        className="inline-flex items-center gap-1 px-1.5 text-[12.5px] text-ink-muted hover:text-primary"
+        className="inline-flex min-h-10 items-center gap-1 px-1.5 text-[13px] text-ink-muted hover:text-primary"
       >
         <Plus className="size-3.5" />
         {r.addSection}
