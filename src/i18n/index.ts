@@ -82,6 +82,11 @@ export function createI18n(locale: Locale, timeZone: string, hideNames = false) 
       date.toLocaleString(intl, { timeZone, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
     shortDate: (date: Date) => date.toLocaleDateString(intl, { timeZone, day: "numeric", month: "short" }),
     time: (date: Date) => date.toLocaleTimeString(intl, { timeZone, hour: "2-digit", minute: "2-digit" }),
+    /** A yearly date "MM-DD", e.g. "1 oct." (a leap year, so 29 February works). */
+    dayMonth: (value: string) =>
+      new Date(`2000-${value}T00:00:00Z`).toLocaleDateString(intl, { timeZone: "UTC", day: "numeric", month: "short" }),
+    /** Month names, January first, for day/month pickers. */
+    monthNames: () => Array.from({ length: 12 }, (_, i) => new Date(Date.UTC(2000, i, 1)).toLocaleDateString(intl, { timeZone: "UTC", month: "long" })),
 
     /** Months under 2 years, half-years under 4, whole years after; null when unknown. */
     age: (birthDate: string | null, now = new Date()) => {

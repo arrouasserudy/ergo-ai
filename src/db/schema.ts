@@ -24,6 +24,10 @@ export const accounts = sqliteTable("accounts", {
   name: text("name").notNull(),
   /** Letterhead printed at the top of exported reports (address, phone, registration number…). */
   letterhead: text("letterhead"),
+  /** Forms due within this many days are flagged (orange) in the child view and the bell. */
+  deadlineWarnDays: integer("deadline_warn_days").notNull().default(14),
+  /** First day of the school year ("MM-DD"): yearly form deadlines restart from it. */
+  schoolYearStart: text("school_year_start").notNull().default("09-01"),
   ...timestamps(),
 });
 
@@ -443,6 +447,10 @@ export const formTemplates = sqliteTable(
     sourceKind: text("source_kind", { enum: FORM_SOURCE_KINDS }).notNull(),
     schema: text("schema", { mode: "json" }).$type<FormSchema>().notNull(),
     status: text("status", { enum: FORM_TEMPLATE_STATUSES }).notNull().default("draft"),
+    /** Added automatically to every active child (and new ones) while published. */
+    autoAssign: integer("auto_assign", { mode: "boolean" }).notNull().default(false),
+    /** Yearly deadline ("MM-DD"), due once per school year; see lib/forms/deadlines.ts. */
+    deadline: text("deadline"),
     model: text("model").notNull(),
     inputTokens: integer("input_tokens"),
     outputTokens: integer("output_tokens"),
@@ -480,9 +488,17 @@ export const childForms = sqliteTable(
     submittedBy: text("submitted_by", { enum: FORM_FILLERS }),
     shareTokenHash: text("share_token_hash").unique(),
     shareExpiresAt: integer("share_expires_at", { mode: "timestamp_ms" }),
+    /** Copied from the template's deadline at attach time (ISO date). */
+    dueDate: text("due_date"),
+    /** Set on automatic copies only: "once", or the school year ("2026" for 2026–27): one copy per cycle. */
+    cycle: text("cycle"),
     ...timestamps(),
   },
-  (table) => [index("child_forms_child_idx").on(table.accountId, table.childId)],
+  (table) => [
+    index("child_forms_child_idx").on(table.accountId, table.childId),
+    index("child_forms_due_idx").on(table.accountId, table.status, table.dueDate),
+    uniqueIndex("child_forms_auto_cycle_idx").on(table.childId, table.templateId, table.cycle),
+  ],
 );
 
 export type FormTemplate = typeof formTemplates.$inferSelect;

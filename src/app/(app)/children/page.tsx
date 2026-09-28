@@ -2,11 +2,14 @@ import { Plus, UserRound } from "lucide-react";
 import Link from "next/link";
 import { ChildrenFilters } from "@/components/children/ChildrenFilters";
 import { StatusBadge } from "@/components/children/StatusBadge";
+import { DeadlineBadge } from "@/components/forms/DeadlineBadge";
 import { Avatar } from "@/components/ui/Avatar";
 import { LinkButton } from "@/components/ui/Button";
 import { getI18n } from "@/i18n/server";
 import { listChildren, type StatusFilter } from "@/lib/children";
+import { pendingForms, urgencyByChild } from "@/lib/forms/queries";
 import { requireTherapist } from "@/lib/session";
+import { localToday } from "@/lib/time";
 
 export async function generateMetadata() {
   const { t } = await getI18n();
@@ -20,7 +23,8 @@ function parseStatus(value: unknown): StatusFilter {
 export default async function ChildrenPage(props: PageProps<"/children">) {
   const i18n = await getI18n();
   const { t } = i18n;
-  const { accountId } = await requireTherapist();
+  const { accountId, account } = await requireTherapist();
+  const urgencies = urgencyByChild(pendingForms(accountId, localToday(), account.deadlineWarnDays));
   const sp = await props.searchParams;
   const search = typeof sp.q === "string" ? sp.q : "";
   const status = parseStatus(sp.status);
@@ -90,8 +94,9 @@ export default async function ChildrenPage(props: PageProps<"/children">) {
                     </span>
                     <span className="hidden text-[13px] text-ink-soft md:block">{child.schoolLevel ?? "—"}</span>
                     <span className="hidden text-[13px] text-ink-soft md:block">{i18n.date(child.followUpStart) || "—"}</span>
-                    <span className="col-start-2 row-start-1 md:col-start-auto md:row-start-auto">
+                    <span className="col-start-2 row-start-1 flex flex-wrap justify-end gap-1.5 md:col-start-auto md:row-start-auto md:justify-start">
                       <StatusBadge status={child.status} />
+                      <DeadlineBadge urgency={urgencies.get(child.id)} />
                     </span>
                   </Link>
                 </li>

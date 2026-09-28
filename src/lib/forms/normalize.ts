@@ -1,4 +1,4 @@
-import { MAX_FIELDS, MAX_OPTIONS, type FormField, type FormLanguage, type FormOption, type FormSchema, type LlmForm } from "./schema";
+import { MAX_FIELDS, MAX_OPTIONS, MAX_SECTIONS, type FormField, type FormLanguage, type FormOption, type FormSchema, type LlmForm } from "./schema";
 
 type LlmField = LlmForm["sections"][number]["fields"][number];
 
@@ -89,7 +89,7 @@ function toField(raw: LlmField, id: string): FormField | null {
 /**
  * Turns the model's output into a valid form: assigns ids (sections `s1`…, fields `f1`…
  * across the whole form, options `o1`/rows `r1`/columns `c1` per field), trims text, drops
- * empty fields and sections. Throws "noFields" when nothing is left.
+ * empty fields and sections, and caps the number of sections. Throws "noFields" when nothing is left.
  */
 export function normalizeForm(raw: LlmForm, fallbackTitle: string, fallbackLanguage: FormLanguage): FormSchema {
   let fieldCount = 0;
@@ -105,6 +105,11 @@ export function normalizeForm(raw: LlmForm, fallbackTitle: string, fallbackLangu
       fieldCount++;
     }
     if (fields.length === 0) continue;
+    // Past the section limit, the remaining questions go into the last section.
+    if (sections.length === MAX_SECTIONS) {
+      sections[sections.length - 1].fields.push(...fields);
+      continue;
+    }
     sections.push({ id: `s${sections.length + 1}`, title: clean(rawSection.title), description: clean(rawSection.description), fields });
   }
 

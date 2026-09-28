@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cleanLabel, normalizeForm } from "./normalize";
-import { formSchema, nextId, type LlmForm } from "./schema";
+import { formSchema, MAX_SECTIONS, nextId, type LlmForm } from "./schema";
 
 type LlmField = LlmForm["sections"][number]["fields"][number];
 
@@ -30,6 +30,13 @@ const form = (fields: LlmField[][]): LlmForm => ({
 });
 
 describe("normalizeForm", () => {
+  it("caps sections and keeps the overflowing questions in the last one", () => {
+    const result = normalizeForm(form(Array.from({ length: MAX_SECTIONS + 5 }, () => [field({})])), "fallback", "fr");
+    expect(result.sections).toHaveLength(MAX_SECTIONS);
+    expect(result.sections.at(-1)?.fields).toHaveLength(6);
+    expect(formSchema.safeParse(result).success).toBe(true);
+  });
+
   it("assigns ids across the whole form and produces a valid schema", () => {
     const result = normalizeForm(
       form([

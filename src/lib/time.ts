@@ -9,3 +9,8 @@ export const APP_TIME_ZONE = process.env.APP_TIME_ZONE ?? "Asia/Jerusalem";
 export function minutesBetween(start: Date, end: Date): number {
   return Math.max(1, Math.round((end.getTime() - start.getTime()) / 60_000));
 }
+
+/** Today's date in the practice's time zone (YYYY-MM-DD). */
+export function localToday(now = new Date()): string {
+  return now.toLocaleDateString("en-CA", { timeZone: APP_TIME_ZONE });
+}

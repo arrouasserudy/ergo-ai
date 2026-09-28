@@ -25,6 +25,7 @@ export type FieldType = (typeof FIELD_TYPES)[number];
 
 export const MAX_FIELDS = 400;
 export const MAX_OPTIONS = 60;
+export const MAX_SECTIONS = 60;
 const LABEL_MAX = 1000;
 
 const label = z.string().trim().min(1, "required").max(LABEL_MAX, `tooLong:${LABEL_MAX}`);
@@ -72,7 +73,7 @@ export const formSchema = z
     title: z.string().trim().min(1, "required").max(200, "tooLong:200"),
     description: optionalLabel,
     language: z.enum(FORM_LANGUAGES),
-    sections: z.array(section).min(1).max(60),
+    sections: z.array(section).min(1).max(MAX_SECTIONS),
   })
   .refine((f) => f.sections.reduce((n, s) => n + s.fields.length, 0) <= MAX_FIELDS, "tooManyFields")
   .refine((f) => {

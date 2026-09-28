@@ -8,7 +8,9 @@ import { FORM_TEMPLATE_STATUSES, formTemplates, type FormTemplateStatus } from "
 import { getLocale } from "@/i18n/server";
 import { defaultProvider } from "@/lib/expert/providers";
 import { MAX_UPLOAD_BYTES } from "@/lib/expert/uploads";
+import { syncAutoForms } from "@/lib/forms/auto-assign";
 import { convertForm, DAILY_CONVERSION_LIMIT, sourceKind } from "@/lib/forms/convert";
+import { isDayMonth } from "@/lib/forms/deadlines";
 import { conversionsToday, getTemplate } from "@/lib/forms/queries";
 import { formSchema, type FormSchema } from "@/lib/forms/schema";
 import { GenerationError } from "@/lib/reports/generate";
@@ -83,15 +85,41 @@ export async function saveFormTemplate(id: string, schema: FormSchema): Promise<
   return { ok: true, savedAt: Date.now() };
 }
 
-/** Publish, back to draft, archive or restore. */
-export async function setFormTemplateStatus(id: string, status: FormTemplateStatus) {
+export type StatusResult = { ok: true } | { ok: false; error: string; issues?: string[] };
+
+/** Publish, back to draft, archive or restore. Publishing an invalid form returns its issues. */
+export async function setFormTemplateStatus(id: string, status: FormTemplateStatus): Promise<StatusResult> {
   const { accountId } = await requireTherapist();
-  if (!FORM_TEMPLATE_STATUSES.includes(status)) return;
+  if (!FORM_TEMPLATE_STATUSES.includes(status)) return { ok: false, error: "generic" };
   const template = getTemplate(accountId, id);
-  if (!template) return;
-  if (status === "published" && !formSchema.safeParse(template.schema).success) return;
+  if (!template) return { ok: false, error: "generic" };
+  if (status === "published") {
+    const parsed = formSchema.safeParse(template.schema);
+    if (!parsed.success) return { ok: false, error: "invalid", issues: parsed.error.issues.map((i) => i.path.join(".")) };
+  }
   db.update(formTemplates).set({ status }).where(eq(formTemplates.id, id)).run();
+  if (status === "published") syncAutoForms(accountId);
   revalidateTemplate(id);
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+export type AutomationInput = { autoAssign: boolean; deadline: string | null };
+
+/** Auto-assignment to every child and the yearly deadline; applies at once when published. */
+export async function setFormTemplateAutomation(id: string, input: AutomationInput): Promise<{ ok: boolean }> {
+  const { accountId } = await requireTherapist();
+  if (typeof input?.autoAssign !== "boolean" || (input.deadline !== null && !isDayMonth(input.deadline))) return { ok: false };
+  const updated = db
+    .update(formTemplates)
+    .set({ autoAssign: input.autoAssign, deadline: input.deadline })
+    .where(and(eq(formTemplates.id, id), eq(formTemplates.accountId, accountId)))
+    .run();
+  if (updated.changes === 0) return { ok: false };
+  syncAutoForms(accountId);
+  revalidateTemplate(id);
+  revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 /** Forms already attached to children keep their own copy of the schema. */

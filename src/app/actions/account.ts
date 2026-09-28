@@ -4,7 +4,9 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { accounts } from "@/db/schema";
-import { requireOwner } from "@/lib/session";
+import { syncAutoForms } from "@/lib/forms/auto-assign";
+import { isDayMonth } from "@/lib/forms/deadlines";
+import { requireOwner, requireTherapist } from "@/lib/session";
 import { createTherapist, EmailTakenError } from "@/lib/therapists";
 import { accountNameSchema, formDataToStrings, letterheadSchema, newTherapistSchema, toFieldErrors } from "@/lib/validation";
 import type { FormState } from "./children";
@@ -47,4 +49,17 @@ export async function addTherapist(_prev: FormState, formData: FormData): Promis
   }
   revalidatePath("/account");
   return { ok: true, savedAt: Date.now(), addedName: parsed.data.name };
+}
+
+export type DeadlineSettings = { warnDays: number; schoolYearStart: string };
+
+/** Cabinet-wide: how early forms are flagged, and when yearly deadlines restart. Any therapist of the cabinet. */
+export async function updateDeadlineSettings(input: DeadlineSettings): Promise<{ ok: boolean }> {
+  const { accountId } = await requireTherapist();
+  const warnDays = Number(input?.warnDays);
+  if (!Number.isInteger(warnDays) || warnDays < 0 || warnDays > 90 || !isDayMonth(input?.schoolYearStart)) return { ok: false };
+  db.update(accounts).set({ deadlineWarnDays: warnDays, schoolYearStart: input.schoolYearStart }).where(eq(accounts.id, accountId)).run();
+  syncAutoForms(accountId);
+  revalidatePath("/", "layout");
+  return { ok: true };
 }

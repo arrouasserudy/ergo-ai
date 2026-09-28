@@ -2,6 +2,7 @@ import { ClipboardList } from "lucide-react";
 import Link from "next/link";
 import { FormUpload } from "@/components/forms/FormUpload";
 import { TemplateStatusBadge } from "@/components/forms/TemplateStatusBadge";
+import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { getI18n } from "@/i18n/server";
 import { listTemplates } from "@/lib/forms/queries";
@@ -49,6 +50,8 @@ export default async function FormsPage() {
                       {f.questions(allFields(tpl.schema).filter((fl) => fl.type !== "info").length)} · {f.updated(i18n.date(tpl.updatedAt.toISOString()))}
                     </span>
                   </span>
+                  {tpl.autoAssign && <Badge tone="tint">{f.automation.autoChip}</Badge>}
+                  {tpl.deadline && <Badge tone="muted">{f.due.before(i18n.dayMonth(tpl.deadline))}</Badge>}
                   <TemplateStatusBadge status={tpl.status} />
                 </Link>
               </li>

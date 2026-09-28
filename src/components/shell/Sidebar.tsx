@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { signOut } from "@/app/actions/auth";
 import { useI18n } from "@/i18n/client";
 import { initialsOf } from "@/lib/child-name";
@@ -115,6 +115,9 @@ function RailList({ pathname }: { pathname: string }) {
 
 type SidebarProps = { therapistName: string; accountName: string };
 
+/** The phone header also holds the notification bell (on larger screens it sits above the page). */
+type ShellProps = SidebarProps & { bell?: ReactNode };
+
 function Footer({ therapistName, accountName }: SidebarProps) {
   const { t } = useI18n();
   return (
@@ -179,7 +182,7 @@ function RailFooter({ therapistName, accountName }: SidebarProps) {
   );
 }
 
-export function Sidebar(props: SidebarProps) {
+export function Sidebar({ bell, ...props }: ShellProps) {
   const { t } = useI18n();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -189,14 +192,17 @@ export function Sidebar(props: SidebarProps) {
       {/* Phone: top bar + drawer */}
       <header className="sticky top-0 z-30 flex items-center justify-between bg-sidebar px-4 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2 md:hidden">
         <Logo />
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label={t.nav.openMenu}
-          className="grid size-11 place-items-center rounded-lg text-sidebar-ink hover:bg-sidebar-hover"
-        >
-          <Menu className="size-5" />
-        </button>
+        <div className="flex items-center gap-1">
+          {bell}
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-label={t.nav.openMenu}
+            className="grid size-11 place-items-center rounded-lg text-sidebar-ink hover:bg-sidebar-hover"
+          >
+            <Menu className="size-5" />
+          </button>
+        </div>
       </header>
 
       {open && (

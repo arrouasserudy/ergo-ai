@@ -5,6 +5,7 @@ import { setChildStatus } from "@/app/actions/children";
 import { EditableSection } from "@/components/children/EditableSection";
 import { EpisodeList } from "@/components/episodes/EpisodeList";
 import { ChildFormsCard } from "@/components/forms/ChildFormsCard";
+import { DeadlineBadge } from "@/components/forms/DeadlineBadge";
 import { OpenEpisodes } from "@/components/episodes/OpenEpisodes";
 import { ReportRows } from "@/components/reports/ReportRows";
 import { StartButtons } from "@/components/episodes/StartButtons";
@@ -20,7 +21,9 @@ import { getI18n } from "@/i18n/server";
 import { getChild } from "@/lib/children";
 import { listChildEpisodes } from "@/lib/episodes";
 import { listReports } from "@/lib/reports/queries";
+import { pendingForms, urgencyByChild } from "@/lib/forms/queries";
 import { requireTherapist } from "@/lib/session";
+import { localToday } from "@/lib/time";
 
 export async function generateMetadata(props: PageProps<"/children/[id]">) {
   const i18n = await getI18n();
@@ -45,7 +48,7 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
   const i18n = await getI18n();
   const { t } = i18n;
   const f = t.fields;
-  const { accountId } = await requireTherapist();
+  const { accountId, account } = await requireTherapist();
   const { id } = await props.params;
   const child = getChild(accountId, id);
   if (!child) notFound();
@@ -75,6 +78,7 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
               {age && <span> · {age}</span>}
             </h1>
             <StatusBadge status={child.status} />
+            <DeadlineBadge urgency={urgencyByChild(pendingForms(accountId, localToday(), account.deadlineWarnDays)).get(child.id)} />
           </div>
           <p className="mt-1 text-[13px] text-ink-muted">
             {[child.followUpStart && t.children.since(i18n.date(child.followUpStart)), t.children.reasonMeta(child.referralReason)]
@@ -212,7 +216,7 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
             )}
           </Card>
 
-          <ChildFormsCard accountId={accountId} childId={child.id} archived={archived} />
+          <ChildFormsCard accountId={accountId} childId={child.id} archived={archived} warnDays={account.deadlineWarnDays} />
         </div>
       </div>
     </div>
