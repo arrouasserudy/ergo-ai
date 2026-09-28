@@ -27,6 +27,15 @@ pnpm expert:search "weighted vest attention"   # see what the chat would retriev
 
 Cabinets add their own PDFs from `/expert/library`.
 
+## Reminders and SMS to parents
+
+`/reminders` lists what's due this school year (initial assessment, parent guidance, year-end report), upcoming meetings, and parents who haven't had a guidance session yet. Deadlines are set per cabinet on `/account`.
+
+Meeting reminders reach the parents by SMS the day before (never at night or on Shabbat). Two ways to send them:
+
+- **From the therapist's phone** (no setup): "Send from my phone" opens the messaging app with the text ready.
+- **Automatically**: set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` (or `TWILIO_MESSAGING_SERVICE_SID`) and `CRON_SECRET` as Fly secrets, and the same `CRON_SECRET` as a GitHub repository secret. `.github/workflows/reminders.yml` calls `POST /api/cron/reminders` every hour.
+
 ## Deployment (Fly.io)
 
 Every push to `main` runs the checks (typecheck, lint, tests), then `flyctl deploy` (`.github/workflows/deploy.yml`; also runnable by hand from the Actions tab). It needs the `FLY_API_TOKEN` repository secret, from `fly tokens create deploy -x 999999h`. Pending migrations are applied when the new machine boots; if one fails, the database is left untouched (single transaction), the server exits and the deploy fails on its health check. Fix forward, or roll back with `fly deploy --image <previous image>` (`fly releases --image` lists them).

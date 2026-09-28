@@ -81,6 +81,9 @@ export function createI18n(locale: Locale, timeZone: string, hideNames = false) 
     dateTime: (date: Date) =>
       date.toLocaleString(intl, { timeZone, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
     shortDate: (date: Date) => date.toLocaleDateString(intl, { timeZone, day: "numeric", month: "short" }),
+    /** Weekday, date and time, e.g. for an SMS reminder: "mardi 6 octobre à 16:00". */
+    longDateTime: (date: Date) =>
+      date.toLocaleString(intl, { timeZone, weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }),
     time: (date: Date) => date.toLocaleTimeString(intl, { timeZone, hour: "2-digit", minute: "2-digit" }),
 
     /** Months under 2 years, half-years under 4, whole years after; null when unknown. */

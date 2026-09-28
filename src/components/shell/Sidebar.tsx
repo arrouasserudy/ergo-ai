@@ -3,6 +3,7 @@
 import clsx from "clsx";
 import {
   Activity,
+  Bell,
   FileText,
   Building2,
   ListChecks,
@@ -31,6 +32,7 @@ const NAV: NavItem[] = [
   { label: "newReport", icon: Plus, href: "/reports/new" },
   { label: "reports", icon: ListChecks, href: "/reports" },
   { label: "children", icon: UserRound, href: "/children" },
+  { label: "reminders", icon: Bell, href: "/reminders" },
   { label: "crises", icon: Activity, href: "/crises" },
   { label: "expert", icon: MessageCircle, href: "/expert" },
   { label: "account", icon: Building2, href: "/account" },
@@ -56,7 +58,17 @@ function activeHrefOf(pathname: string) {
     .sort((a, b) => b.length - a.length)[0];
 }
 
-function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+/** Pending items on the reminders entry. */
+function CountBadge({ count, className }: { count: number; className?: string }) {
+  if (count <= 0) return null;
+  return (
+    <span className={clsx("grid h-5 min-w-5 place-items-center rounded-full bg-warn px-1.5 text-[11px] font-semibold text-warn-ink tabular-nums", className)}>
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
+function NavList({ pathname, onNavigate, reminderCount }: { pathname: string; onNavigate?: () => void; reminderCount: number }) {
   const { t } = useI18n();
   const activeHref = activeHrefOf(pathname);
   return (
@@ -76,6 +88,7 @@ function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
             >
               <Icon className="size-[18px] shrink-0" strokeWidth={1.75} />
               <span className="truncate">{t.nav[label]}</span>
+              {label === "reminders" && <CountBadge count={reminderCount} className="ms-auto" />}
             </Link>
           </li>
         );
@@ -85,7 +98,7 @@ function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
 }
 
 /** Tablet rail: icon above a short label, always visible, one tap to any module. */
-function RailList({ pathname }: { pathname: string }) {
+function RailList({ pathname, reminderCount }: { pathname: string; reminderCount: number }) {
   const { t } = useI18n();
   const activeHref = activeHrefOf(pathname);
   return (
@@ -98,12 +111,13 @@ function RailList({ pathname }: { pathname: string }) {
               href={href}
               aria-current={active ? "page" : undefined}
               className={clsx(
-                "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-2 text-center text-[11px] leading-tight transition-colors",
+                "relative flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-2 text-center text-[11px] leading-tight transition-colors",
                 active ? "bg-sidebar-active text-white" : "text-sidebar-ink hover:bg-sidebar-hover hover:text-white",
               )}
             >
               <Icon className="size-5 shrink-0" strokeWidth={1.75} />
               <span className="line-clamp-2 hyphens-auto">{t.nav[label]}</span>
+              {label === "reminders" && <CountBadge count={reminderCount} className="absolute end-3 top-1" />}
             </Link>
           </li>
         );
@@ -112,7 +126,7 @@ function RailList({ pathname }: { pathname: string }) {
   );
 }
 
-type SidebarProps = { therapistName: string; accountName: string };
+type SidebarProps = { therapistName: string; accountName: string; reminderCount: number };
 
 function Footer({ therapistName, accountName }: SidebarProps) {
   const { t } = useI18n();
@@ -196,9 +210,10 @@ export function Sidebar(props: SidebarProps) {
           type="button"
           onClick={() => setOpen(true)}
           aria-label={t.nav.openMenu}
-          className="grid size-11 place-items-center rounded-lg text-sidebar-ink hover:bg-sidebar-hover"
+          className="relative grid size-11 place-items-center rounded-lg text-sidebar-ink hover:bg-sidebar-hover"
         >
           <Menu className="size-5" />
+          <CountBadge count={props.reminderCount} className="absolute end-0 top-0" />
         </button>
       </header>
 
@@ -217,7 +232,7 @@ export function Sidebar(props: SidebarProps) {
                 <X className="size-5" />
               </button>
             </div>
-            <NavList pathname={pathname} onNavigate={() => setOpen(false)} />
+            <NavList pathname={pathname} onNavigate={() => setOpen(false)} reminderCount={props.reminderCount} />
             <div className="mt-auto">
               <Footer {...props} />
             </div>
@@ -230,7 +245,7 @@ export function Sidebar(props: SidebarProps) {
         <Link href="/children" aria-label={t.app.name} className="mx-auto grid size-10 place-items-center rounded-lg bg-primary text-white">
           <FileText className="size-5" strokeWidth={2} />
         </Link>
-        <RailList pathname={pathname} />
+        <RailList pathname={pathname} reminderCount={props.reminderCount} />
         <div className="mt-auto">
           <RailFooter {...props} />
         </div>
@@ -241,7 +256,7 @@ export function Sidebar(props: SidebarProps) {
         <div className="px-2">
           <Logo />
         </div>
-        <NavList pathname={pathname} />
+        <NavList pathname={pathname} reminderCount={props.reminderCount} />
         <div className="mt-auto">
           <Footer {...props} />
         </div>

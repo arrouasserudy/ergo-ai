@@ -1,12 +1,16 @@
 import { AccountNameForm } from "@/components/account/AccountNameForm";
 import { AddTherapistForm } from "@/components/account/AddTherapistForm";
+import { DeadlinesForm } from "@/components/account/DeadlinesForm";
+import { InfoList } from "@/components/children/InfoList";
 import { LetterheadForm } from "@/components/account/LetterheadForm";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { getI18n } from "@/i18n/server";
+import { deadlineInYear, resolveDeadlines, schoolYearOf } from "@/lib/reminders/milestones";
 import { requireTherapist } from "@/lib/session";
+import { localDate } from "@/lib/time";
 import { listTherapists } from "@/lib/therapists";
 
 export async function generateMetadata() {
@@ -21,6 +25,13 @@ export default async function AccountPage() {
   const team = listTherapists(accountId);
   const isOwner = role === "owner";
   const cols = t.account.columns;
+  const year = schoolYearOf(localDate(new Date()));
+  const deadlines = resolveDeadlines(account.deadlines);
+  const deadlineDates = {
+    initialAssessment: deadlineInYear(year, deadlines.initialAssessment),
+    parentGuidance: deadlineInYear(year, deadlines.parentGuidance),
+    yearEndReport: deadlineInYear(year, deadlines.yearEndReport),
+  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
@@ -46,6 +57,20 @@ export default async function AccountPage() {
             <p dir="auto" className="text-[14px] whitespace-pre-line text-ink-soft">
               {account.letterhead ?? t.account.letterheadEmpty}
             </p>
+          )}
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader title={t.account.deadlinesTitle} hint={isOwner ? t.account.deadlinesHint : t.account.ownerOnly} />
+        <div className="px-5 pb-5">
+          {isOwner ? (
+            <DeadlinesForm dates={deadlineDates} />
+          ) : (
+            <InfoList
+              columns={1}
+              items={(Object.keys(deadlineDates) as (keyof typeof deadlineDates)[]).map((m) => ({ label: t.reminders.milestone[m], value: i18n.date(deadlineDates[m]) }))}
+            />
           )}
         </div>
       </Card>
