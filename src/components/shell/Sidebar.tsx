@@ -24,7 +24,6 @@ import { signOut } from "@/app/actions/auth";
 import { useI18n } from "@/i18n/client";
 import { initialsOf } from "@/lib/child-name";
 import type { Dictionary } from "@/i18n/fr";
-import { LocaleSwitcher } from "./LocaleSwitcher";
 
 type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href: string };
 
@@ -157,9 +156,6 @@ function Footer({ therapistName, accountName }: SidebarProps) {
           </button>
         </form>
       </div>
-      <div className="px-1">
-        <LocaleSwitcher tone="dark" />
-      </div>
     </div>
   );
 }
@@ -176,7 +172,6 @@ function RailFooter({ therapistName, accountName }: SidebarProps) {
       >
         <Lock className="size-[18px]" strokeWidth={1.75} />
       </Link>
-      <LocaleSwitcher tone="dark" vertical />
       <div className="flex w-full flex-col items-center gap-1 border-t border-sidebar-active pt-3" title={`${therapistName} · ${accountName}`}>
         <span aria-hidden dir="ltr" className="grid size-9 place-items-center rounded-full bg-sidebar-active text-[11px] font-medium text-white">
           {initialsOf(therapistName).join("")}
