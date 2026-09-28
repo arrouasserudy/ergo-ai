@@ -23,6 +23,7 @@ export default async function PrivacyPage() {
     reports: chat,
     dictation: transcriptionAvailable() ? "openai" : "none",
     expert: chat,
+    forms: chat,
     search: embedProvider() ?? "none",
   };
 

@@ -28,26 +28,46 @@ export class GenerationError extends Error {
 
 export type GenerationResult = { sections: ReportSection[]; model: string; usage: { input: number; output: number } };
 
+/** A structured-output call: a system prompt, a user text and optionally a PDF the model reads. */
+export type StructuredRequest<T extends z.ZodType> = {
+  schema: T;
+  /** Name of the output format (OpenAI). */
+  name: string;
+  system: string;
+  prompt: string;
+  pdf?: { data: Uint8Array; filename: string };
+  models?: { anthropic: string; openai: string };
+  effort?: "low" | "medium" | "high";
+};
+
+export type StructuredResult<T> = { output: T; model: string; usage: { input: number; output: number } };
+
 let anthropic: Anthropic | null = null;
 let openai: OpenAI | null = null;
 
-async function withAnthropic(system: string, prompt: string): Promise<GenerationResult> {
+const base64 = (data: Uint8Array) => Buffer.from(data).toString("base64");
+
+async function withAnthropic<T extends z.ZodType>(req: StructuredRequest<T>): Promise<StructuredResult<z.infer<T>>> {
   anthropic ??= new Anthropic(); // reads ANTHROPIC_API_KEY
+  const model = req.models?.anthropic ?? REPORT_MODEL;
+  const content: Anthropic.ContentBlockParam[] = [];
+  if (req.pdf) content.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: base64(req.pdf.data) } });
+  content.push({ type: "text", text: req.prompt });
   try {
     const response = await anthropic.messages.parse({
-      model: REPORT_MODEL,
+      model,
       max_tokens: 16000,
       thinking: { type: "adaptive" },
-      output_config: { effort: "low", format: zodOutputFormat(outputSchema) },
-      system,
-      messages: [{ role: "user", content: prompt }],
+      output_config: { effort: req.effort ?? "low", format: zodOutputFormat(req.schema) },
+      system: req.system,
+      messages: [{ role: "user", content }],
     });
     if (response.stop_reason === "refusal") throw new GenerationError("refusal");
     if (!response.parsed_output) throw new GenerationError("generic", `No parsed output (stop_reason: ${response.stop_reason})`);
     const u = response.usage;
     return {
-      sections: response.parsed_output.sections,
-      model: REPORT_MODEL,
+      output: response.parsed_output as z.infer<T>,
+      model,
       usage: { input: u.input_tokens + (u.cache_read_input_tokens ?? 0) + (u.cache_creation_input_tokens ?? 0), output: u.output_tokens },
     };
   } catch (err) {
@@ -63,23 +83,27 @@ async function withAnthropic(system: string, prompt: string): Promise<Generation
   }
 }
 
-async function withOpenAI(system: string, prompt: string): Promise<GenerationResult> {
+async function withOpenAI<T extends z.ZodType>(req: StructuredRequest<T>): Promise<StructuredResult<z.infer<T>>> {
   openai ??= new OpenAI(); // reads OPENAI_API_KEY
+  const model = req.models?.openai ?? REPORT_OPENAI_MODEL;
+  const content: OpenAI.ChatCompletionContentPart[] = [];
+  if (req.pdf) content.push({ type: "file", file: { filename: req.pdf.filename, file_data: `data:application/pdf;base64,${base64(req.pdf.data)}` } });
+  content.push({ type: "text", text: req.prompt });
   try {
     const completion = await openai.chat.completions.parse({
-      model: REPORT_OPENAI_MODEL,
+      model,
       messages: [
-        { role: "system", content: system },
-        { role: "user", content: prompt },
+        { role: "system", content: req.system },
+        { role: "user", content: req.pdf ? content : req.prompt },
       ],
-      response_format: zodResponseFormat(outputSchema, "report"),
+      response_format: zodResponseFormat(req.schema, req.name),
     });
     const message = completion.choices[0]?.message;
     if (message?.refusal) throw new GenerationError("refusal");
     if (!message?.parsed) throw new GenerationError("generic", "No parsed output");
     return {
-      sections: message.parsed.sections,
-      model: REPORT_OPENAI_MODEL,
+      output: message.parsed as z.infer<T>,
+      model,
       usage: { input: completion.usage?.prompt_tokens ?? 0, output: completion.usage?.completion_tokens ?? 0 },
     };
   } catch (err) {
@@ -95,10 +119,15 @@ async function withOpenAI(system: string, prompt: string): Promise<GenerationRes
   }
 }
 
+/** One structured-output call to the chosen provider. */
+export function generateStructured<T extends z.ZodType>(provider: ChatProvider, req: StructuredRequest<T>): Promise<StructuredResult<z.infer<T>>> {
+  return provider === "openai" ? withOpenAI(req) : withAnthropic(req);
+}
+
 /** One structured draft. Sections with an empty heading and body are dropped. */
 export async function generateSections(provider: ChatProvider, system: string, prompt: string): Promise<GenerationResult> {
-  const result = provider === "openai" ? await withOpenAI(system, prompt) : await withAnthropic(system, prompt);
-  const sections = result.sections.filter((s) => s.heading.trim() || s.body.trim());
+  const { output, model, usage } = await generateStructured(provider, { schema: outputSchema, name: "report", system, prompt });
+  const sections = output.sections.filter((s) => s.heading.trim() || s.body.trim());
   if (sections.length === 0) throw new GenerationError("generic", "Empty report");
-  return { ...result, sections };
+  return { sections, model, usage };
 }

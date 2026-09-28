@@ -36,11 +36,13 @@ type ReportEditorProps = {
   child: { name: string; displayName: string; title: string; referralReason: string };
   exportContext: { accountName: string; letterhead: string | null; therapistName: string; timeZone: string };
   dictationAvailable: boolean;
+  /** The child's completed forms, which can be attached to the notes. */
+  forms: { id: string; title: string; date: string }[];
 };
 
 const AUTOSAVE_MS = 700;
 
-export function ReportEditor({ report, variants: initialVariants, child, exportContext, dictationAvailable }: ReportEditorProps) {
+export function ReportEditor({ report, variants: initialVariants, child, exportContext, dictationAvailable, forms }: ReportEditorProps) {
   const i18n = useI18n();
   const { t } = i18n;
   const r = t.reports;
@@ -52,6 +54,7 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
     tests: report.tests,
     recipients: report.recipients,
     language: report.language,
+    formIds: report.formIds,
   });
   const [variants, setVariants] = useState<Variants>(() => Object.fromEntries(initialVariants.map((v) => [v.recipient, v])));
   const [active, setActive] = useState<ReportRecipient>(report.recipients[0] ?? "parents");
@@ -102,7 +105,7 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
   const generate = async (targets: ReportRecipient[]) => {
     setConfirmRegenerate(false);
     setGenError(null);
-    if (!data.notes.trim()) {
+    if (!data.notes.trim() && !data.formIds?.some((id) => forms.some((f) => f.id === id))) {
       setGenError(r.errors.notesRequired);
       return;
     }
@@ -259,6 +262,28 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
             </label>
 
             <TestsEditor tests={data.tests} onChange={(tests) => update({ tests })} />
+
+            {forms.length > 0 && (
+              <fieldset className="space-y-1.5">
+                <legend className="text-[12.5px] font-medium text-ink-soft">{t.forms.reportTitle}</legend>
+                {forms.map((form) => {
+                  const ids = data.formIds ?? [];
+                  return (
+                    <label key={form.id} className="flex min-h-10 items-center gap-2.5 text-[13.5px]">
+                      <input
+                        type="checkbox"
+                        className="size-4 accent-primary"
+                        checked={ids.includes(form.id)}
+                        onChange={(e) => update({ formIds: e.target.checked ? [...ids, form.id] : ids.filter((id) => id !== form.id) })}
+                      />
+                      <bdi>{form.title}</bdi>
+                      <span className="text-[12px] text-ink-muted">{form.date}</span>
+                    </label>
+                  );
+                })}
+                <p className="text-[12px] text-ink-muted">{t.forms.reportHint}</p>
+              </fieldset>
+            )}
 
             <NameWarning text={[data.notes, ...data.tests.flatMap((test) => [test.name, test.results])].join("\n")} childName={child.name} />
 

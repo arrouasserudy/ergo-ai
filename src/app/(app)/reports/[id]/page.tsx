@@ -9,6 +9,7 @@ import { isolate } from "@/i18n";
 import { getI18n } from "@/i18n/server";
 import { childTitle } from "@/lib/child-title";
 import { getChild } from "@/lib/children";
+import { listChildForms } from "@/lib/forms/queries";
 import { getReport, listVariants } from "@/lib/reports/queries";
 import { transcriptionAvailable } from "@/lib/reports/transcribe";
 import { requireTherapist } from "@/lib/session";
@@ -30,7 +31,7 @@ export async function generateMetadata(props: PageProps<"/reports/[id]">) {
 
 export default async function ReportPage(props: PageProps<"/reports/[id]">) {
   const i18n = await getI18n();
-  const { account, therapist } = await requireTherapist();
+  const { account, accountId, therapist } = await requireTherapist();
   const found = await load((await props.params).id);
   if (!found) notFound();
   const { report, child } = found;
@@ -50,6 +51,9 @@ export default async function ReportPage(props: PageProps<"/reports/[id]">) {
         child={{ name: child.name, displayName: i18n.childName(child), title: childTitle(child, i18n), referralReason: child.referralReason }}
         exportContext={{ accountName: account.name, letterhead: account.letterhead, therapistName: author?.name ?? therapist.name, timeZone: APP_TIME_ZONE }}
         dictationAvailable={transcriptionAvailable()}
+        forms={listChildForms(accountId, child.id)
+          .filter((form) => form.status === "submitted")
+          .map((form) => ({ id: form.id, title: form.schema.title, date: form.submittedAt ? i18n.date(form.submittedAt.toISOString()) : "" }))}
       />
     </div>
   );
