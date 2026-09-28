@@ -17,12 +17,20 @@ const timestamps = () => ({
     .$onUpdateFn(() => new Date()),
 });
 
+/** School-year milestones the reminders track (see lib/reminders/milestones.ts). */
+export const MILESTONES = ["initialAssessment", "parentGuidance", "yearEndReport"] as const;
+export type Milestone = (typeof MILESTONES)[number];
+/** Deadline of each milestone as "MM-DD" within the school year (September → August). */
+export type Deadlines = Record<Milestone, string>;
+
 /** A practice (cabinet). Owns children; therapists belong to exactly one account. */
 export const accounts = sqliteTable("accounts", {
   id: id(),
   name: text("name").notNull(),
   /** Letterhead printed at the top of exported reports (address, phone, registration number…). */
   letterhead: text("letterhead"),
+  /** The cabinet's own milestone deadlines; missing keys fall back to the defaults. */
+  deadlines: text("deadlines", { mode: "json" }).$type<Partial<Deadlines>>().notNull().default(sql`'{}'`),
   ...timestamps(),
 });
 
@@ -104,6 +112,10 @@ export type Therapist = typeof therapists.$inferSelect;
 export const CHILD_STATUSES = ["active", "archived"] as const;
 export type ChildStatus = (typeof CHILD_STATUSES)[number];
 
+/** Language of the SMS reminders sent to the parents. */
+export const SMS_LANGUAGES = ["he", "fr", "en"] as const;
+export type SmsLanguage = (typeof SMS_LANGUAGES)[number];
+
 /**
  * A child followed by the therapist. `name` is whatever the therapist types (full
  * name or initials); it is never sent to an AI model.
@@ -144,6 +156,13 @@ export const children = sqliteTable(
     warningSigns: text("warning_signs"),
     calmingStrategies: text("calming_strategies", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
     interests: text("interests", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+
+    // Parents' contact, for meeting reminders by SMS (never sent to an AI model)
+    parentName: text("parent_name"),
+    parentPhone: text("parent_phone"), // as typed; normalized to E.164 when sending
+    /** The parents agreed to receive SMS reminders. */
+    smsReminders: integer("sms_reminders", { mode: "boolean" }).notNull().default(false),
+    smsLanguage: text("sms_language", { enum: SMS_LANGUAGES }).notNull().default("he"),
 
     createdAt: text("created_at").notNull().default(sql`(CURRENT_TIMESTAMP)`),
     updatedAt: text("updated_at").notNull().default(sql`(CURRENT_TIMESTAMP)`),
@@ -416,3 +435,81 @@ export const styleExamples = sqliteTable(
 export type Report = typeof reports.$inferSelect;
 export type ReportVariant = typeof reportVariants.$inferSelect;
 export type StyleExample = typeof styleExamples.$inferSelect;
+
+export const CHILD_FILE_KINDS = ["assessment", "questionnaire", "consent", "other"] as const;
+export type ChildFileKind = (typeof CHILD_FILE_KINDS)[number];
+
+/**
+ * A form filed in the child's record (scanned assessment, filled questionnaire, signed
+ * consent…). The bytes live on disk (lib/files.ts), never sent to an AI model.
+ */
+export const childFiles = sqliteTable(
+  "child_files",
+  {
+    id: id(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    childId: text("child_id")
+      .notNull()
+      .references(() => children.id, { onDelete: "cascade" }),
+    uploadedBy: text("uploaded_by").references(() => therapists.id, { onDelete: "set null" }),
+    kind: text("kind", { enum: CHILD_FILE_KINDS }).notNull(),
+    title: text("title").notNull(),
+    filename: text("filename").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    /** When the form was filled (ISO date); an assessment dated this school year counts as the initial assessment. */
+    formDate: text("form_date"),
+    ...timestamps(),
+  },
+  (table) => [index("child_files_child_idx").on(table.childId, table.createdAt)],
+);
+
+export type ChildFile = typeof childFiles.$inferSelect;
+
+export const MEETING_KINDS = ["intake", "parent_guidance", "other"] as const;
+export type MeetingKind = (typeof MEETING_KINDS)[number];
+
+export const MEETING_STATUSES = ["scheduled", "done", "cancelled"] as const;
+export type MeetingStatus = (typeof MEETING_STATUSES)[number];
+
+/** How the parents were reminded: SMS sent by the server, or from the therapist's own phone. */
+export const REMINDER_CHANNELS = ["sms", "phone"] as const;
+
+/**
+ * A meeting with the parents (intake, parent guidance…). A guidance marked done counts
+ * for the year's parent-guidance milestone. Parents who agreed get an SMS reminder the
+ * day before (lib/meetings/reminder-timing.ts).
+ */
+export const meetings = sqliteTable(
+  "meetings",
+  {
+    id: id(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    childId: text("child_id")
+      .notNull()
+      .references(() => children.id, { onDelete: "cascade" }),
+    createdBy: text("created_by").references(() => therapists.id, { onDelete: "set null" }),
+    kind: text("kind", { enum: MEETING_KINDS }).notNull(),
+    status: text("status", { enum: MEETING_STATUSES }).notNull().default("scheduled"),
+    scheduledAt: integer("scheduled_at", { mode: "timestamp_ms" }).notNull(),
+    location: text("location"),
+    notes: text("notes"),
+    /** Send the parents a reminder (when they agreed to SMS and have a phone number). */
+    remindParent: integer("remind_parent", { mode: "boolean" }).notNull().default(true),
+    reminderSentAt: integer("reminder_sent_at", { mode: "timestamp_ms" }),
+    reminderChannel: text("reminder_channel", { enum: REMINDER_CHANNELS }),
+    /** Last automatic sending failure; the automatic reminder is not retried after one. */
+    reminderError: text("reminder_error"),
+    ...timestamps(),
+  },
+  (table) => [
+    index("meetings_account_scheduled_idx").on(table.accountId, table.scheduledAt),
+    index("meetings_child_scheduled_idx").on(table.childId, table.scheduledAt),
+  ],
+);
+
+export type Meeting = typeof meetings.$inferSelect;

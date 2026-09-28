@@ -3,6 +3,8 @@
 import { InputField, TextareaField } from "@/components/ui/Field";
 import { TagPicker } from "@/components/ui/TagPicker";
 import type { Child } from "@/db/schema";
+import { SMS_LANGUAGES } from "@/db/schema";
+import { LOCALE_NAMES } from "@/i18n";
 import { useI18n } from "@/i18n/client";
 import {
   BACKGROUND_FACTOR_OPTIONS,
@@ -81,6 +83,48 @@ export function SensoryFields({ child, errors = {} }: FieldsProps) {
       <TextareaField name="warningSigns" label={f.warningSigns} placeholder={f.warningSignsPlaceholder} defaultValue={child?.warningSigns ?? ""} error={errors.warningSigns} rows={2} />
       <TagPicker name="calmingStrategies" label={f.calmingStrategies} options={CALMING_STRATEGY_OPTIONS} defaultValue={child?.calmingStrategies} />
       <TagPicker name="interests" label={f.interests} options={INTEREST_OPTIONS} defaultValue={child?.interests} />
+    </div>
+  );
+}
+
+export function ParentsFields({ child, errors = {} }: FieldsProps) {
+  const f = useI18n().t.fields;
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <InputField name="parentName" label={f.parentName} placeholder={f.parentNamePlaceholder} defaultValue={child?.parentName ?? ""} error={errors.parentName} maxLength={100} autoComplete="off" />
+      <InputField
+        name="parentPhone"
+        type="tel"
+        dir="ltr"
+        label={f.parentPhone}
+        placeholder={f.parentPhonePlaceholder}
+        help={f.parentPhoneHelp}
+        defaultValue={child?.parentPhone ?? ""}
+        error={errors.parentPhone}
+        maxLength={30}
+        autoComplete="off"
+      />
+      <label className="flex items-start gap-3 py-1 text-[14px] text-ink-soft sm:col-span-2">
+        <input type="checkbox" name="smsReminders" defaultChecked={child?.smsReminders ?? false} className="mt-0.5 size-5 shrink-0 accent-primary" />
+        {f.smsReminders}
+      </label>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="smsLanguage" className="text-[12.5px] font-medium text-ink-soft">
+          {f.smsLanguage}
+        </label>
+        <select
+          id="smsLanguage"
+          name="smsLanguage"
+          defaultValue={child?.smsLanguage ?? "he"}
+          className="h-11 w-full rounded-lg border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+        >
+          {SMS_LANGUAGES.map((lang) => (
+            <option key={lang} value={lang}>
+              {LOCALE_NAMES[lang]}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }

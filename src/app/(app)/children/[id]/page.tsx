@@ -4,6 +4,10 @@ import { notFound } from "next/navigation";
 import { setChildStatus } from "@/app/actions/children";
 import { EditableSection } from "@/components/children/EditableSection";
 import { EpisodeList } from "@/components/episodes/EpisodeList";
+import { FileList } from "@/components/files/FileList";
+import { FileUploadForm } from "@/components/files/FileUploadForm";
+import { MeetingsPanel } from "@/components/meetings/MeetingsPanel";
+import { MilestoneList } from "@/components/reminders/MilestoneList";
 import { OpenEpisodes } from "@/components/episodes/OpenEpisodes";
 import { ReportRows } from "@/components/reports/ReportRows";
 import { StartButtons } from "@/components/episodes/StartButtons";
@@ -13,11 +17,18 @@ import { Button, LinkButton } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { TagList } from "@/components/ui/TagList";
-import type { Child } from "@/db/schema";
-import { isolate } from "@/i18n";
+import { MEETING_KINDS, type Child, type MeetingKind } from "@/db/schema";
+import { isolate, LOCALE_NAMES } from "@/i18n";
 import { getI18n } from "@/i18n/server";
 import { getChild } from "@/lib/children";
 import { listChildEpisodes } from "@/lib/episodes";
+import { ACCEPTED_FILE_TYPES, listChildFiles } from "@/lib/files";
+import { listChildMeetings } from "@/lib/meetings";
+import { meetingView } from "@/lib/meetings/view";
+import { childReminders } from "@/lib/reminders";
+import { schoolYearOf } from "@/lib/reminders/milestones";
+import { smsProvider } from "@/lib/sms";
+import { localDate } from "@/lib/time";
 import { listReports } from "@/lib/reports/queries";
 import { requireTherapist } from "@/lib/session";
 
@@ -38,21 +49,28 @@ const hasSensory = (c: Child) =>
   Boolean(c.knownTriggers || c.warningSigns || c.seeksDeepPressure) ||
   [c.hyperSensitivities, c.hypoReactivities, c.backgroundFactors, c.calmingStrategies, c.interests].some((l) => l.length > 0);
 
+const hasParents = (c: Child) => Boolean(c.parentName || c.parentPhone);
+
 const tags = (values: string[]) => (values.length ? <TagList values={values} /> : null);
 
 export default async function ChildPage(props: PageProps<"/children/[id]">) {
   const i18n = await getI18n();
   const { t } = i18n;
   const f = t.fields;
-  const { accountId } = await requireTherapist();
+  const { accountId, account } = await requireTherapist();
   const { id } = await props.params;
   const child = getChild(accountId, id);
   if (!child) notFound();
+  const plan = (await props.searchParams).plan;
+  const openWith = MEETING_KINDS.includes(plan as MeetingKind) ? (plan as MeetingKind) : undefined;
 
   const episodes = listChildEpisodes(accountId, child.id, { limit: 20 });
   const openEpisodes = episodes.filter((ep) => ep.status === "open");
   const recentEpisodes = episodes.filter((ep) => ep.status === "closed").slice(0, 3);
   const reports = listReports(accountId, { childId: child.id });
+  const meetings = listChildMeetings(accountId, child.id).map((item) => meetingView(item, account.name));
+  const files = listChildFiles(accountId, child.id);
+  const milestones = child.status === "active" ? childReminders(account, child.id) : [];
 
   const age = i18n.age(child.birthDate);
   const archived = child.status === "archived";
@@ -135,9 +153,49 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
               ]}
             />
           </EditableSection>
+
+          <EditableSection
+            child={child}
+            section="parents"
+            title={t.sections.parents.title}
+            hint={t.sections.parents.hint}
+            empty={hasParents(child) ? undefined : { title: t.sections.parents.empty, body: t.sections.parents.emptyBody }}
+          >
+            <InfoList
+              items={[
+                { label: f.parentName, value: child.parentName && <bdi>{child.parentName}</bdi> },
+                { label: f.parentPhone, value: child.parentPhone && <bdi dir="ltr">{child.parentPhone}</bdi> },
+                { label: f.smsReminders, value: child.smsReminders ? t.common.yes : t.common.no, wide: true },
+                { label: f.smsLanguage, value: LOCALE_NAMES[child.smsLanguage] },
+              ]}
+            />
+          </EditableSection>
+
+          <Card>
+            <CardHeader title={t.files.cardTitle} hint={t.files.cardHint} />
+            {!archived && (
+              <div className="px-5 pb-5">
+                <FileUploadForm childId={child.id} accept={ACCEPTED_FILE_TYPES} />
+              </div>
+            )}
+            <FileList files={files} />
+          </Card>
         </div>
 
         <div className="space-y-5">
+          {milestones.length > 0 && (
+            <Card>
+              <CardHeader title={t.reminders.childCardTitle} hint={t.reminders.childCardHint(schoolYearOf(localDate(new Date())))} />
+              <MilestoneList rows={milestones.map((status) => ({ child, status }))} showChild={false} />
+            </Card>
+          )}
+
+          <Card>
+            <div id="meetings" className="scroll-mt-20" />
+            <CardHeader title={t.meetings.cardTitle} hint={t.meetings.cardHint} />
+            <MeetingsPanel childId={child.id} views={meetings} smsAuto={smsProvider() !== null} canAdd={!archived} openWith={openWith} />
+          </Card>
+
           <EditableSection
             child={child}
             section="sensory"

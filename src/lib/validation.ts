@@ -1,5 +1,7 @@
 import { z } from "zod";
-import { REPORT_DOC_TYPES, REPORT_LANGUAGES, REPORT_RECIPIENTS } from "@/db/schema";
+import { CHILD_FILE_KINDS, MEETING_KINDS, MILESTONES, REPORT_DOC_TYPES, REPORT_LANGUAGES, REPORT_RECIPIENTS, SMS_LANGUAGES } from "@/db/schema";
+import { isMonthDay } from "@/lib/reminders/milestones";
+import { normalizePhone } from "@/lib/sms/phone";
 
 /**
  * Error messages are codes ("required", "tooLong:200"…), translated where they are
@@ -12,6 +14,7 @@ const e = {
   futureDate: "futureDate",
   invalidNumber: "invalidNumber",
   invalidEmail: "invalidEmail",
+  invalidPhone: "invalidPhone",
   passwordTooShort: "passwordTooShort",
   passwordMismatch: "passwordMismatch",
 };
@@ -78,17 +81,26 @@ export const sensorySchema = z.object({
   interests: tagList,
 });
 
+/** Parents' contact for meeting reminders. The country code only matters for numbers typed without one. */
+export const parentsSchema = z.object({
+  parentName: optionalText(100),
+  parentPhone: optionalText(30).refine((v) => v === null || normalizePhone(v, process.env.PHONE_COUNTRY_CODE ?? "972") !== null, e.invalidPhone),
+  smsReminders: z.boolean(),
+  smsLanguage: z.enum(SMS_LANGUAGES),
+});
+
 export const sectionSchemas = {
   identity: identitySchema,
   history: historySchema,
   sensory: sensorySchema,
+  parents: parentsSchema,
 } as const;
 
 export type Section = keyof typeof sectionSchemas;
 export const SECTIONS = Object.keys(sectionSchemas) as Section[];
 
 const TAG_FIELDS = new Set(["hyperSensitivities", "hypoReactivities", "backgroundFactors", "calmingStrategies", "interests"]);
-const BOOLEAN_FIELDS = new Set(["seeksDeepPressure"]);
+const BOOLEAN_FIELDS = new Set(["seeksDeepPressure", "smsReminders"]);
 
 /** Turns FormData into the raw shape expected by a section schema. */
 export function formDataToInput(section: Section, formData: FormData): Record<string, unknown> {
@@ -143,6 +155,36 @@ export type ReportInput = z.input<typeof reportSchema>;
 export const reportSectionsSchema = z
   .array(z.object({ heading: z.string().max(200, e.tooLong(200)), body: z.string().max(10000, e.tooLong(10000)) }))
   .max(30);
+
+/** A meeting with the parents; `scheduledAt` is the datetime-local value, converted by the action. */
+export const meetingSchema = z.object({
+  kind: z.enum(MEETING_KINDS),
+  scheduledAt: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, e.invalidDate),
+  location: optionalText(120),
+  notes: optionalText(1000),
+  remindParent: z.boolean(),
+});
+
+/** A form filed in the child's record (the file itself is checked by the action). */
+export const childFileSchema = z.object({
+  kind: z.enum(CHILD_FILE_KINDS),
+  title: optionalText(200),
+  formDate: pastDate,
+});
+
+/** A milestone deadline, typed as a date of the current school year and stored as "MM-DD". */
+const deadline = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, e.invalidDate)
+  .transform((v) => v.slice(5))
+  .refine(isMonthDay, e.invalidDate);
+
+export const deadlinesSchema = z.object({
+  initialAssessment: deadline,
+  parentGuidance: deadline,
+  yearEndReport: deadline,
+}) satisfies z.ZodType<Record<(typeof MILESTONES)[number], string>, Record<(typeof MILESTONES)[number], string>>;
 
 const email = z.string().trim().toLowerCase().pipe(z.email(e.invalidEmail));
 const newPassword = z.string().min(8, e.passwordTooShort).max(128, e.tooLong(128));
