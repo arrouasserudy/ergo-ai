@@ -25,7 +25,7 @@ import { CHILD_PLACEHOLDER, fillChildPlaceholder, reportSystemPrompt, reportUser
 import { generationsToday, getReport, listVariants, recentStyleExamples } from "@/lib/reports/queries";
 import { deriveReportStatus, wasEdited } from "@/lib/reports/status";
 import { requireTherapist } from "@/lib/session";
-import { APP_TIME_ZONE } from "@/lib/time";
+import { localToday } from "@/lib/time";
 import { reportSchema, reportSectionsSchema, toFieldErrors, type FieldErrors, type ReportInput } from "@/lib/validation";
 
 // Each action re-checks the session and scopes by account (actions are reachable by direct POST).
@@ -46,8 +46,6 @@ function refreshStatus(reportId: string) {
   db.update(reports).set({ status }).where(eq(reports.id, reportId)).run();
 }
 
-/** Today's date in the practice's time zone (YYYY-MM-DD). */
-const today = () => new Date().toLocaleDateString("en-CA", { timeZone: APP_TIME_ZONE });
 
 /** Form action of the "new report" page: child + document type. */
 export async function createReport(formData: FormData) {
@@ -60,7 +58,7 @@ export async function createReport(formData: FormData) {
 
   const { id } = db
     .insert(reports)
-    .values({ accountId, childId, authorId: therapist.id, docType, sessionDate: today(), language: await getLocale() })
+    .values({ accountId, childId, authorId: therapist.id, docType, sessionDate: localToday(), language: await getLocale() })
     .returning({ id: reports.id })
     .get();
   revalidateReport(id, childId);

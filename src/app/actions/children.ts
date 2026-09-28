@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { children, type ChildStatus } from "@/db/schema";
+import { syncAutoForms } from "@/lib/forms/auto-assign";
 import { requireTherapist } from "@/lib/session";
 import { formDataToInput, identitySchema, sectionSchemas, SECTIONS, toFieldErrors, type FieldErrors, type Section } from "@/lib/validation";
 
@@ -33,6 +34,7 @@ export async function createChild(_prev: FormState, formData: FormData): Promise
     .values({ ...parsed.data, accountId, createdBy: therapist.id })
     .returning({ id: children.id })
     .get();
+  syncAutoForms(accountId);
   revalidatePath("/children");
   redirect(`/children/${created.id}`);
 }
@@ -69,6 +71,7 @@ export async function setChildStatus(id: string, status: ChildStatus) {
     .set({ status, updatedAt: sql`(CURRENT_TIMESTAMP)` })
     .where(and(eq(children.id, id), eq(children.accountId, accountId)))
     .run();
-  revalidatePath("/children");
-  revalidatePath(`/children/${id}`);
+  if (status === "active") syncAutoForms(accountId);
+  // The bell (in the layout) lists active children's forms only.
+  revalidatePath("/", "layout");
 }

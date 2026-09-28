@@ -45,8 +45,7 @@ export async function submitSharedForm(token: string, answers: unknown): Promise
     .set({ answers: clean, status: "submitted", submittedAt: new Date(), submittedBy: "parent" })
     .where(eq(childForms.id, form.id))
     .run();
-  revalidatePath(`/children/${form.childId}`);
-  revalidatePath(`/children/${form.childId}/forms/${form.id}`);
-  revalidatePath(`/f/${token}`);
+  // The whole app: the form leaves the bell (layout).
+  revalidatePath("/", "layout");
   return { ok: true, savedAt: Date.now() };
 }

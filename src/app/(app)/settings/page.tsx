@@ -1,3 +1,4 @@
+import { DeadlineSettingsForm } from "@/components/settings/DeadlineSettingsForm";
 import { HideNamesToggle } from "@/components/settings/HideNamesToggle";
 import { LocaleSwitcher } from "@/components/shell/LocaleSwitcher";
 import { PasswordForm } from "@/components/settings/PasswordForm";
@@ -14,7 +15,7 @@ export async function generateMetadata() {
 
 export default async function SettingsPage() {
   const { t } = await getI18n();
-  const { therapist } = await requireTherapist();
+  const { therapist, account } = await requireTherapist();
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
@@ -37,6 +38,15 @@ export default async function SettingsPage() {
           <PasswordForm />
         </div>
       </Card>
+
+      <div id="deadlines" className="scroll-mt-4">
+        <Card>
+          <CardHeader title={t.settings.deadlinesTitle} hint={t.settings.deadlinesHint} />
+          <div className="px-5 pb-5">
+            <DeadlineSettingsForm warnDays={account.deadlineWarnDays} schoolYearStart={account.schoolYearStart} />
+          </div>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader title={t.settings.hideNamesTitle} hint={t.settings.hideNamesHint} />

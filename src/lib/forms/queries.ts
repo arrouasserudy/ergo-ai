@@ -1,8 +1,9 @@
 import "server-only";
 import { createHash } from "node:crypto";
-import { and, count, desc, eq, gte, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, isNotNull, lte, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { accounts, childForms, formTemplates } from "@/db/schema";
+import { accounts, childForms, children, formTemplates } from "@/db/schema";
+import { urgency, worse, type Urgency } from "./deadlines";
 
 // Every query here is scoped by `accountId`, except the lookup by share token (the token is the credential).
 
@@ -77,4 +78,59 @@ export function findSharedForm(token: string) {
 /** Expiry of the form's parent link (ISO), or null when there is none or it expired. */
 export function activeLinkUntil(form: { shareExpiresAt: Date | null }): string | null {
   return form.shareExpiresAt && form.shareExpiresAt.getTime() > Date.now() ? form.shareExpiresAt.toISOString() : null;
+}
+
+export type PendingForm = {
+  id: string;
+  title: string;
+  dueDate: string;
+  level: Exclude<Urgency, "none">;
+  child: { id: string; name: string };
+};
+
+/**
+ * Forms still to fill in for active children, due within `warnDays` days or overdue:
+ * overdue first, then by due date. Feeds the bell and the children's badges.
+ */
+export function pendingForms(accountId: string, today: string, warnDays: number): PendingForm[] {
+  const horizon = new Date(Date.parse(`${today}T00:00:00Z`) + warnDays * 86_400_000).toISOString().slice(0, 10);
+  const rows = db
+    .select({ id: childForms.id, schema: childForms.schema, dueDate: childForms.dueDate, childId: children.id, childName: children.name })
+    .from(childForms)
+    .innerJoin(children, eq(children.id, childForms.childId))
+    .where(
+      and(
+        eq(childForms.accountId, accountId),
+        ne(childForms.status, "submitted"),
+        isNotNull(childForms.dueDate),
+        lte(childForms.dueDate, horizon),
+        eq(children.status, "active"),
+      ),
+    )
+    .orderBy(asc(childForms.dueDate))
+    .all();
+  return rows
+    .map((row) => ({
+      id: row.id,
+      title: row.schema.title,
+      dueDate: row.dueDate!,
+      level: urgency(row.dueDate, today, warnDays) as PendingForm["level"],
+      child: { id: row.childId, name: row.childName },
+    }))
+    .filter((row) => (row.level as Urgency) !== "none");
+}
+
+export type ChildUrgency = { level: Exclude<Urgency, "none">; count: number };
+
+/** The most urgent level per child, with the number of forms due soon or overdue. */
+export function urgencyByChild(pending: PendingForm[]): Map<string, ChildUrgency> {
+  const result = new Map<string, ChildUrgency>();
+  for (const form of pending) {
+    const current = result.get(form.child.id);
+    result.set(form.child.id, {
+      level: current ? (worse(current.level, form.level) as ChildUrgency["level"]) : form.level,
+      count: (current?.count ?? 0) + 1,
+    });
+  }
+  return result;
 }

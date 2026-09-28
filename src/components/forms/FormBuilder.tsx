@@ -26,7 +26,14 @@ const move = <T,>(list: T[], from: number, to: number): T[] => {
 
 /** Changes a field's type, keeping what both types share (lists survive between choice types). */
 function convertField(field: FormField, type: FieldType, newOption: (n: number) => string): FormField {
-  const base = { id: field.id, label: field.label, help: field.help, required: type === "info" ? false : field.required };
+  const base = {
+    id: field.id,
+    label: field.label,
+    help: field.help,
+    required: type === "info" ? false : field.required,
+    // Keeps identifying answers out of the AI prompts whatever the new type.
+    ...(field.identifying && type !== "info" ? { identifying: true } : {}),
+  };
   const options: FormOption[] =
     "options" in field ? field.options : "columns" in field ? field.columns : [1, 2].map((n) => ({ id: `o${n}`, label: newOption(n) }));
   switch (type) {
@@ -89,7 +96,18 @@ export function FormBuilder({ id, initial, status }: Props) {
       }
     });
 
-  const changeStatus = (next: FormTemplateStatus) => startChanging(async () => void (await setFormTemplateStatus(id, next)));
+  const changeStatus = (next: FormTemplateStatus) =>
+    startChanging(async () => {
+      const result = await setFormTemplateStatus(id, next);
+      if (result.ok) {
+        setIssues([]);
+        setError(null);
+      } else {
+        setIssues(result.issues ?? []);
+        setError(result.error);
+        setTab("edit");
+      }
+    });
   const hasIssue = (prefix: string) => issues.some((p) => p === prefix || p.startsWith(`${prefix}.`));
 
   const editor = (

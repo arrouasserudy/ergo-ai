@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { ClipboardList, Plus } from "lucide-react";
 import Link from "next/link";
 import { attachForm } from "@/app/actions/child-forms";
@@ -5,14 +6,29 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { getI18n } from "@/i18n/server";
 import { completion } from "@/lib/forms/answers";
+import { urgency, type Urgency } from "@/lib/forms/deadlines";
 import { listChildForms, listTemplates } from "@/lib/forms/queries";
+import { localToday } from "@/lib/time";
 import { ChildFormStatusBadge } from "./TemplateStatusBadge";
 
+/** " · Avant le 1 oct.", orange when due soon, red when overdue. */
+async function DueLabel({ dueDate, level }: { dueDate: string; level: Urgency }) {
+  const i18n = await getI18n();
+  const due = i18n.t.forms.due;
+  return (
+    <span className={clsx(level === "overdue" && "font-medium text-danger", level === "soon" && "font-medium text-warn-ink")}>
+      {" · "}
+      {level === "overdue" ? due.overdue(i18n.date(dueDate)) : due.before(i18n.date(dueDate))}
+    </span>
+  );
+}
+
 /** "Forms and documents" card of the child page: attached forms and the picker to add one. */
-export async function ChildFormsCard({ accountId, childId, archived }: { accountId: string; childId: string; archived: boolean }) {
+export async function ChildFormsCard({ accountId, childId, archived, warnDays }: { accountId: string; childId: string; archived: boolean; warnDays: number }) {
   const i18n = await getI18n();
   const f = i18n.t.forms;
   const forms = listChildForms(accountId, childId);
+  const today = localToday();
   const templates = archived ? [] : listTemplates(accountId, { publishedOnly: true });
 
   return (
@@ -32,6 +48,7 @@ export async function ChildFormsCard({ accountId, childId, archived }: { account
                     {form.status === "submitted" && form.submittedAt
                       ? i18n.date(form.submittedAt.toISOString())
                       : f.progress(Math.round(completion(form.schema, form.answers) * 100))}
+                    {form.dueDate && form.status !== "submitted" && <DueLabel dueDate={form.dueDate} level={urgency(form.dueDate, today, warnDays)} />}
                   </span>
                 </span>
                 <ChildFormStatusBadge status={form.status} />

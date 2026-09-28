@@ -1,6 +1,7 @@
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { FormAutomation } from "@/components/forms/FormAutomation";
 import { FormBuilder } from "@/components/forms/FormBuilder";
 import { TemplateStatusBadge } from "@/components/forms/TemplateStatusBadge";
 import { Eyebrow } from "@/components/ui/Eyebrow";
@@ -41,6 +42,7 @@ export default async function FormTemplatePage(props: PageProps<"/forms/[id]">) 
         </p>
         <p className="mt-2 max-w-3xl text-[13px] text-ink-soft">{f.editorHint}</p>
       </header>
+      <FormAutomation id={template.id} autoAssign={template.autoAssign} deadline={template.deadline} published={template.status === "published"} />
       <FormBuilder id={template.id} initial={template.schema} status={template.status} />
     </div>
   );

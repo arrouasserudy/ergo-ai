@@ -64,6 +64,13 @@
       "when": 1790621817633,
       "tag": "0008_light_young_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1790626390115,
+      "tag": "0009_powerful_xavin",
+      "breakpoints": true
     }
   ]
 }
