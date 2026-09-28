@@ -50,7 +50,7 @@ export function reportSystemPrompt(language: Locale): string {
   return `You write reports for a pediatric occupational therapist, from her raw session notes. The notes are often terse: abbreviations, fragments, test scores, observations jotted down during the session. You turn them into a clear, well-structured professional text that she will review, correct and validate before sending it herself.
 
 Rules:
-- Use only facts present in the notes, the test results and the child context, and only the context that matters to this reader. Never invent an observation, a score, a date or a recommendation she did not mention. You may rephrase, group and order her content, but never add a recommendation, an activity, an example or an explanation of your own: if it is not in the notes, it is not in the report.
+- Use only facts present in the notes, the test results, the questionnaires attached to the session and the child context, and only the context that matters to this reader. Never invent an observation, a score, a date or a recommendation she did not mention. You may rephrase, group and order her content, but never add a recommendation, an activity, an example or an explanation of your own: if it is not in the notes, it is not in the report.
 - When a section needs information that the notes do not give, write ${TO_COMPLETE[language]} instead of guessing.
 - Never diagnose, and never present a hypothesis as a certainty.
 - Refer to the child only as ${CHILD_PLACEHOLDER}, exactly as written, each time you name the child. Never invent a first name. For pronouns and grammatical gender, follow the notes; when they do not show it, choose neutral wording.
@@ -70,6 +70,8 @@ export type ReportPromptInput = {
   tests: ReportTest[];
   /** Most recent first; only the first MAX_STYLE_EXAMPLES are used. */
   examples: StylePair[];
+  /** Completed questionnaires attached to the report: answers as text, child's name already replaced. */
+  forms?: { title: string; text: string }[];
 };
 
 export function sectionsToText(sections: ReportSection[]): string {
@@ -101,6 +103,14 @@ export function reportUserPrompt(input: ReportPromptInput): string {
       input.tests.length ? `\n<tests>\n${input.tests.map((t) => `- ${t.name}: ${t.results}`).join("\n")}\n</tests>` : ""
     }\n</session>`,
   ];
+  const forms = (input.forms ?? []).filter((f) => f.text.trim());
+  if (forms.length) {
+    parts.push(
+      `Questionnaires filled in about the child (by the parents or the practice), attached to these notes. Use their answers as background facts, only where they matter to this report:\n<questionnaires>\n${forms
+        .map((f) => `<questionnaire title="${f.title.replace(/"/g, "'")}">\n${f.text.trim()}\n</questionnaire>`)
+        .join("\n")}\n</questionnaires>`,
+    );
+  }
 
   const examples = input.examples.slice(0, MAX_STYLE_EXAMPLES);
   if (examples.length) {

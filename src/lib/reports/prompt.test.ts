@@ -27,6 +27,13 @@ describe("reportUserPrompt", () => {
     expect(prompt).toContain("- Age: 7 years");
   });
 
+  it("attaches completed questionnaires, skipping empty ones", () => {
+    const prompt = reportUserPrompt({ ...base, forms: [{ title: "Profil sensoriel", text: "- Bruit: Souvent" }, { title: "Vide", text: " " }] });
+    expect(prompt).toContain('<questionnaire title="Profil sensoriel">\n- Bruit: Souvent\n</questionnaire>');
+    expect(prompt).not.toContain("Vide");
+    expect(reportUserPrompt(base)).not.toContain("<questionnaires>");
+  });
+
   it("replays at most MAX_STYLE_EXAMPLES corrections", () => {
     const prompt = reportUserPrompt({ ...base, examples: [1, 2, 3, 4, 5].map(example) });
     expect(prompt.match(/<example /g)).toHaveLength(MAX_STYLE_EXAMPLES);

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import type { Answers, FormSchema } from "../lib/forms/schema";
 
 const id = () =>
   text("id")
@@ -349,6 +350,8 @@ export const reports = sqliteTable(
     tests: text("tests", { mode: "json" }).$type<ReportTest[]>().notNull().default(sql`'[]'`),
     recipients: text("recipients", { mode: "json" }).$type<ReportRecipient[]>().notNull().default(sql`'["parents"]'`),
     language: text("language", { enum: REPORT_LANGUAGES }).notNull().default("fr"),
+    /** Completed child forms whose answers are sent with the notes (pseudonymized). */
+    formIds: text("form_ids", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
     /** Derived from the variants (see lib/reports/status.ts), stored for list filtering. */
     status: text("status", { enum: REPORT_STATUSES }).notNull().default("draft"),
     ...timestamps(),
@@ -416,3 +419,71 @@ export const styleExamples = sqliteTable(
 export type Report = typeof reports.$inferSelect;
 export type ReportVariant = typeof reportVariants.$inferSelect;
 export type StyleExample = typeof styleExamples.$inferSelect;
+
+export const FORM_TEMPLATE_STATUSES = ["draft", "published", "archived"] as const;
+export type FormTemplateStatus = (typeof FORM_TEMPLATE_STATUSES)[number];
+export const FORM_SOURCE_KINDS = ["pdf", "docx"] as const;
+export type FormSourceKind = (typeof FORM_SOURCE_KINDS)[number];
+
+/**
+ * A form of the cabinet's library, converted by the model from an uploaded Word/PDF
+ * questionnaire into the JSON convention of `lib/forms/schema.ts`, then edited and
+ * published by a therapist. The original file is not kept, only its text.
+ */
+export const formTemplates = sqliteTable(
+  "form_templates",
+  {
+    id: id(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    createdBy: text("created_by").references(() => therapists.id, { onDelete: "set null" }),
+    title: text("title").notNull(),
+    sourceFilename: text("source_filename").notNull(),
+    sourceKind: text("source_kind", { enum: FORM_SOURCE_KINDS }).notNull(),
+    schema: text("schema", { mode: "json" }).$type<FormSchema>().notNull(),
+    status: text("status", { enum: FORM_TEMPLATE_STATUSES }).notNull().default("draft"),
+    model: text("model").notNull(),
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
+    /** Daily conversion limit. */
+    generatedAt: integer("generated_at", { mode: "timestamp_ms" }).notNull(),
+    ...timestamps(),
+  },
+  (table) => [index("form_templates_account_idx").on(table.accountId, table.updatedAt)],
+);
+
+export const CHILD_FORM_STATUSES = ["draft", "sent", "submitted"] as const;
+export type ChildFormStatus = (typeof CHILD_FORM_STATUSES)[number];
+export const FORM_FILLERS = ["therapist", "parent"] as const;
+
+/**
+ * A library form attached to a child, filled in the app or by the parents through a
+ * private link. The schema is copied at attach time so later edits of the template
+ * never break its answers. Only a hash of the link's token is stored.
+ */
+export const childForms = sqliteTable(
+  "child_forms",
+  {
+    id: id(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    childId: text("child_id")
+      .notNull()
+      .references(() => children.id, { onDelete: "cascade" }),
+    templateId: text("template_id").references(() => formTemplates.id, { onDelete: "set null" }),
+    schema: text("schema", { mode: "json" }).$type<FormSchema>().notNull(),
+    answers: text("answers", { mode: "json" }).$type<Answers>().notNull().default(sql`'{}'`),
+    status: text("status", { enum: CHILD_FORM_STATUSES }).notNull().default("draft"),
+    submittedAt: integer("submitted_at", { mode: "timestamp_ms" }),
+    submittedBy: text("submitted_by", { enum: FORM_FILLERS }),
+    shareTokenHash: text("share_token_hash").unique(),
+    shareExpiresAt: integer("share_expires_at", { mode: "timestamp_ms" }),
+    ...timestamps(),
+  },
+  (table) => [index("child_forms_child_idx").on(table.accountId, table.childId)],
+);
+
+export type FormTemplate = typeof formTemplates.$inferSelect;
+export type ChildForm = typeof childForms.$inferSelect;

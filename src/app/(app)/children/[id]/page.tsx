@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { setChildStatus } from "@/app/actions/children";
 import { EditableSection } from "@/components/children/EditableSection";
 import { EpisodeList } from "@/components/episodes/EpisodeList";
+import { ChildFormsCard } from "@/components/forms/ChildFormsCard";
 import { OpenEpisodes } from "@/components/episodes/OpenEpisodes";
 import { ReportRows } from "@/components/reports/ReportRows";
 import { StartButtons } from "@/components/episodes/StartButtons";
@@ -210,6 +211,8 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
               </>
             )}
           </Card>
+
+          <ChildFormsCard accountId={accountId} childId={child.id} archived={archived} />
         </div>
       </div>
     </div>

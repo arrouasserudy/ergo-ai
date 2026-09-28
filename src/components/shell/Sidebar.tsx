@@ -3,6 +3,7 @@
 import clsx from "clsx";
 import {
   Activity,
+  ClipboardList,
   FileText,
   Building2,
   ListChecks,
@@ -32,6 +33,7 @@ const NAV: NavItem[] = [
   { label: "children", icon: UserRound, href: "/children" },
   { label: "crises", icon: Activity, href: "/crises" },
   { label: "expert", icon: MessageCircle, href: "/expert" },
+  { label: "forms", icon: ClipboardList, href: "/forms" },
   { label: "account", icon: Building2, href: "/account" },
   { label: "settings", icon: Settings, href: "/settings" },
 ];

@@ -57,6 +57,13 @@
       "when": 1790532046023,
       "tag": "0007_rename_child_initials_to_name",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1790621817633,
+      "tag": "0008_light_young_avengers",
+      "breakpoints": true
     }
   ]
 }

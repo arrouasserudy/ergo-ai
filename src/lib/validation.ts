@@ -135,6 +135,8 @@ export const reportSchema = z.object({
     .min(1, e.required)
     .transform((r) => REPORT_RECIPIENTS.filter((k) => r.includes(k))),
   language: z.enum(REPORT_LANGUAGES),
+  /** Completed child forms attached to the notes (checked against the child at generation). */
+  formIds: z.array(z.string().max(64)).max(20).default([]),
 });
 
 export type ReportInput = z.input<typeof reportSchema>;
