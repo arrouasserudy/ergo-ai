@@ -15,7 +15,6 @@ import {
   authCredentials,
   children,
   episodes,
-  meetings,
   reports,
   reportVariants,
   therapists,
@@ -55,21 +54,8 @@ const DEMO_CHILDREN: ChildSeed[] = [
     warningSigns: "Se bouche les oreilles, s'agite sur sa chaise.",
     calmingStrategies: ["removeCause", "weightedCushion", "quietCorner"],
     interests: ["dinosaurs", "space"],
-    parentName: "Mme M.",
-    parentPhone: "050-000-0001",
-    smsReminders: true,
-    smsLanguage: "fr",
   },
-  {
-    name: "N. A.",
-    birthDate: yearsAgo(5, 6, 20),
-    referralReason: "Bilan initial — graphomotricité",
-    schoolLevel: "Grande section",
-    followUpStart: "2026-09-01",
-    parentName: "משפחת א.",
-    parentPhone: "052-000-0002",
-    smsReminders: true,
-  },
+  { name: "N. A.", birthDate: yearsAgo(5, 6, 20), referralReason: "Bilan initial — graphomotricité", schoolLevel: "Grande section", followUpStart: "2026-09-01" },
   {
     name: "Y. B.",
     birthDate: yearsAgo(9, 9, 2),
@@ -321,14 +307,6 @@ async function seed() {
     ])
     .run();
   seedReports(REPORTS, demo.id, owner.id, kidId);
-  // Fictional meetings: an intake in two days, a guidance to close, one planned next week.
-  db.insert(meetings)
-    .values([
-      { accountId: demo.id, childId: kidId("N. A."), createdBy: owner.id, kind: "intake", scheduledAt: daysAgo(-2, 13), location: "Cabinet" },
-      { accountId: demo.id, childId: kidId("E. D."), createdBy: owner.id, kind: "parent_guidance", scheduledAt: daysAgo(3, 14) },
-      { accountId: demo.id, childId: kidId("L. M."), createdBy: owner.id, kind: "parent_guidance", scheduledAt: daysAgo(-8, 15, 30) },
-    ])
-    .run();
 
   const other = db.insert(accounts).values({ name: "Autre cabinet" }).returning().get();
   const otherOwner = await createTherapist(other.id, "owner", "Noa Dubois", "other@demo.local");

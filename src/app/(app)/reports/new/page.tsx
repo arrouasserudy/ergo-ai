@@ -22,7 +22,6 @@ export default async function NewReportPage(props: PageProps<"/reports/new">) {
   const { accountId } = await requireTherapist();
   const sp = await props.searchParams;
   const preselected = typeof sp.child === "string" ? sp.child : "";
-  const preselectedType = REPORT_DOC_TYPES.find((type) => type === sp.type) ?? REPORT_DOC_TYPES[0];
   const kids = listChildren(accountId);
 
   return (
@@ -70,12 +69,12 @@ export default async function NewReportPage(props: PageProps<"/reports/new">) {
             <fieldset>
               <legend className="mb-1.5 text-[12.5px] font-medium text-ink-soft">{r.docTypeLabel}</legend>
               <div className="grid gap-2 sm:grid-cols-2">
-                {REPORT_DOC_TYPES.map((type) => (
+                {REPORT_DOC_TYPES.map((type, i) => (
                   <label
                     key={type}
                     className="flex cursor-pointer items-center gap-2.5 min-h-11 rounded-lg border border-line-strong px-3 py-2.5 text-[14px] has-checked:border-primary has-checked:bg-tint has-checked:text-tint-ink"
                   >
-                    <input type="radio" name="docType" value={type} defaultChecked={type === preselectedType} className="accent-primary" />
+                    <input type="radio" name="docType" value={type} defaultChecked={i === 0} className="accent-primary" />
                     {r.docType[type]}
                   </label>
                 ))}

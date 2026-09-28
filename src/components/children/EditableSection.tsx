@@ -8,9 +8,9 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import type { Child } from "@/db/schema";
 import { useI18n } from "@/i18n/client";
 import type { Section } from "@/lib/validation";
-import { HistoryFields, IdentityFields, ParentsFields, SensoryFields } from "./SectionFields";
+import { HistoryFields, IdentityFields, SensoryFields } from "./SectionFields";
 
-const FIELDS = { identity: IdentityFields, history: HistoryFields, sensory: SensoryFields, parents: ParentsFields };
+const FIELDS = { identity: IdentityFields, history: HistoryFields, sensory: SensoryFields };
 
 type EditableSectionProps = {
   child: Child;
