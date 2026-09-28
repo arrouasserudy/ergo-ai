@@ -38,7 +38,7 @@ export function ReportFilters({ search, status, thisMonth }: { search: string; s
   }, [query]);
 
   const control =
-    "h-10 rounded-lg border border-line-strong bg-surface text-[13px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
+    "h-11 rounded-lg border border-line-strong bg-surface text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
 
   return (
     <div className="flex flex-col gap-2 sm:flex-row">

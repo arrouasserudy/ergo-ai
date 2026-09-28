@@ -26,7 +26,7 @@ export default async function NewReportPage(props: PageProps<"/reports/new">) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
-      <Link href="/reports" className="inline-flex items-center gap-1 text-[13px] text-ink-muted hover:text-ink">
+      <Link href="/reports" className="-my-2 inline-flex min-h-11 items-center gap-1 text-[13.5px] text-ink-muted hover:text-ink">
         <ChevronLeft className="size-4 rtl:rotate-180" />
         {r.backToList}
       </Link>
@@ -53,7 +53,7 @@ export default async function NewReportPage(props: PageProps<"/reports/new">) {
                 name="childId"
                 required
                 defaultValue={kids.some((c) => c.id === preselected) ? preselected : ""}
-                className="h-10 w-full rounded-lg border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+                className="h-11 w-full rounded-lg border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
               >
                 <option value="" disabled>
                   {r.childPlaceholder}
@@ -72,7 +72,7 @@ export default async function NewReportPage(props: PageProps<"/reports/new">) {
                 {REPORT_DOC_TYPES.map((type, i) => (
                   <label
                     key={type}
-                    className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-line-strong px-3 py-2.5 text-[14px] has-checked:border-primary has-checked:bg-tint has-checked:text-tint-ink"
+                    className="flex cursor-pointer items-center gap-2.5 min-h-11 rounded-lg border border-line-strong px-3 py-2.5 text-[14px] has-checked:border-primary has-checked:bg-tint has-checked:text-tint-ink"
                   >
                     <input type="radio" name="docType" value={type} defaultChecked={i === 0} className="accent-primary" />
                     {r.docType[type]}

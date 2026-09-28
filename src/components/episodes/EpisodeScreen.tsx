@@ -301,7 +301,7 @@ function CauseRow({ causeKey, source, checked, onToggle }: { causeKey: string; s
           checked ? "border-primary/40 bg-tint" : "border-line bg-surface-muted hover:border-line-strong",
         )}
       >
-        <input type="checkbox" checked={checked} onChange={onToggle} className="size-4.5 shrink-0 accent-primary" />
+        <input type="checkbox" checked={checked} onChange={onToggle} className="size-5 shrink-0 accent-primary" />
         <span className="min-w-0 flex-1">
           <span className="block text-[13.5px] font-medium text-ink">{info?.label ?? causeKey}</span>
           {info?.hint && <span className="block text-[12px] text-ink-muted">{info.hint}</span>}

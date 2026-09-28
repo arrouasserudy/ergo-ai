@@ -8,7 +8,7 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
   const i18n = await getI18n();
   const { t } = i18n;
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-10">
+    <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-10">
       <div className="mb-8 flex items-center gap-2.5">
         <span className="grid size-9 place-items-center rounded-lg bg-primary text-white">
           <FileText className="size-5" strokeWidth={2} />

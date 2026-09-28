@@ -33,14 +33,14 @@ export function UploadForm() {
             name="file"
             accept="application/pdf,.pdf"
             required
-            className="text-[13px] file:me-3 file:rounded-lg file:border file:border-line-strong file:bg-surface file:px-3 file:py-1.5 file:text-[13px]"
+            className="text-[13px] file:me-3 file:rounded-lg file:border file:border-line-strong file:bg-surface file:h-11 file:px-4 file:text-[14px]"
           />
           {errors.file && <span className="text-[12px] text-danger">{i18n.error(errors.file)}</span>}
         </label>
         <InputField name="title" label={l.docTitle} defaultValue={values.title} maxLength={200} />
       </div>
       <label className="flex items-start gap-2.5 text-[13px] text-ink-soft">
-        <input type="checkbox" name="entitled" className="mt-0.5 size-4 accent-primary" />
+        <input type="checkbox" name="entitled" className="mt-0.5 size-5 shrink-0 accent-primary" />
         <span>
           {l.entitled}
           {errors.entitled && <span className="block text-[12px] text-danger">{i18n.error(errors.entitled)}</span>}

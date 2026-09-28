@@ -21,6 +21,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { signOut } from "@/app/actions/auth";
 import { useI18n } from "@/i18n/client";
+import { initialsOf } from "@/lib/child-name";
 import type { Dictionary } from "@/i18n/fr";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 
@@ -48,14 +49,18 @@ function Logo() {
   );
 }
 
-function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
-  const { t } = useI18n();
-  // The longest matching href wins, so "/reports/new" doesn't also light up "/reports".
-  const activeHref = NAV.map((item) => item.href)
+/** The longest matching href wins, so "/reports/new" doesn't also light up "/reports". */
+function activeHrefOf(pathname: string) {
+  return NAV.map((item) => item.href)
     .filter((href) => pathname.startsWith(href))
     .sort((a, b) => b.length - a.length)[0];
+}
+
+function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+  const { t } = useI18n();
+  const activeHref = activeHrefOf(pathname);
   return (
-    <ul className="space-y-0.5">
+    <ul className="space-y-1">
       {NAV.map(({ label, icon: Icon, href }) => {
         const active = href === activeHref;
         return (
@@ -65,12 +70,40 @@ function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
               onClick={onNavigate}
               aria-current={active ? "page" : undefined}
               className={clsx(
-                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-colors",
+                "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-[14px] transition-colors",
                 active ? "bg-sidebar-active text-white" : "text-sidebar-ink hover:bg-sidebar-hover hover:text-white",
               )}
             >
-              <Icon className="size-4 shrink-0" strokeWidth={1.75} />
+              <Icon className="size-[18px] shrink-0" strokeWidth={1.75} />
               <span className="truncate">{t.nav[label]}</span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** Tablet rail: icon above a short label, always visible, one tap to any module. */
+function RailList({ pathname }: { pathname: string }) {
+  const { t } = useI18n();
+  const activeHref = activeHrefOf(pathname);
+  return (
+    <ul className="space-y-1">
+      {NAV.map(({ label, icon: Icon, href }) => {
+        const active = href === activeHref;
+        return (
+          <li key={label}>
+            <Link
+              href={href}
+              aria-current={active ? "page" : undefined}
+              className={clsx(
+                "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-2 text-center text-[11px] leading-tight transition-colors",
+                active ? "bg-sidebar-active text-white" : "text-sidebar-ink hover:bg-sidebar-hover hover:text-white",
+              )}
+            >
+              <Icon className="size-5 shrink-0" strokeWidth={1.75} />
+              <span className="line-clamp-2 hyphens-auto">{t.nav[label]}</span>
             </Link>
           </li>
         );
@@ -104,7 +137,7 @@ function Footer({ therapistName, accountName }: SidebarProps) {
             type="submit"
             title={t.nav.signOut}
             aria-label={t.nav.signOut}
-            className="rounded-md p-2 text-sidebar-muted transition-colors hover:bg-sidebar-hover hover:text-white"
+            className="grid size-11 place-items-center rounded-lg text-sidebar-muted transition-colors hover:bg-sidebar-hover hover:text-white"
           >
             <LogOut className="size-4" strokeWidth={1.75} />
           </button>
@@ -117,6 +150,38 @@ function Footer({ therapistName, accountName }: SidebarProps) {
   );
 }
 
+function RailFooter({ therapistName, accountName }: SidebarProps) {
+  const { t } = useI18n();
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <Link
+        href="/privacy"
+        title={t.app.privacyNote}
+        aria-label={t.privacy.learnMore}
+        className="grid size-11 place-items-center rounded-lg text-sidebar-muted transition-colors hover:bg-sidebar-hover hover:text-white"
+      >
+        <Lock className="size-[18px]" strokeWidth={1.75} />
+      </Link>
+      <LocaleSwitcher tone="dark" vertical />
+      <div className="flex w-full flex-col items-center gap-1 border-t border-sidebar-active pt-3" title={`${therapistName} · ${accountName}`}>
+        <span aria-hidden dir="ltr" className="grid size-9 place-items-center rounded-full bg-sidebar-active text-[11px] font-medium text-white">
+          {initialsOf(therapistName).join("")}
+        </span>
+        <form action={signOut}>
+          <button
+            type="submit"
+            title={t.nav.signOut}
+            aria-label={t.nav.signOut}
+            className="grid size-11 place-items-center rounded-lg text-sidebar-muted transition-colors hover:bg-sidebar-hover hover:text-white"
+          >
+            <LogOut className="size-[18px] rtl:rotate-180" strokeWidth={1.75} />
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export function Sidebar(props: SidebarProps) {
   const { t } = useI18n();
   const pathname = usePathname();
@@ -124,27 +189,31 @@ export function Sidebar(props: SidebarProps) {
 
   return (
     <>
-      {/* Mobile top bar */}
-      <header className="sticky top-0 z-30 flex items-center justify-between bg-sidebar px-4 py-3 lg:hidden">
+      {/* Phone: top bar + drawer */}
+      <header className="sticky top-0 z-30 flex items-center justify-between bg-sidebar px-4 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2 md:hidden">
         <Logo />
         <button
           type="button"
           onClick={() => setOpen(true)}
           aria-label={t.nav.openMenu}
-          className="rounded-md p-1.5 text-sidebar-ink hover:bg-sidebar-hover"
+          className="grid size-11 place-items-center rounded-lg text-sidebar-ink hover:bg-sidebar-hover"
         >
           <Menu className="size-5" />
         </button>
       </header>
 
-      {/* Mobile drawer */}
       {open && (
-        <div className="fixed inset-0 z-40 lg:hidden">
+        <div className="fixed inset-0 z-40 md:hidden">
           <button type="button" aria-label={t.nav.closeMenu} className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <nav className="relative flex h-full w-72 max-w-[85%] flex-col gap-6 bg-sidebar p-4">
+          <nav className="relative flex h-full w-72 max-w-[85%] flex-col gap-6 overflow-y-auto overscroll-contain bg-sidebar p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
             <div className="flex items-center justify-between">
               <Logo />
-              <button type="button" onClick={() => setOpen(false)} aria-label={t.nav.closeMenu} className="rounded-md p-1.5 text-sidebar-ink hover:bg-sidebar-hover">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label={t.nav.closeMenu}
+                className="grid size-11 place-items-center rounded-lg text-sidebar-ink hover:bg-sidebar-hover"
+              >
                 <X className="size-5" />
               </button>
             </div>
@@ -156,8 +225,19 @@ export function Sidebar(props: SidebarProps) {
         </div>
       )}
 
-      {/* Desktop sidebar */}
-      <nav className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col gap-7 bg-sidebar px-3 py-5 lg:flex">
+      {/* Tablet (portrait and landscape): icon rail, always visible */}
+      <nav className="sticky top-0 hidden h-dvh w-28 shrink-0 flex-col gap-5 overflow-y-auto bg-sidebar px-1.5 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] md:flex xl:hidden">
+        <Link href="/children" aria-label={t.app.name} className="mx-auto grid size-10 place-items-center rounded-lg bg-primary text-white">
+          <FileText className="size-5" strokeWidth={2} />
+        </Link>
+        <RailList pathname={pathname} />
+        <div className="mt-auto">
+          <RailFooter {...props} />
+        </div>
+      </nav>
+
+      {/* Desktop: full sidebar */}
+      <nav className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-7 overflow-y-auto bg-sidebar px-3 py-5 xl:flex">
         <div className="px-2">
           <Logo />
         </div>

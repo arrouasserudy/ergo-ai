@@ -145,7 +145,7 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
   const pendingAnswer = useMemo(() => (pending ? buildAnswer(pending.parts) : null), [pending]);
 
   return (
-    <section className="flex min-h-[calc(100vh-7rem)] flex-col rounded-xl border border-line bg-surface lg:min-h-[calc(100vh-4rem)]">
+    <section className="flex min-h-[calc(100dvh-7rem)] flex-col rounded-xl border border-line bg-surface md:min-h-[calc(100dvh-4rem)]">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
         <div className="flex items-center gap-3">
           <span className="grid size-9 place-items-center rounded-full bg-primary font-serif text-lg text-white">E</span>
@@ -219,7 +219,7 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
                   setChildId(ev.target.value || null);
                   setPreview(null);
                 }}
-                className="h-8 rounded-lg border border-line-strong bg-surface px-2 text-[13px]"
+                className="h-10 rounded-lg border border-line-strong bg-surface px-2.5 text-[14px]"
               >
                 <option value="">{e.noContext}</option>
                 {childOptions.map((c) => (
@@ -229,7 +229,7 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
                 ))}
               </select>
               {childId && (
-                <button type="button" onClick={() => setShowPreview((s) => !s)} className="inline-flex items-center gap-1 text-[12px] text-primary">
+                <button type="button" onClick={() => setShowPreview((s) => !s)} className="inline-flex min-h-10 items-center gap-1 text-[13px] text-primary">
                   {e.contextPreview}
                   <ChevronDown className={clsx("size-3.5 transition-transform", showPreview && "rotate-180")} />
                 </button>
@@ -250,13 +250,13 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
         )}
 
         {turns.length === 0 && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {e.suggestions.map((s) => (
               <button
                 key={s}
                 type="button"
                 onClick={() => setInput(s)}
-                className="rounded-full border border-line-strong bg-surface px-3 py-1 text-[12.5px] text-ink-soft hover:bg-surface-muted"
+                className="min-h-10 rounded-full border border-line-strong bg-surface px-3.5 py-2 text-start text-[13.5px] text-ink-soft hover:bg-surface-muted"
               >
                 {s}
               </button>

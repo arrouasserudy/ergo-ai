@@ -13,7 +13,8 @@ const VARIANTS: Record<Variant, string> = {
 export function buttonClass(variant: Variant = "primary", size: "sm" | "md" = "md") {
   return clsx(
     "inline-flex items-center justify-center gap-1.5 rounded-lg font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-60",
-    size === "md" ? "h-9 px-3.5 text-[13px]" : "h-8 px-2.5 text-[12.5px]",
+    // Touch-sized: 44px is the minimum comfortable target on a tablet.
+    size === "md" ? "h-11 px-4 text-[14px]" : "h-9 px-3 text-[13px]",
     VARIANTS[variant],
   );
 }
