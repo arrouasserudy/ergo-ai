@@ -38,11 +38,13 @@ type ReportEditorProps = {
   dictationAvailable: boolean;
   /** The child's completed forms, which can be attached to the notes. */
   forms: { id: string; title: string; date: string }[];
+  /** The child's completed OT tests, whose scores can be attached. */
+  assessments: { id: string; title: string; date: string }[];
 };
 
 const AUTOSAVE_MS = 700;
 
-export function ReportEditor({ report, variants: initialVariants, child, exportContext, dictationAvailable, forms }: ReportEditorProps) {
+export function ReportEditor({ report, variants: initialVariants, child, exportContext, dictationAvailable, forms, assessments }: ReportEditorProps) {
   const i18n = useI18n();
   const { t } = i18n;
   const r = t.reports;
@@ -55,6 +57,7 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
     recipients: report.recipients,
     language: report.language,
     formIds: report.formIds,
+    assessmentIds: report.assessmentIds,
   });
   const [variants, setVariants] = useState<Variants>(() => Object.fromEntries(initialVariants.map((v) => [v.recipient, v])));
   const [active, setActive] = useState<ReportRecipient>(report.recipients[0] ?? "parents");
@@ -105,7 +108,8 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
   const generate = async (targets: ReportRecipient[]) => {
     setConfirmRegenerate(false);
     setGenError(null);
-    if (!data.notes.trim() && !data.formIds?.some((id) => forms.some((f) => f.id === id))) {
+    const attached = data.formIds?.some((id) => forms.some((f) => f.id === id)) || data.assessmentIds?.some((id) => assessments.some((a) => a.id === id));
+    if (!data.notes.trim() && !attached) {
       setGenError(r.errors.notesRequired);
       return;
     }
@@ -282,6 +286,28 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
                   );
                 })}
                 <p className="text-[12px] text-ink-muted">{t.forms.reportHint}</p>
+              </fieldset>
+            )}
+
+            {assessments.length > 0 && (
+              <fieldset className="space-y-1.5">
+                <legend className="text-[12.5px] font-medium text-ink-soft">{t.assessments.reportTitle}</legend>
+                {assessments.map((test) => {
+                  const ids = data.assessmentIds ?? [];
+                  return (
+                    <label key={test.id} className="flex min-h-10 items-center gap-2.5 text-[13.5px]">
+                      <input
+                        type="checkbox"
+                        className="size-4 accent-primary"
+                        checked={ids.includes(test.id)}
+                        onChange={(e) => update({ assessmentIds: e.target.checked ? [...ids, test.id] : ids.filter((id) => id !== test.id) })}
+                      />
+                      <bdi>{test.title}</bdi>
+                      <span className="text-[12px] text-ink-muted">{test.date}</span>
+                    </label>
+                  );
+                })}
+                <p className="text-[12px] text-ink-muted">{t.assessments.reportHint}</p>
               </fieldset>
             )}
 

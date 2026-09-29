@@ -18,6 +18,7 @@ export const he: Dictionary = {
     crises: "משברים",
     expert: "עמית",
     forms: "טפסים",
+    assessments: "מבדקים",
     children: "ילדים במעקב",
     account: "הקליניקה שלי",
     settings: "הגדרות",
@@ -736,6 +737,80 @@ export const he: Dictionary = {
       generic: "אירעה שגיאה. אפשר לנסות שוב.",
     } as Record<string, string>,
   },
+  assessments: {
+    listTitle: "מבדקים",
+    listSubtitle: "מבדקים סטנדרטיים: הזינו את התשובות, והציונים מחושבים על ידי האפליקציה לפי כללי המבדק (לעולם לא על ידי הבינה המלאכותית).",
+    catalogTitle: "מבדקים זמינים",
+    recentTitle: "מבדקים אחרונים",
+    recentNone: "אין עדיין מבדקים. התחילו מבדק מתוך תיק הילד/ה.",
+    items: (n: number) => (n === 1 ? "פריט אחד" : `${n} פריטים`),
+    age: (months: number) => {
+      if (months < 24) return `${months} חודשים`;
+      const y = Math.floor(months / 12);
+      const m = months % 12;
+      return m ? `${y} שנים ו-${m} חודשים` : `${y} שנים`;
+    },
+    ageRange: (from: string, to: string) => `מגיל ${from} עד ${to}`,
+    respondents: { therapist: "ממולא על ידי המטפל/ת", parent: "ניתן לשלוח להורים" } as Record<string, string>,
+    status: { draft: "בתהליך", sent: "נשלח להורים", completed: "הושלם" } as Record<string, string>,
+    progress: (answered: number, total: number) => `${answered} / ${total} תשובות`,
+
+    childCardTitle: "מבדקים",
+    childCardHint: "מבדקים סטנדרטיים והציונים שלהם.",
+    childNone: "אין מבדקים לילד/ה זה/ו.",
+    pickTest: "מבדק",
+    pickPlaceholder: "בחרו מבדק…",
+    testDate: "תאריך המבדק",
+    start: "התחלה",
+
+    backToChild: "חזרה לתיק",
+    eyebrow: "מבדק",
+    ageAtTest: (age: string) => `גיל בתאריך המבדק: ${age}`,
+    noBirthDate: "תאריך הלידה לא הוזן: הגיל אינו מחושב.",
+    outOfRange: (range: string) => `גיל הילד/ה מחוץ לנורמות של מבדק זה (${range}). יש לפרש את הציונים בזהירות.`,
+    completedBy: {
+      therapist: (date: string) => `הושלם על ידי הקליניקה ב-${date}.`,
+      parent: (date: string) => `מולא על ידי ההורים ב-${date}.`,
+    } as Record<string, (date: string) => string>,
+    instructions: "הנחיות",
+    comments: "הערות",
+    keyboardHint: "במקלדת: הקלידו את ערך התשובה (5, 4, 3, 2, 1, 0) כדי לענות ולעבור לפריט הבא.",
+    suggested: "מוצע",
+    chosenLevel: "הרמה שנבחרה",
+    ticked: (n: number) => `${n} סומנו`,
+    complete: "סיום וחישוב הציונים",
+    unansweredWarning: (n: number) =>
+      n === 1 ? "פריט אחד ללא תשובה: הסכומים שכוללים אותו לא יסווגו." : `${n} פריטים ללא תשובה: הסכומים שכוללים אותם לא יסווגו.`,
+    reopen: "פתיחה מחדש",
+    print: "הדפסה / PDF",
+    delete: "מחיקת המבדק",
+    deleteConfirm: "למחוק את המבדק ואת התשובות שלו?",
+
+    resultsTitle: "ציונים",
+    liveResults: "ציונים זמניים (מחושבים לפי התשובות הנוכחיות)",
+    answersTitle: "תשובות",
+    score: "ציון",
+    previous: (date: string) => `מבדק מ-${date}`,
+    now: "מבדק זה",
+    missing: (n: number) => (n === 1 ? "פריט אחד ללא תשובה" : `${n} פריטים ללא תשובה`),
+    notClassified: "לא מסווג",
+    months: "חודשים",
+    printChild: (name: string) => `ילד/ה: ${name}`,
+    printDate: (date: string) => `תאריך המבדק: ${date}`,
+
+    share: {
+      title: "שליחה להורים",
+      hint: "קישור פרטי, ללא התחברות, בתוקף ל-30 יום. ההורים רואים את השאלות, לעולם לא את הציונים.",
+    },
+    public: {
+      from: (cabinet: string) => `שאלון שנשלח על ידי ${cabinet}`,
+      missing: (n: number) => (n === 1 ? "נותרה שאלה אחת ללא תשובה." : `נותרו ${n} שאלות ללא תשובה.`),
+    },
+
+    reportTitle: "מבדקים: ציונים מחושבים",
+    reportHint: "הציונים המחושבים של המבדקים המסומנים נשלחים לבינה המלאכותית (ללא התשובות וההערות).",
+    errors: { generic: "אירעה שגיאה. נסו שוב.", expired: "הקישור אינו בתוקף עוד." } as Record<string, string>,
+  },
   privacy: {
     learnMore: "למידע נוסף",
     badge: "בשם בדוי",
@@ -772,6 +847,10 @@ export const he: Dictionary = {
         forms: {
           name: "טפסים",
           sent: "המסמך הריק שמייבאים, לצורך ההמרה. תשובות ההורים נשלחות רק אם מצרפים אותן לסיכום טיפול, ללא תשובות מזהות (שם, תאריך לידה, כתובת…) וללא שם הילד/ה.",
+        },
+        assessments: {
+          name: "מבדקים",
+          sent: "דבר במהלך ההזנה: הציונים מחושבים על ידי האפליקציה. רק הציונים המחושבים (סכומים, סיווגים, גילאי משחק) נשלחים אם מצרפים את המבדק לסיכום, לעולם לא התשובות או ההערות.",
         },
         search: { name: "חיפוש בספרות", sent: "החיפושים של עמית (ללא שמות) והטקסט של המסמכים שנוספו לספרייה." },
       } as Record<string, { name: string; sent: string }>,

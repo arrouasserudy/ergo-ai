@@ -19,6 +19,9 @@ import { getLocale } from "@/i18n/server";
 import { getChild } from "@/lib/children";
 import { defaultProvider } from "@/lib/expert/providers";
 import { DAILY_GENERATION_LIMIT, GenerationError, generateSections } from "@/lib/reports/generate";
+import { assessmentResultsText } from "@/lib/assessments/prompt";
+import { completedAssessments } from "@/lib/assessments/queries";
+import { getDefinition } from "@/lib/assessments/registry";
 import { formAnswersForPrompt } from "@/lib/forms/answers";
 import { submittedChildForms } from "@/lib/forms/queries";
 import { CHILD_PLACEHOLDER, fillChildPlaceholder, reportSystemPrompt, reportUserPrompt } from "@/lib/reports/prompt";
@@ -97,6 +100,11 @@ function buildPrompts(report: ReportRow, child: ChildRow, therapistId: string, t
     title: form.schema.title,
     text: formAnswersForPrompt(form.schema, form.answers, child.name, CHILD_PLACEHOLDER),
   }));
+  // Computed scores only: never the answers or comments of a test.
+  const assessments = completedAssessments(report.accountId, child.id, report.assessmentIds).flatMap((test) => {
+    const definition = getDefinition(test.definitionId);
+    return definition && test.scores ? [{ name: definition.name, date: test.testDate, text: assessmentResultsText(test.scores) }] : [];
+  });
   const prompts = targets.map((recipient) => ({
     recipient,
     prompt: reportUserPrompt({
@@ -108,6 +116,7 @@ function buildPrompts(report: ReportRow, child: ChildRow, therapistId: string, t
       tests: report.tests,
       examples: examples[recipient],
       forms,
+      assessments,
     }),
   }));
   return { system, prompts };
@@ -138,7 +147,7 @@ export async function generateReport(id: string, recipients: ReportRecipient[]):
   if (!report || !child) return { ok: false, error: "generic" };
   const targets = REPORT_RECIPIENTS.filter((r) => recipients.includes(r));
   if (targets.length === 0) return { ok: false, error: "generic" };
-  if (!report.notes.trim() && report.formIds.length === 0) return { ok: false, error: "notesRequired" };
+  if (!report.notes.trim() && report.formIds.length === 0 && report.assessmentIds.length === 0) return { ok: false, error: "notesRequired" };
 
   const provider = defaultProvider();
   if (!provider) return { ok: false, error: "unavailable" };

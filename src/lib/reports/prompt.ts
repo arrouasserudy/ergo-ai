@@ -72,6 +72,8 @@ export type ReportPromptInput = {
   examples: StylePair[];
   /** Completed questionnaires attached to the report: answers as text, child's name already replaced. */
   forms?: { title: string; text: string }[];
+  /** Completed standardized tests: scores computed by the app, as text. */
+  assessments?: { name: string; date: string; text: string }[];
 };
 
 export function sectionsToText(sections: ReportSection[]): string {
@@ -109,6 +111,15 @@ export function reportUserPrompt(input: ReportPromptInput): string {
       `Questionnaires filled in about the child (by the parents or the practice), attached to these notes. Use their answers as background facts, only where they matter to this report:\n<questionnaires>\n${forms
         .map((f) => `<questionnaire title="${f.title.replace(/"/g, "'")}">\n${f.text.trim()}\n</questionnaire>`)
         .join("\n")}\n</questionnaires>`,
+    );
+  }
+
+  const assessments = (input.assessments ?? []).filter((a) => a.text.trim());
+  if (assessments.length) {
+    parts.push(
+      `Standardized tests given to the child, attached to these notes. The scores were computed by the software from the test's own scoring rules: report them as given, never recompute them, and do not add interpretations the classification does not state:\n<standardized_tests>\n${assessments
+        .map((a) => `<test name="${a.name.replace(/"/g, "'")}" date="${a.date}">\n${a.text.trim()}\n</test>`)
+        .join("\n")}\n</standardized_tests>`,
     );
   }
 

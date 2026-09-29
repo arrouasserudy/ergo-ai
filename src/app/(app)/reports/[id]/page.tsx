@@ -9,6 +9,8 @@ import { isolate } from "@/i18n";
 import { getI18n } from "@/i18n/server";
 import { childTitle } from "@/lib/child-title";
 import { getChild } from "@/lib/children";
+import { listChildAssessments } from "@/lib/assessments/queries";
+import { getDefinition } from "@/lib/assessments/registry";
 import { listChildForms } from "@/lib/forms/queries";
 import { getReport, listVariants } from "@/lib/reports/queries";
 import { transcriptionAvailable } from "@/lib/reports/transcribe";
@@ -54,6 +56,9 @@ export default async function ReportPage(props: PageProps<"/reports/[id]">) {
         forms={listChildForms(accountId, child.id)
           .filter((form) => form.status === "submitted")
           .map((form) => ({ id: form.id, title: form.schema.title, date: form.submittedAt ? i18n.date(form.submittedAt.toISOString()) : "" }))}
+        assessments={listChildAssessments(accountId, child.id)
+          .filter((test) => test.status === "completed")
+          .map((test) => ({ id: test.id, title: getDefinition(test.definitionId)?.shortName ?? test.definitionId, date: i18n.date(test.testDate) }))}
       />
     </div>
   );

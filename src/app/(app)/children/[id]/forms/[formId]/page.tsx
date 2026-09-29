@@ -1,7 +1,7 @@
 import { ChevronLeft, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { deleteChildForm, reopenChildForm } from "@/app/actions/child-forms";
+import { createShareLink, deleteChildForm, reopenChildForm, revokeShareLink } from "@/app/actions/child-forms";
 import { ChildFormFill } from "@/components/forms/ChildFormFill";
 import { ConfirmButton } from "@/components/forms/ConfirmButton";
 import { FormRenderer } from "@/components/forms/FormRenderer";
@@ -93,7 +93,13 @@ export default async function ChildFormPage(props: PageProps<"/children/[id]/for
           <Card>
             <CardHeader title={f.share.title} />
             <div className="px-5 pb-5">
-              <SharePanel formId={form.id} activeUntil={activeUntil} submitted={submitted} />
+              <SharePanel
+                create={createShareLink.bind(null, form.id)}
+                revoke={revokeShareLink.bind(null, form.id)}
+                path="/f/"
+                activeUntil={activeUntil}
+                submitted={submitted}
+              />
             </div>
           </Card>
           <ConfirmButton label={f.removeFromChild} question={f.removeConfirm} onConfirm={deleteChildForm.bind(null, form.id)} />

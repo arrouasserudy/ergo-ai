@@ -12,6 +12,7 @@ export const fr = {
     crises: "Crises",
     expert: "Amit",
     forms: "Formulaires",
+    assessments: "Tests d'ergo",
     children: "Enfants suivis",
     account: "Mon cabinet",
     settings: "Paramètres",
@@ -735,6 +736,80 @@ export const fr = {
       generic: "Une erreur est survenue. Réessayez.",
     } as Record<string, string>,
   },
+  assessments: {
+    listTitle: "Tests d'ergo",
+    listSubtitle: "Bilans standardisés : saisissez les réponses, les scores sont calculés par l'application selon les règles du test (jamais par l'IA).",
+    catalogTitle: "Tests disponibles",
+    recentTitle: "Derniers tests",
+    recentNone: "Aucun test pour l'instant. Commencez-en un depuis la fiche d'un enfant.",
+    items: (n: number) => (n <= 1 ? `${n} item` : `${n} items`),
+    age: (months: number) => {
+      if (months < 24) return `${months} mois`;
+      const y = Math.floor(months / 12);
+      const m = months % 12;
+      return m ? `${y} ans ${m} mois` : `${y} ans`;
+    },
+    ageRange: (from: string, to: string) => `De ${from} à ${to}`,
+    respondents: { therapist: "Rempli par le thérapeute", parent: "Peut être envoyé aux parents" } as Record<string, string>,
+    status: { draft: "En cours", sent: "Envoyé aux parents", completed: "Terminé" } as Record<string, string>,
+    progress: (answered: number, total: number) => `${answered} / ${total} réponses`,
+
+    childCardTitle: "Tests d'ergo",
+    childCardHint: "Bilans standardisés et leurs scores.",
+    childNone: "Aucun test pour cet enfant.",
+    pickTest: "Test",
+    pickPlaceholder: "Choisir un test…",
+    testDate: "Date du test",
+    start: "Commencer",
+
+    backToChild: "Retour à la fiche",
+    eyebrow: "Test d'ergo",
+    ageAtTest: (age: string) => `Âge à la date du test : ${age}`,
+    noBirthDate: "Date de naissance non renseignée : l'âge n'est pas calculé.",
+    outOfRange: (range: string) => `L'âge de l'enfant est hors des normes de ce test (${range}). Les scores sont à interpréter avec prudence.`,
+    completedBy: {
+      therapist: (date: string) => `Terminé par le cabinet le ${date}.`,
+      parent: (date: string) => `Rempli par les parents le ${date}.`,
+    } as Record<string, (date: string) => string>,
+    instructions: "Consignes",
+    comments: "Commentaires",
+    keyboardHint: "Au clavier : tapez la valeur d'une réponse (5, 4, 3, 2, 1, 0) pour répondre et passer à l'item suivant.",
+    suggested: "suggéré",
+    chosenLevel: "Niveau retenu",
+    ticked: (n: number) => (n <= 1 ? `${n} coché` : `${n} cochés`),
+    complete: "Terminer et calculer les scores",
+    unansweredWarning: (n: number) =>
+      n <= 1 ? "1 item est sans réponse : les totaux qui le comptent ne seront pas classés." : `${n} items sont sans réponse : les totaux qui les comptent ne seront pas classés.`,
+    reopen: "Rouvrir",
+    print: "Imprimer / PDF",
+    delete: "Supprimer le test",
+    deleteConfirm: "Supprimer ce test et ses réponses ?",
+
+    resultsTitle: "Scores",
+    liveResults: "Scores provisoires (calculés sur les réponses actuelles)",
+    answersTitle: "Réponses",
+    score: "Score",
+    previous: (date: string) => `Test du ${date}`,
+    now: "Ce test",
+    missing: (n: number) => (n <= 1 ? "1 item sans réponse" : `${n} items sans réponse`),
+    notClassified: "non classé",
+    months: "mois",
+    printChild: (name: string) => `Enfant : ${name}`,
+    printDate: (date: string) => `Date du test : ${date}`,
+
+    share: {
+      title: "Envoyer aux parents",
+      hint: "Un lien privé, sans connexion, valable 30 jours. Les parents voient les questions, jamais les scores.",
+    },
+    public: {
+      from: (cabinet: string) => `Questionnaire envoyé par ${cabinet}`,
+      missing: (n: number) => (n <= 1 ? "Répondez à la dernière question avant d'envoyer." : `Il reste ${n} questions sans réponse.`),
+    },
+
+    reportTitle: "Tests d'ergo : scores calculés",
+    reportHint: "Les scores calculés des tests cochés sont envoyés à l'IA (sans les réponses ni les commentaires).",
+    errors: { generic: "Une erreur est survenue. Réessayez.", expired: "Ce lien n'est plus valable." } as Record<string, string>,
+  },
   privacy: {
     learnMore: "En savoir plus",
     badge: "Pseudonymisé",
@@ -772,6 +847,10 @@ export const fr = {
         forms: {
           name: "Formulaires",
           sent: "Le document vierge que vous importez, pour le convertir. Les réponses des parents ne sont envoyées que si vous les joignez à un compte-rendu, sans les réponses identifiantes (nom, date de naissance, adresse…) et nom de l'enfant retiré.",
+        },
+        assessments: {
+          name: "Tests d'ergo",
+          sent: "Rien pendant la saisie : les scores sont calculés par l'application. Seuls les scores calculés (totaux, classements, âges de jeu) sont envoyés si vous joignez le test à un compte-rendu, jamais les réponses ni les commentaires.",
         },
         search: { name: "Recherche documentaire", sent: "Les recherches d'Amit (sans nom) et le texte des documents que vous ajoutez à la bibliothèque." },
       } as Record<string, { name: string; sent: string }>,
