@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import type { AssessmentAnswers, ScoreGroup } from "../lib/assessments/types";
 import type { Answers, FormSchema } from "../lib/forms/schema";
 
 const id = () =>
@@ -356,6 +357,8 @@ export const reports = sqliteTable(
     language: text("language", { enum: REPORT_LANGUAGES }).notNull().default("fr"),
     /** Completed child forms whose answers are sent with the notes (pseudonymized). */
     formIds: text("form_ids", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+    /** Completed OT tests whose computed scores are sent with the notes. */
+    assessmentIds: text("assessment_ids", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
     /** Derived from the variants (see lib/reports/status.ts), stored for list filtering. */
     status: text("status", { enum: REPORT_STATUSES }).notNull().default("draft"),
     ...timestamps(),
@@ -503,3 +506,39 @@ export const childForms = sqliteTable(
 
 export type FormTemplate = typeof formTemplates.$inferSelect;
 export type ChildForm = typeof childForms.$inferSelect;
+
+export const ASSESSMENT_STATUSES = ["draft", "sent", "completed"] as const;
+export type AssessmentStatus = (typeof ASSESSMENT_STATUSES)[number];
+
+/**
+ * One administration of a standardized OT test (definitions in lib/assessments).
+ * Scores are computed by the app; they are stored when the test is completed so a later
+ * change of the definition never rewrites past results.
+ */
+export const assessments = sqliteTable(
+  "assessments",
+  {
+    id: id(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    childId: text("child_id")
+      .notNull()
+      .references(() => children.id, { onDelete: "cascade" }),
+    createdBy: text("created_by").references(() => therapists.id, { onDelete: "set null" }),
+    definitionId: text("definition_id").notNull(),
+    definitionVersion: integer("definition_version").notNull(),
+    testDate: text("test_date").notNull(), // ISO date
+    answers: text("answers", { mode: "json" }).$type<AssessmentAnswers>().notNull().default(sql`'{"values":{},"ticks":{},"comments":{}}'`),
+    scores: text("scores", { mode: "json" }).$type<ScoreGroup[]>(),
+    status: text("status", { enum: ASSESSMENT_STATUSES }).notNull().default("draft"),
+    completedAt: integer("completed_at", { mode: "timestamp_ms" }),
+    completedBy: text("completed_by", { enum: FORM_FILLERS }),
+    shareTokenHash: text("share_token_hash").unique(),
+    shareExpiresAt: integer("share_expires_at", { mode: "timestamp_ms" }),
+    ...timestamps(),
+  },
+  (table) => [index("assessments_child_idx").on(table.accountId, table.childId)],
+);
+
+export type Assessment = typeof assessments.$inferSelect;

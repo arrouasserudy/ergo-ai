@@ -24,6 +24,7 @@ export default async function PrivacyPage() {
     dictation: transcriptionAvailable() ? "openai" : "none",
     expert: chat,
     forms: chat,
+    assessments: chat,
     search: embedProvider() ?? "none",
   };
 

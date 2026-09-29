@@ -5,6 +5,7 @@ import {
   Activity,
   ClipboardList,
   FileText,
+  Gauge,
   Building2,
   ListChecks,
   Lock,
@@ -34,6 +35,7 @@ const NAV: NavItem[] = [
   { label: "crises", icon: Activity, href: "/crises" },
   { label: "expert", icon: MessageCircle, href: "/expert" },
   { label: "forms", icon: ClipboardList, href: "/forms" },
+  { label: "assessments", icon: Gauge, href: "/assessments" },
   { label: "account", icon: Building2, href: "/account" },
   { label: "settings", icon: Settings, href: "/settings" },
 ];

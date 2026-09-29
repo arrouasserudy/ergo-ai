@@ -1,9 +1,8 @@
-import { FileText, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { PublicShell as Shell } from "@/components/forms/PublicShell";
 import { SharedFormFill, Thanks } from "@/components/forms/SharedFormFill";
 import { createI18n } from "@/i18n";
-import { I18nProvider } from "@/i18n/client";
 import { getI18n } from "@/i18n/server";
 import { findSharedForm } from "@/lib/forms/queries";
 import { APP_TIME_ZONE } from "@/lib/time";
@@ -49,22 +48,5 @@ export default async function SharedFormPage(props: PageProps<"/f/[token]">) {
       </header>
       {form.status === "submitted" ? <Thanks /> : <SharedFormFill token={token} form={form.schema} initial={form.answers} />}
     </Shell>
-  );
-}
-
-/** The page chrome follows the form's language, whatever the visitor's cookie says. */
-function Shell({ locale, appName, children }: { locale: "fr" | "he" | "en"; appName: string; children: ReactNode }) {
-  return (
-    <I18nProvider locale={locale} timeZone={APP_TIME_ZONE} hideNames={false}>
-      <div dir={locale === "he" ? "rtl" : "ltr"} lang={locale} className="mx-auto min-h-dvh max-w-2xl px-4 py-6 sm:py-10">
-        <div className="mb-5 flex items-center gap-2 text-ink-muted">
-          <span className="grid size-6 place-items-center rounded-md bg-primary text-white">
-            <FileText className="size-3.5" strokeWidth={2} />
-          </span>
-          <span className="font-serif text-[15px]">{appName}</span>
-        </div>
-        <main className="rounded-xl border border-line bg-surface p-5 sm:p-7">{children}</main>
-      </div>
-    </I18nProvider>
   );
 }

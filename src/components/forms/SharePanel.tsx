@@ -2,15 +2,25 @@
 
 import { Check, Copy, Link2, Link2Off, Loader2 } from "lucide-react";
 import { useState, useTransition } from "react";
-import { createShareLink, revokeShareLink } from "@/app/actions/child-forms";
+import type { ShareLinkResult } from "@/app/actions/child-forms";
 import { Button } from "@/components/ui/Button";
 import { useI18n } from "@/i18n/client";
 
-/** `activeUntil`: expiry of the current link, null when there is none (or it expired). */
-type Props = { formId: string; activeUntil: string | null; submitted: boolean };
+/**
+ * `create` / `revoke`: server actions bound to the form or test; `path`: public route of
+ * the link ("/f/"). `activeUntil`: expiry of the current link, null when there is none (or it expired).
+ */
+type Props = {
+  create: () => Promise<ShareLinkResult>;
+  revoke: () => Promise<void>;
+  path: string;
+  activeUntil: string | null;
+  submitted: boolean;
+  hint?: string;
+};
 
 /** Creates, shows once and disables the private link sent to the parents. */
-export function SharePanel({ formId, activeUntil, submitted }: Props) {
+export function SharePanel({ create: createLink, revoke, path, activeUntil, submitted, hint }: Props) {
   const i18n = useI18n();
   const s = i18n.t.forms.share;
   const [url, setUrl] = useState<string | null>(null);
@@ -22,8 +32,8 @@ export function SharePanel({ formId, activeUntil, submitted }: Props) {
   const create = () =>
     startTransition(async () => {
       setError(false);
-      const result = await createShareLink(formId);
-      if (result.ok) setUrl(`${window.location.origin}/f/${result.token}`);
+      const result = await createLink();
+      if (result.ok) setUrl(`${window.location.origin}${path}${result.token}`);
       else setError(true);
     });
 
@@ -36,7 +46,7 @@ export function SharePanel({ formId, activeUntil, submitted }: Props) {
 
   return (
     <div className="space-y-3">
-      <p className="text-[12.5px] text-ink-muted">{s.hint}</p>
+      <p className="text-[12.5px] text-ink-muted">{hint ?? s.hint}</p>
       {url && (
         <div className="space-y-2 rounded-lg border border-primary/30 bg-tint p-3">
           <input
@@ -68,7 +78,7 @@ export function SharePanel({ formId, activeUntil, submitted }: Props) {
             disabled={pending}
             onClick={() =>
               startTransition(async () => {
-                await revokeShareLink(formId);
+                await revoke();
                 setUrl(null);
               })
             }

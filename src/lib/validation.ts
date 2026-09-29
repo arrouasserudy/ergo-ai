@@ -137,6 +137,8 @@ export const reportSchema = z.object({
   language: z.enum(REPORT_LANGUAGES),
   /** Completed child forms attached to the notes (checked against the child at generation). */
   formIds: z.array(z.string().max(64)).max(20).default([]),
+  /** Completed OT tests whose computed scores are attached (checked against the child at generation). */
+  assessmentIds: z.array(z.string().max(64)).max(20).default([]),
 });
 
 export type ReportInput = z.input<typeof reportSchema>;

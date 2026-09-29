@@ -34,6 +34,13 @@ describe("reportUserPrompt", () => {
     expect(reportUserPrompt(base)).not.toContain("<questionnaires>");
   });
 
+  it("attaches computed test scores, to report as given", () => {
+    const prompt = reportUserPrompt({ ...base, assessments: [{ name: "Sensory Profile 2", date: "2026-09-01", text: "Quadrants:\n- Seeking: 38/95" }] });
+    expect(prompt).toContain('<test name="Sensory Profile 2" date="2026-09-01">\nQuadrants:\n- Seeking: 38/95\n</test>');
+    expect(prompt).toContain("never recompute them");
+    expect(reportUserPrompt(base)).not.toContain("<standardized_tests>");
+  });
+
   it("replays at most MAX_STYLE_EXAMPLES corrections", () => {
     const prompt = reportUserPrompt({ ...base, examples: [1, 2, 3, 4, 5].map(example) });
     expect(prompt.match(/<example /g)).toHaveLength(MAX_STYLE_EXAMPLES);

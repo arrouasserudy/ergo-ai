@@ -14,6 +14,7 @@ export const en: Dictionary = {
     crises: "Crises",
     expert: "Amit",
     forms: "Forms",
+    assessments: "OT tests",
     children: "Children",
     account: "My practice",
     settings: "Settings",
@@ -732,6 +733,80 @@ export const en: Dictionary = {
       generic: "Something went wrong. Try again.",
     } as Record<string, string>,
   },
+  assessments: {
+    listTitle: "OT tests",
+    listSubtitle: "Standardized assessments: enter the answers, and the app computes the scores with the test's own rules (never the AI).",
+    catalogTitle: "Available tests",
+    recentTitle: "Latest tests",
+    recentNone: "No tests yet. Start one from a child's page.",
+    items: (n: number) => (n === 1 ? "1 item" : `${n} items`),
+    age: (months: number) => {
+      if (months < 24) return `${months} months`;
+      const y = Math.floor(months / 12);
+      const m = months % 12;
+      return m ? `${y} years ${m} months` : `${y} years`;
+    },
+    ageRange: (from: string, to: string) => `From ${from} to ${to}`,
+    respondents: { therapist: "Filled in by the therapist", parent: "Can be sent to the parents" } as Record<string, string>,
+    status: { draft: "In progress", sent: "Sent to parents", completed: "Completed" } as Record<string, string>,
+    progress: (answered: number, total: number) => `${answered} / ${total} answered`,
+
+    childCardTitle: "OT tests",
+    childCardHint: "Standardized assessments and their scores.",
+    childNone: "No tests for this child.",
+    pickTest: "Test",
+    pickPlaceholder: "Choose a test…",
+    testDate: "Test date",
+    start: "Start",
+
+    backToChild: "Back to the child",
+    eyebrow: "OT test",
+    ageAtTest: (age: string) => `Age on the test date: ${age}`,
+    noBirthDate: "No birth date: the age is not computed.",
+    outOfRange: (range: string) => `The child's age is outside this test's norms (${range}). Interpret the scores with care.`,
+    completedBy: {
+      therapist: (date: string) => `Completed by the practice on ${date}.`,
+      parent: (date: string) => `Filled in by the parents on ${date}.`,
+    } as Record<string, (date: string) => string>,
+    instructions: "Instructions",
+    comments: "Comments",
+    keyboardHint: "Keyboard: type an answer's value (5, 4, 3, 2, 1, 0) to answer and move to the next item.",
+    suggested: "suggested",
+    chosenLevel: "Chosen level",
+    ticked: (n: number) => `${n} ticked`,
+    complete: "Complete and compute scores",
+    unansweredWarning: (n: number) =>
+      n === 1 ? "1 item has no answer: the totals that count it will not be classified." : `${n} items have no answer: the totals that count them will not be classified.`,
+    reopen: "Reopen",
+    print: "Print / PDF",
+    delete: "Delete test",
+    deleteConfirm: "Delete this test and its answers?",
+
+    resultsTitle: "Scores",
+    liveResults: "Provisional scores (from the current answers)",
+    answersTitle: "Answers",
+    score: "Score",
+    previous: (date: string) => `Test of ${date}`,
+    now: "This test",
+    missing: (n: number) => (n === 1 ? "1 item unanswered" : `${n} items unanswered`),
+    notClassified: "not classified",
+    months: "months",
+    printChild: (name: string) => `Child: ${name}`,
+    printDate: (date: string) => `Test date: ${date}`,
+
+    share: {
+      title: "Send to the parents",
+      hint: "A private link, no sign-in, valid for 30 days. Parents see the questions, never the scores.",
+    },
+    public: {
+      from: (cabinet: string) => `Questionnaire sent by ${cabinet}`,
+      missing: (n: number) => (n === 1 ? "Answer the last question before sending." : `${n} questions are still unanswered.`),
+    },
+
+    reportTitle: "OT tests: computed scores",
+    reportHint: "The computed scores of the checked tests are sent to the AI (not the answers or comments).",
+    errors: { generic: "Something went wrong. Please try again.", expired: "This link is no longer valid." } as Record<string, string>,
+  },
   privacy: {
     learnMore: "Learn more",
     badge: "Pseudonymized",
@@ -769,6 +844,10 @@ export const en: Dictionary = {
         forms: {
           name: "Forms",
           sent: "The blank document you import, to convert it. Parents' answers are sent only if you attach them to a report, without identifying answers (name, birth date, address…) and with the child's name removed.",
+        },
+        assessments: {
+          name: "OT tests",
+          sent: "Nothing while you enter answers: the app computes the scores. Only the computed scores (totals, classifications, play ages) are sent if you attach the test to a report, never the answers or comments.",
         },
         search: { name: "Literature search", sent: "Amit's searches (no names) and the text of the documents you add to the library." },
       } as Record<string, { name: string; sent: string }>,
