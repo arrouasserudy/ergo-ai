@@ -50,7 +50,7 @@ export function AssessmentForm({ definitionId, answers, onChange, mode = "fill",
       {definition.sections.map((section) => (
         <section key={section.id} dir={dir} lang={definition.language} className={clsx(print ? "space-y-2 break-inside-avoid-page" : "space-y-3")}>
           <header className={clsx(!print && "border-b border-line pb-2")}>
-            <h3 className={clsx("font-serif font-medium", print ? "text-[12pt]" : "text-[19px]")}>{section.title}</h3>
+            <h3 className={clsx("font-semibold tracking-tight", print ? "text-[12pt]" : "text-[17px]")}>{section.title}</h3>
           </header>
           {section.scale ? (
             <RatingTable section={section} scale={section.scale} answers={answers} onChange={onChange} mode={mode} missing={missing} idPrefix={idPrefix} />
@@ -82,7 +82,7 @@ export function AssessmentForm({ definitionId, answers, onChange, mode = "fill",
                       return { ...prev, comments };
                     });
                   }}
-                  className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+                  className="w-full rounded-xl border border-line-strong bg-surface px-3 py-2 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
                 />
               ) : (
                 <p dir="auto" className="text-[13px] whitespace-pre-line text-ink-soft">
@@ -180,7 +180,7 @@ function RatingTable({ section, scale, answers, onChange, mode, missing, idPrefi
                         {scale.map((c) => (
                           <label
                             key={c.value}
-                            className="flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-line-strong px-2.5 text-[12.5px] has-checked:border-primary has-checked:bg-tint has-checked:text-tint-ink"
+                            className="flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-line-strong px-2.5 text-[12.5px] has-checked:border-primary has-checked:bg-tint has-checked:text-tint-ink"
                           >
                             <input
                               type="radio"
@@ -251,7 +251,7 @@ function LevelCard({ item, answers, onChange, mode, invalid, idPrefix }: LevelCa
     });
 
   return (
-    <div id={`${idPrefix}-${item.id}`} className={clsx("rounded-lg border p-3", invalid ? "border-danger" : "border-line", mode === "print" && "break-inside-avoid")}>
+    <div id={`${idPrefix}-${item.id}`} className={clsx("rounded-xl border p-3", invalid ? "border-danger" : "border-line", mode === "print" && "break-inside-avoid")}>
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
         <h4 className="text-[15px] font-medium">{item.text}</h4>
         {ticked.length > 0 && <span dir={appDir} className="text-[12px] text-ink-muted">{a.ticked(ticked.length)}</span>}
@@ -289,7 +289,7 @@ function LevelCard({ item, answers, onChange, mode, invalid, idPrefix }: LevelCa
           <label
             key={level.value}
             className={clsx(
-              "flex min-h-9 items-center gap-1.5 rounded-lg border border-line-strong px-2.5 text-[13px] has-checked:border-primary has-checked:bg-tint has-checked:text-tint-ink",
+              "flex min-h-9 items-center gap-1.5 rounded-xl border border-line-strong px-2.5 text-[13px] has-checked:border-primary has-checked:bg-tint has-checked:text-tint-ink",
               fill ? "cursor-pointer" : "has-[:not(:checked)]:hidden",
             )}
           >

@@ -2,7 +2,7 @@ import clsx from "clsx";
 import type { ReactNode } from "react";
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <section className={clsx("rounded-xl border border-line bg-surface", className)}>{children}</section>;
+  return <section className={clsx("rounded-2xl border border-line bg-surface shadow-card", className)}>{children}</section>;
 }
 
 export function CardHeader({
@@ -19,7 +19,7 @@ export function CardHeader({
   return (
     <header className="flex items-start justify-between gap-4 px-5 pt-5 pb-3">
       <div className="min-w-0">
-        <h2 className="font-serif text-[19px] leading-tight font-medium">
+        <h2 className="text-[16px] leading-tight font-semibold tracking-tight">
           {number !== undefined && <span className="me-1">{number}.</span>}
           {title}
         </h2>

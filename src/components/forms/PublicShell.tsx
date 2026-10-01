@@ -13,9 +13,9 @@ export function PublicShell({ locale, appName, wide = false, children }: { local
           <span className="grid size-6 place-items-center rounded-md bg-primary text-white">
             <FileText className="size-3.5" strokeWidth={2} />
           </span>
-          <span className="font-serif text-[15px]">{appName}</span>
+          <span className="text-[14px] font-semibold text-ink">{appName}</span>
         </div>
-        <main className="rounded-xl border border-line bg-surface p-5 sm:p-7">{children}</main>
+        <main className="rounded-2xl border border-line bg-surface shadow-card p-5 sm:p-7">{children}</main>
       </div>
     </I18nProvider>
   );

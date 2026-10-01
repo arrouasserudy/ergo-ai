@@ -16,7 +16,7 @@ export type BellItem = {
 };
 
 /** Forms due soon or overdue, behind a bell with a count (red when anything is overdue). */
-export function NotificationBell({ items, variant = "light" }: { items: BellItem[]; variant?: "light" | "dark" }) {
+export function NotificationBell({ items }: { items: BellItem[] }) {
   const { t } = useI18n();
   const n = t.notifications;
   const [open, setOpen] = useState(false);
@@ -46,10 +46,7 @@ export function NotificationBell({ items, variant = "light" }: { items: BellItem
         aria-expanded={open}
         aria-controls={panelId}
         aria-label={`${n.label}${items.length ? ` (${items.length})` : ""}`}
-        className={clsx(
-          "relative grid size-11 place-items-center rounded-lg transition-colors",
-          variant === "dark" ? "text-sidebar-ink hover:bg-sidebar-hover" : "text-ink-soft hover:bg-surface-muted hover:text-ink",
-        )}
+        className="relative grid size-11 place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface hover:text-ink hover:shadow-card"
       >
         <Bell className="size-5" />
         {items.length > 0 && (
@@ -70,9 +67,9 @@ export function NotificationBell({ items, variant = "light" }: { items: BellItem
           role="dialog"
           aria-label={n.label}
           // Phones: full width under the header; larger screens: anchored to the bell.
-          className="fixed inset-x-4 top-[calc(env(safe-area-inset-top)+4rem)] z-50 overflow-hidden rounded-xl border border-line bg-surface text-ink shadow-lg md:absolute md:inset-x-auto md:end-0 md:top-12 md:w-[22rem]"
+          className="fixed inset-x-4 top-[calc(env(safe-area-inset-top)+4rem)] z-50 overflow-hidden rounded-2xl border border-line bg-surface text-ink shadow-pop md:absolute md:inset-x-auto md:end-0 md:top-12 md:w-[22rem]"
         >
-          <p className="border-b border-line px-4 py-3 font-serif text-[16px]">{n.label}</p>
+          <p className="border-b border-line px-4 py-3 text-[14.5px] font-semibold">{n.label}</p>
           <div className="max-h-[min(70dvh,28rem)] overflow-y-auto">
             {items.length === 0 ? (
               <p className="px-4 py-6 text-center text-[13px] text-ink-muted">{n.empty}</p>

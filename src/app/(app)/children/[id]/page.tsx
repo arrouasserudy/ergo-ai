@@ -74,7 +74,7 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
         <div className="min-w-0">
           <Eyebrow>{t.children.detailEyebrow}</Eyebrow>
           <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="font-serif text-[32px] leading-tight font-medium">
+            <h1 className="text-[28px] leading-tight font-semibold tracking-tight">
               <bdi>{i18n.childName(child)}</bdi>
               {age && <span> · {age}</span>}
             </h1>
@@ -102,7 +102,7 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
       </header>
 
       {archived && (
-        <p className="rounded-lg border border-muted-badge-ink/20 bg-muted-badge px-4 py-2.5 text-[13px] text-muted-badge-ink">
+        <p className="rounded-xl border border-muted-badge-ink/20 bg-muted-badge px-4 py-2.5 text-[13px] text-muted-badge-ink">
           {t.children.archivedBanner}
         </p>
       )}

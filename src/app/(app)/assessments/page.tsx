@@ -22,7 +22,7 @@ export default async function AssessmentsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-5">
       <header>
-        <h1 className="font-serif text-[32px] leading-tight font-medium">{a.listTitle}</h1>
+        <h1 className="text-[28px] leading-tight font-semibold tracking-tight">{a.listTitle}</h1>
         <p className="mt-1 max-w-2xl text-[13px] text-ink-muted">{a.listSubtitle}</p>
       </header>
 

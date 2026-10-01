@@ -55,7 +55,7 @@ export function AnswerView({ answer, answerId }: { answer: Answer; answerId: str
       )}
 
       {answer.limits && (
-        <div className="flex gap-2 rounded-lg border border-warn-ink/20 bg-warn px-3 py-2.5 text-[13px] text-warn-ink">
+        <div className="flex gap-2 rounded-xl border border-warn-ink/20 bg-warn px-3 py-2.5 text-[13px] text-warn-ink">
           <CircleAlert className="mt-0.5 size-4 shrink-0" />
           <div dir="auto">
             <span className="font-semibold">{e.limitsTitle} : </span>
@@ -69,7 +69,7 @@ export function AnswerView({ answer, answerId }: { answer: Answer; answerId: str
           <p className="mb-1.5 text-[11px] font-medium tracking-[0.1em] text-ink-muted uppercase">{e.sources}</p>
           <ol className="space-y-1.5">
             {answer.sources.map((s) => (
-              <li key={s.n} id={anchor(answerId, s.n)} className="scroll-mt-24 rounded-lg border border-line bg-surface-muted target:border-primary/50 target:bg-tint">
+              <li key={s.n} id={anchor(answerId, s.n)} className="scroll-mt-24 rounded-xl border border-line bg-surface-muted target:border-primary/50 target:bg-tint">
                 <details>
                   <summary className="flex cursor-pointer list-none items-start gap-2 px-3 py-2 text-[12.5px]">
                     <span className="mt-px inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-md bg-tint px-1 text-[11px] font-medium text-tint-ink">

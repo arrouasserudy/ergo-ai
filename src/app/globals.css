@@ -1,43 +1,49 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-public-sans), var(--font-heebo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), var(--font-heebo), ui-sans-serif, system-ui, sans-serif;
+  /* Printed documents only (report export); the app itself is all sans. */
   --font-serif: var(--font-newsreader), var(--font-frank-ruhl), ui-serif, Georgia, serif;
 
   /* Surfaces */
-  --color-canvas: #efede5;
+  --color-canvas: #f2f7f5;
   --color-surface: #ffffff;
-  --color-surface-muted: #f7f5ef;
-  --color-line: #e4e1d8;
-  --color-line-strong: #d6d2c6;
+  --color-surface-muted: #f5f9f7;
+  --color-line: #e2eae6;
+  --color-line-strong: #d2ddd8;
 
   /* Text */
-  --color-ink: #1f2624;
-  --color-ink-soft: #4a524f;
-  --color-ink-muted: #7c837f;
+  --color-ink: #17201d;
+  --color-ink-soft: #4a5652;
+  --color-ink-muted: #75817d;
 
   /* Sidebar */
-  --color-sidebar: #1e2624;
-  --color-sidebar-hover: #27302d;
-  --color-sidebar-active: #2e3935;
-  --color-sidebar-ink: #c9cfcb;
-  --color-sidebar-muted: #7f8984;
+  --color-sidebar: #f7fbf9;
+  --color-sidebar-line: #e2ebe7;
+  --color-sidebar-hover: #ebf3ef;
+  --color-sidebar-active: #dbebe4;
+  --color-sidebar-ink: #3a4743;
+  --color-sidebar-muted: #7a8682;
 
   /* Brand */
-  --color-primary: #2a6b5c;
-  --color-primary-hover: #235a4d;
+  --color-primary: #1f7563;
+  --color-primary-hover: #196353;
   --color-primary-ink: #ffffff;
-  --color-tint: #e6f0ec;
-  --color-tint-ink: #24584b;
+  --color-tint: #e2f1eb;
+  --color-tint-ink: #1b6152;
 
   /* Status */
-  --color-warn: #f8e3d3;
+  --color-warn: #fbeadc;
   --color-warn-ink: #a9522a;
-  --color-ok: #e2efe6;
+  --color-ok: #e2f1e7;
   --color-ok-ink: #2e6a45;
-  --color-muted-badge: #e8e7f4;
+  --color-muted-badge: #ebebf6;
   --color-muted-badge-ink: #55568a;
   --color-danger: #b3412e;
+
+  /* Elevation */
+  --shadow-card: 0 1px 2px rgb(20 48 40 / 0.04), 0 4px 14px -6px rgb(20 48 40 / 0.08);
+  --shadow-pop: 0 2px 6px rgb(20 48 40 / 0.06), 0 16px 40px -12px rgb(20 48 40 / 0.18);
 }
 
 html {

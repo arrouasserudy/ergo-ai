@@ -21,7 +21,7 @@ export default async function NewChildPage() {
       </Link>
       <header>
         <Eyebrow>{t.children.newEyebrow}</Eyebrow>
-        <h1 className="mt-1 font-serif text-[32px] leading-tight font-medium">{t.children.newTitle}</h1>
+        <h1 className="mt-1 text-[28px] leading-tight font-semibold tracking-tight">{t.children.newTitle}</h1>
         <p className="mt-1 text-[13px] text-ink-muted">{t.children.newSubtitle}</p>
       </header>
       <Card>

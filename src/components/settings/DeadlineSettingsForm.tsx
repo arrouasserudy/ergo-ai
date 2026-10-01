@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { useI18n } from "@/i18n/client";
 
 const control =
-  "h-11 rounded-lg border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
+  "h-11 rounded-xl border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
 const DAYS_IN_MONTH = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const pad = (n: number) => String(n).padStart(2, "0");
 

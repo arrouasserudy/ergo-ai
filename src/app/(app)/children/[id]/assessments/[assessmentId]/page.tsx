@@ -59,7 +59,7 @@ export default async function AssessmentPage(props: PageProps<"/children/[id]/as
             {a.eyebrow} · <bdi>{i18n.childName(child)}</bdi>
           </Eyebrow>
           <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="font-serif text-[28px] leading-tight font-medium">
+            <h1 className="text-[24px] leading-tight font-semibold tracking-tight">
               <bdi>{definition.name}</bdi>
             </h1>
             <AssessmentStatusBadge status={assessment.status} />
@@ -101,12 +101,12 @@ export default async function AssessmentPage(props: PageProps<"/children/[id]/as
         <div className="min-w-0 space-y-5">
           {completed && (
             <Card className="p-5 sm:p-6">
-              <h2 className="mb-4 font-serif text-[21px] font-medium">{a.resultsTitle}</h2>
+              <h2 className="mb-4 text-[17px] font-semibold tracking-tight">{a.resultsTitle}</h2>
               <ScoreSummary groups={scores} language={definition.language} previous={previous} />
             </Card>
           )}
           <Card className="p-5 sm:p-6">
-            {completed && <h2 className="mb-4 font-serif text-[21px] font-medium">{a.answersTitle}</h2>}
+            {completed && <h2 className="mb-4 text-[17px] font-semibold tracking-tight">{a.answersTitle}</h2>}
             {definition.instructions && !completed && (
               <details className="mb-6 rounded-lg bg-surface-muted p-3 text-[13px]" dir={definition.language === "he" ? "rtl" : "ltr"}>
                 <summary className="cursor-pointer font-medium">{a.instructions}</summary>

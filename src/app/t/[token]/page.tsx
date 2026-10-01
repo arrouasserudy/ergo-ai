@@ -24,7 +24,7 @@ export default async function SharedAssessmentPage(props: PageProps<"/t/[token]"
     return (
       <PublicShell locale={locale} appName={t.app.name}>
         <div className="flex flex-col items-center gap-2 py-10 text-center">
-          <p className="font-serif text-2xl">{t.forms.public.unavailableTitle}</p>
+          <p className="text-xl font-semibold tracking-tight">{t.forms.public.unavailableTitle}</p>
           <p className="max-w-md text-[14px] text-ink-muted">{t.forms.public.unavailableBody}</p>
         </div>
       </PublicShell>
@@ -41,7 +41,7 @@ export default async function SharedAssessmentPage(props: PageProps<"/t/[token]"
         <p className="text-[12.5px] text-ink-muted">
           <bdi>{t.assessments.public.from(cabinet)}</bdi>
         </p>
-        <h1 className="font-serif text-[28px] leading-tight font-medium">{definition.name}</h1>
+        <h1 className="text-[24px] leading-tight font-semibold tracking-tight">{definition.name}</h1>
         {definition.instructions && <p className="text-[14px] whitespace-pre-line text-ink-soft">{definition.instructions}</p>}
         <p className="flex items-center gap-1.5 text-[12px] text-ok-ink">
           <Lock className="size-3.5" />

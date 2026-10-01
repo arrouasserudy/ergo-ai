@@ -20,7 +20,7 @@ export function ConfirmButton({ label, question, onConfirm }: { label: string; q
     );
   }
   return (
-    <div role="alertdialog" className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface-muted p-2 text-[13px]">
+    <div role="alertdialog" className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface-muted p-2 text-[13px]">
       <span className="px-1">{question}</span>
       <Button variant="ghost" size="sm" onClick={() => setAsking(false)}>
         {t.common.cancel}

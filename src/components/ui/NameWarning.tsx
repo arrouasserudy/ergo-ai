@@ -14,7 +14,7 @@ export function NameWarning({ text, childName }: { text: string; childName: stri
   const found = findChildName(text, childName);
   if (found.length === 0) return null;
   return (
-    <p role="status" className="flex gap-1.5 rounded-lg border border-warn-ink/20 bg-warn px-3 py-2 text-[12.5px] text-warn-ink">
+    <p role="status" className="flex gap-1.5 rounded-xl border border-warn-ink/20 bg-warn px-3 py-2 text-[12.5px] text-warn-ink">
       <CircleAlert className="mt-0.5 size-3.5 shrink-0" />
       <span>
         {t.privacy.nameFound(hideNames ? null : found.map(isolate).join(", "))} {t.privacy.nameFoundHint}

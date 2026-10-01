@@ -7,7 +7,7 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { useI18n } from "@/i18n/client";
 
 const select =
-  "h-10 rounded-lg border border-line-strong bg-surface px-2 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none disabled:opacity-50";
+  "h-10 rounded-xl border border-line-strong bg-surface px-2 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none disabled:opacity-50";
 
 const DAYS_IN_MONTH = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const pad = (n: number) => String(n).padStart(2, "0");

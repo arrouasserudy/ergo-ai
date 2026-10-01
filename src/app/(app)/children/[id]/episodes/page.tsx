@@ -42,7 +42,7 @@ export default async function ChildEpisodesPage(props: PageProps<"/children/[id]
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <Eyebrow>{t.episodes.historyPageTitle}</Eyebrow>
-          <h1 className="mt-1 font-serif text-[32px] leading-tight font-medium">{childTitle(child, i18n)}</h1>
+          <h1 className="mt-1 text-[28px] leading-tight font-semibold tracking-tight">{childTitle(child, i18n)}</h1>
         </div>
         <div className="flex flex-wrap gap-2">
           <StartButtons childId={child.id} />

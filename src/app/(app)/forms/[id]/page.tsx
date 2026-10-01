@@ -32,7 +32,7 @@ export default async function FormTemplatePage(props: PageProps<"/forms/[id]">) 
       <header>
         <Eyebrow>{f.editorEyebrow}</Eyebrow>
         <div className="mt-1 flex flex-wrap items-center gap-3">
-          <h1 className="font-serif text-[28px] leading-tight font-medium">
+          <h1 className="text-[24px] leading-tight font-semibold tracking-tight">
             <bdi>{template.title}</bdi>
           </h1>
           <TemplateStatusBadge status={template.status} />

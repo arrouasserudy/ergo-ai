@@ -5,7 +5,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { useI18n } from "@/i18n/client";
 
 const control =
-  "w-full rounded-lg border bg-surface px-3 text-[15px] text-ink placeholder:text-ink-muted/70 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
+  "w-full rounded-xl border bg-surface px-3 text-[15px] text-ink placeholder:text-ink-muted/70 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
 
 type FieldShellProps = {
   /** Element id; defaults to `name`. Pass one when two forms on a page share a field name. */

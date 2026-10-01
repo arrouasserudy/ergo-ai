@@ -34,7 +34,7 @@ export function ScoreSummary({ groups, language, previous, print = false }: Prop
       {groups.map((group) => (
         <div key={group.id} className={clsx("overflow-x-auto", print && "break-inside-avoid")}>
           <table className="w-full border-collapse text-[13px]">
-            <caption className={clsx("mb-2 text-start font-serif font-medium", print ? "text-[12pt]" : "text-[17px]")}>{group.title}</caption>
+            <caption className={clsx("mb-2 text-start font-semibold", print ? "text-[12pt]" : "text-[15px]")}>{group.title}</caption>
             <thead>
               <tr className="border-b border-line-strong text-[11.5px] text-ink-muted">
                 <th />

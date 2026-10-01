@@ -32,7 +32,7 @@ export default async function LibraryPage(props: PageProps<"/expert/library">) {
     <div className="space-y-5">
       <header>
         <Eyebrow>{t.nav.expert}</Eyebrow>
-        <h1 className="mt-1 font-serif text-[28px] leading-tight font-medium">{l.title}</h1>
+        <h1 className="mt-1 text-[24px] leading-tight font-semibold tracking-tight">{l.title}</h1>
         <p className="mt-1 max-w-2xl text-[13px] text-ink-muted">{l.subtitle}</p>
         <p className="mt-1 text-[12.5px] text-ink-muted">{shared ? l.shared(shared) : l.noShared}</p>
       </header>
