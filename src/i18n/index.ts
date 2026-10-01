@@ -80,6 +80,8 @@ export function createI18n(locale: Locale, timeZone: string, hideNames = false) 
     /** Timestamps are shown in the practice's time zone, not the server's. */
     dateTime: (date: Date) =>
       date.toLocaleString(intl, { timeZone, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
+    /** Today's heading, e.g. "jeudi 1 octobre 2026". */
+    longDate: (date: Date) => date.toLocaleDateString(intl, { timeZone, weekday: "long", day: "numeric", month: "long", year: "numeric" }),
     shortDate: (date: Date) => date.toLocaleDateString(intl, { timeZone, day: "numeric", month: "short" }),
     time: (date: Date) => date.toLocaleTimeString(intl, { timeZone, hour: "2-digit", minute: "2-digit" }),
     /** A yearly date "MM-DD", e.g. "1 oct." (a leap year, so 29 February works). */

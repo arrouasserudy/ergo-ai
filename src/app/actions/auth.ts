@@ -23,7 +23,7 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
     if (error instanceof APIError) return { ok: false, errors: { form: "invalidCredentials" }, values };
     throw error;
   }
-  redirect("/children");
+  redirect("/");
 }
 
 export async function signup(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -43,7 +43,7 @@ export async function signup(_prev: FormState, formData: FormData): Promise<Form
   }
 
   await auth.api.signInEmail({ body: { email, password }, headers: await headers() });
-  redirect("/children");
+  redirect("/");
 }
 
 export async function signOut() {
