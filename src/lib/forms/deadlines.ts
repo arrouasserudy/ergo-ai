@@ -21,7 +21,7 @@ export function isDayMonth(value: unknown): value is string {
 const isLeap = (year: number) => (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
 
 /** "MM-DD" in a given year; 29 February becomes the 28th in other years. */
-function inYear(dayMonth: string, year: number): string {
+export function inYear(dayMonth: string, year: number): string {
   const md = dayMonth === "02-29" && !isLeap(year) ? "02-28" : dayMonth;
   return `${year}-${md}`;
 }

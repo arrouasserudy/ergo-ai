@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { CalendarClock, CircleCheck, ClipboardList, FileText, Gauge, Pencil, type LucideIcon } from "lucide-react";
+import { CalendarClock, CalendarDays, CircleCheck, ClipboardList, FileText, Gauge, Pencil, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
@@ -92,12 +92,15 @@ export default async function ChildOverviewPage(props: PageProps<"/children/[id]
           <div className="px-5 pb-2">
             <TimelineView events={latestEvents} birthDate={child.birthDate} preview />
           </div>
-          <Link
-            href={`/children/${child.id}/timeline`}
-            className="block border-t border-line px-5 py-3 text-[12.5px] font-medium text-primary hover:underline"
-          >
-            {t.timeline.seeAll}
-          </Link>
+          <div className="flex flex-wrap items-center justify-between gap-x-4 border-t border-line px-5">
+            <Link href={`/children/${child.id}/timeline`} className="py-3 text-[12.5px] font-medium text-primary hover:underline">
+              {t.timeline.seeAll}
+            </Link>
+            <Link href={`/calendar?child=${child.id}`} className="inline-flex items-center gap-1.5 py-3 text-[12.5px] font-medium text-primary hover:underline">
+              <CalendarDays className="size-3.5" />
+              {t.calendar.openCalendar}
+            </Link>
+          </div>
         </Card>
       </div>
 

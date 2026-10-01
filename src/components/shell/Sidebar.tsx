@@ -3,6 +3,7 @@
 import clsx from "clsx";
 import {
   Activity,
+  CalendarDays,
   FileText,
   FolderOpen,
   Lock,
@@ -29,6 +30,7 @@ type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href: string;
 const NAV: NavItem[] = [
   { label: "dashboard", icon: LayoutDashboard, href: "/" },
   { label: "children", icon: UserRound, href: "/children", match: ["/children", "/reports"] },
+  { label: "calendar", icon: CalendarDays, href: "/calendar" },
   { label: "crises", icon: Activity, href: "/crises" },
   { label: "resources", icon: FolderOpen, href: "/forms", match: RESOURCE_TABS.map((tab) => tab.href) },
   { label: "settings", icon: Settings, href: "/settings" },

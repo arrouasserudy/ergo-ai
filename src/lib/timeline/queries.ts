@@ -8,6 +8,11 @@ import { buildTimeline, type TimelineEvent } from "./events";
 
 const DAY_MS = 86_400_000;
 
+/** When the parents' link was created: not stored, it is the link's expiry minus its validity. */
+export function sentAtOf(shareExpiresAt: Date | null): Date | null {
+  return shareExpiresAt ? new Date(shareExpiresAt.getTime() - SHARE_LINK_DAYS * DAY_MS) : null;
+}
+
 /** Everything dated about one child, as timeline events (oldest first). Every query is scoped by `accountId`. */
 export function childTimeline(accountId: string, child: Child): TimelineEvent[] {
   const episodeRows = db
@@ -50,11 +55,7 @@ export function childTimeline(accountId: string, child: Child): TimelineEvent[] 
     child,
     episodes: episodeRows,
     reports: reportRows,
-    // The link's creation is not stored: it is its expiry minus its validity.
-    forms: formRows.map(({ shareExpiresAt, ...form }) => ({
-      ...form,
-      sentAt: shareExpiresAt ? new Date(shareExpiresAt.getTime() - SHARE_LINK_DAYS * DAY_MS) : null,
-    })),
+    forms: formRows.map(({ shareExpiresAt, ...form }) => ({ ...form, sentAt: sentAtOf(shareExpiresAt) })),
     assessments: assessmentRows,
     timeZone: APP_TIME_ZONE,
   });

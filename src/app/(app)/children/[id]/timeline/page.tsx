@@ -1,3 +1,5 @@
+import { CalendarDays } from "lucide-react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TimelineView } from "@/components/timeline/TimelineView";
 import { Card } from "@/components/ui/Card";
@@ -27,7 +29,13 @@ export default async function ChildTimelinePage(props: PageProps<"/children/[id]
 
   return (
     <div className="max-w-4xl space-y-3">
-      <p className="text-[13px] text-ink-muted">{t.timeline.subtitle}</p>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <p className="text-[13px] text-ink-muted">{t.timeline.subtitle}</p>
+        <Link href={`/calendar?child=${child.id}`} className="inline-flex min-h-9 items-center gap-1.5 text-[13px] font-medium text-primary hover:underline">
+          <CalendarDays className="size-4" />
+          {t.calendar.openCalendar}
+        </Link>
+      </div>
       <Card className="px-4 py-5 sm:px-6">
         <TimelineView events={events} birthDate={child.birthDate} />
       </Card>

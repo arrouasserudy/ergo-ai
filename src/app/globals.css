@@ -40,6 +40,35 @@
   --color-muted-badge: #ebebf6;
   --color-muted-badge-ink: #55568a;
   --color-danger: #b3412e;
+  /* Event types only (timeline, calendar): OT tests, birthdays. */
+  --color-info: #e2edf8;
+  --color-info-ink: #2d5f8f;
+  --color-rose: #fbe4ef;
+  --color-rose-ink: #a1336b;
+
+  /*
+   * Child monogram badges (calendar). Deliberately hue-less (slate = cool, stone = warm,
+   * each light / mid / dark) so they never read as an event type, whose colors are hues.
+   * `-edge` is the ring of the outlined variant. See lib/calendar/badges.ts.
+   */
+  --color-kid-1: #e2e8f0;
+  --color-kid-1-ink: #1e293b;
+  --color-kid-1-edge: #94a3b8;
+  --color-kid-2: #e7e5e4;
+  --color-kid-2-ink: #292524;
+  --color-kid-2-edge: #a8a29e;
+  --color-kid-3: #a9b5c4;
+  --color-kid-3-ink: #0f172a;
+  --color-kid-3-edge: #64748b;
+  --color-kid-4: #b9b2ab;
+  --color-kid-4-ink: #1c1917;
+  --color-kid-4-edge: #78716c;
+  --color-kid-5: #475569;
+  --color-kid-5-ink: #ffffff;
+  --color-kid-5-edge: #334155;
+  --color-kid-6: #57534e;
+  --color-kid-6-ink: #ffffff;
+  --color-kid-6-edge: #44403c;
 
   /* Elevation */
   --shadow-card: 0 1px 2px rgb(20 48 40 / 0.04), 0 4px 14px -6px rgb(20 48 40 / 0.08);

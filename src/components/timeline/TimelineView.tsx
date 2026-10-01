@@ -1,27 +1,16 @@
 "use client";
 
 import clsx from "clsx";
-import { ArrowDown, Baby, CalendarDays, ClipboardList, FileText, Flag, FolderPlus, Gauge, Hand, Zap, type LucideIcon } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { ReportStatusBadge } from "@/components/reports/ReportStatusBadge";
+import { KIND_STYLES } from "@/components/timeline/kind-styles";
 import { Badge } from "@/components/ui/Badge";
 import type { ReportStatus } from "@/db/schema";
 import { isolate, type I18n } from "@/i18n";
 import { useI18n } from "@/i18n/client";
 import { filterOf, groupByYear, TIMELINE_FILTERS, type TimelineEvent, type TimelineFilter, type TimelineKind, type TimelineScore } from "@/lib/timeline/events";
-
-const STYLES: Record<TimelineKind, { icon: LucideIcon; dot: string }> = {
-  birth: { icon: Baby, dot: "bg-primary text-primary-ink border-primary" },
-  followUp: { icon: Flag, dot: "bg-primary text-primary-ink border-primary" },
-  fileCreated: { icon: FolderPlus, dot: "bg-primary text-primary-ink border-primary" },
-  crisis: { icon: Zap, dot: "bg-warn text-warn-ink border-warn-ink/30" },
-  difficulty: { icon: Hand, dot: "bg-muted-badge text-muted-badge-ink border-muted-badge-ink/25" },
-  report: { icon: FileText, dot: "bg-ok text-ok-ink border-ok-ink/25" },
-  form: { icon: ClipboardList, dot: "bg-tint text-tint-ink border-tint-ink/25" },
-  formDate: { icon: CalendarDays, dot: "bg-surface text-tint-ink border-tint-ink/40" },
-  assessment: { icon: Gauge, dot: "bg-surface-muted text-ink-soft border-line-strong" },
-};
 
 const ASSESSMENT_TONES = { draft: "warn", sent: "tint", completed: "ok" } as const;
 
@@ -150,14 +139,14 @@ function Line() {
 
 function FilterDot({ filter }: { filter: TimelineFilter }) {
   const kind: TimelineKind = filter === "milestone" ? "birth" : filter;
-  return <span aria-hidden className={clsx("size-2.5 rounded-full border", STYLES[kind].dot)} />;
+  return <span aria-hidden className={clsx("size-2.5 rounded-full border", KIND_STYLES[kind].dot)} />;
 }
 
 function EventItem({ event, birthDate, i18n }: { event: TimelineEvent; birthDate: string | null; i18n: I18n }) {
-  const { icon: Icon, dot } = STYLES[event.kind];
+  const { icon: Icon, dot } = KIND_STYLES[event.kind];
   const when = event.precision === "day" ? i18n.date(event.date) : `${i18n.date(event.day)}, ${i18n.time(new Date(event.date))}`;
   const age = event.kind !== "birth" && birthDate && event.day >= birthDate ? i18n.age(birthDate, new Date(`${event.day}T12:00:00`)) : null;
-  const { title, meta } = describe(event, i18n);
+  const { title, meta } = describeEvent(event, i18n);
 
   const body = (
     <>
@@ -186,7 +175,8 @@ function EventItem({ event, birthDate, i18n }: { event: TimelineEvent; birthDate
   );
 }
 
-function describe(event: TimelineEvent, i18n: I18n): { title: ReactNode; meta: ReactNode } {
+/** Title and details of a timeline event (also the calendar's agenda and day lists). */
+export function describeEvent(event: TimelineEvent, i18n: I18n): { title: ReactNode; meta: ReactNode } {
   const { t } = i18n;
   const tl = t.timeline;
   switch (event.kind) {

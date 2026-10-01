@@ -87,6 +87,15 @@ export function createI18n(locale: Locale, timeZone: string, hideNames = false) 
     /** A yearly date "MM-DD", e.g. "1 oct." (a leap year, so 29 February works). */
     dayMonth: (value: string) =>
       new Date(`2000-${value}T00:00:00Z`).toLocaleDateString(intl, { timeZone: "UTC", day: "numeric", month: "short" }),
+    /** A month "YYYY-MM" as a title, e.g. "octobre 2026". */
+    monthTitle: (month: string) =>
+      new Date(`${month}-01T00:00:00Z`).toLocaleDateString(intl, { timeZone: "UTC", month: "long", year: "numeric" }),
+    /** A weekday name, 0 = Sunday (1 January 2023 was a Sunday), e.g. "lun." or "L". */
+    weekday: (index: number, width: "short" | "narrow" | "long" = "short") =>
+      new Date(Date.UTC(2023, 0, 1 + index)).toLocaleDateString(intl, { timeZone: "UTC", weekday: width }),
+    /** A day "YYYY-MM-DD" with its weekday, e.g. "jeudi 1 octobre". */
+    dayLong: (iso: string) =>
+      new Date(`${iso}T00:00:00Z`).toLocaleDateString(intl, { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" }),
     /** Month names, January first, for day/month pickers. */
     monthNames: () => Array.from({ length: 12 }, (_, i) => new Date(Date.UTC(2000, i, 1)).toLocaleDateString(intl, { timeZone: "UTC", month: "long" })),
 
