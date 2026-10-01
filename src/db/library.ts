@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
 import * as sqliteVec from "sqlite-vec";
+import type { LibraryDocument } from "@/lib/expert/library-schema";
 
 const LIBRARY_PATH = process.env.LIBRARY_PATH ?? path.join(path.dirname(process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ergoai.db")), "library.db");
 
@@ -27,4 +28,18 @@ export function openLibrary(): Database.Database | null {
   sqliteVec.load(db);
   cached = { db, mtimeMs: stat.mtimeMs };
   return db;
+}
+
+export type SharedPaper = Omit<LibraryDocument, "doi">;
+
+/** Papers of the shared library, newest first. Null when no library is installed. */
+export function listSharedPapers(): SharedPaper[] | null {
+  const library = openLibrary();
+  if (!library) return null;
+  return library
+    .prepare(
+      `SELECT source_id AS sourceId, title, authors, year, url, license
+       FROM documents ORDER BY year IS NULL, year DESC, title COLLATE NOCASE`,
+    )
+    .all() as SharedPaper[];
 }

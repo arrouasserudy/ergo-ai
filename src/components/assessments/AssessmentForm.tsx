@@ -10,7 +10,8 @@ import type { AssessmentAnswers, AssessmentSection, LevelItem, RatingChoice, Rat
 
 export type AnswersChange = (change: (prev: AssessmentAnswers) => AssessmentAnswers) => void;
 
-type Mode = "fill" | "readonly" | "print";
+/** `preview`: the blank test from the catalog, every choice shown, nothing to answer. */
+type Mode = "fill" | "readonly" | "print" | "preview";
 
 type Props = {
   /** The definition is looked up here: it holds a function, which a server page cannot pass. */
@@ -32,7 +33,7 @@ const withValue = (prev: AssessmentAnswers, id: string, value: number | undefine
 };
 
 /**
- * A test's items, to fill in, read or print. Test content is in the test's own
+ * A test's items, to fill in, read, print or preview blank. Test content is in the test's own
  * language (and direction); the few app words around it follow the app.
  */
 export function AssessmentForm({ definitionId, answers, onChange, mode = "fill", missing = [], idPrefix = "test" }: Props) {
@@ -64,7 +65,13 @@ export function AssessmentForm({ definitionId, answers, onChange, mode = "fill",
             </div>
           )}
           {section.note && <p className="text-[12px] text-ink-muted">{section.note}</p>}
-          {section.comments && (mode === "fill" || answers.comments[section.id]) && (
+          {section.comments && mode === "preview" && (
+            <div className="space-y-1">
+              <span dir={appDir} className="text-[12px] font-medium text-ink-soft">{a.comments}</span>
+              <div aria-hidden className="h-14 rounded-xl border border-dashed border-line-strong" />
+            </div>
+          )}
+          {section.comments && (mode === "fill" || (mode !== "preview" && answers.comments[section.id])) && (
             <label className="block space-y-1">
               <span dir={appDir} className="text-[12px] font-medium text-ink-soft">{a.comments}</span>
               {mode === "fill" ? (
@@ -210,7 +217,11 @@ function RatingTable({ section, scale, answers, onChange, mode, missing, idPrefi
                   ) : (
                     scale.map((c) => (
                       <td key={c.value} className="w-16 px-1 text-center align-top">
-                        {value === c.value && <Check className="mx-auto mt-2 size-4" aria-label={c.label} />}
+                        {mode === "preview" ? (
+                          <span aria-hidden className="mx-auto mt-2 block size-4 rounded-full border border-line-strong" />
+                        ) : (
+                          value === c.value && <Check className="mx-auto mt-2 size-4" aria-label={c.label} />
+                        )}
                       </td>
                     ))
                   )}
@@ -232,6 +243,7 @@ function LevelCard({ item, answers, onChange, mode, invalid, idPrefix }: LevelCa
   const { t, dir: appDir } = useI18n();
   const a = t.assessments;
   const fill = mode === "fill";
+  const preview = mode === "preview";
   const ticked = answers.ticks[item.id] ?? [];
   const value = answers.values[item.id];
   const suggested = mostTickedLevel(item.levels, ticked);
@@ -267,13 +279,17 @@ function LevelCard({ item, answers, onChange, mode, invalid, idPrefix }: LevelCa
                 {level.descriptors.map((d) => (
                   <li key={d.id}>
                     <label className={clsx("flex items-start gap-2 text-[12.5px] leading-snug", fill && "cursor-pointer")}>
-                      <input
-                        type="checkbox"
-                        disabled={!fill}
-                        checked={ticked.includes(d.id)}
-                        onChange={(e) => toggle(d.id, e.target.checked)}
-                        className="mt-0.5 size-4 shrink-0 accent-primary"
-                      />
+                      {preview ? (
+                        <span aria-hidden className="mt-0.5 size-4 shrink-0 rounded-sm border border-line-strong bg-surface" />
+                      ) : (
+                        <input
+                          type="checkbox"
+                          disabled={!fill}
+                          checked={ticked.includes(d.id)}
+                          onChange={(e) => toggle(d.id, e.target.checked)}
+                          className="mt-0.5 size-4 shrink-0 accent-primary"
+                        />
+                      )}
                       {d.text}
                     </label>
                   </li>
@@ -285,27 +301,37 @@ function LevelCard({ item, answers, onChange, mode, invalid, idPrefix }: LevelCa
       </div>
       <fieldset className="mt-3 flex flex-wrap items-center gap-1.5">
         <legend dir={appDir} className="me-2 mb-1 text-[12px] font-medium text-ink-soft sm:float-start sm:mb-0">{a.chosenLevel}</legend>
-        {item.levels.map((level) => (
-          <label
-            key={level.value}
-            className={clsx(
-              "flex min-h-9 items-center gap-1.5 rounded-xl border border-line-strong px-2.5 text-[13px] has-checked:border-primary has-checked:bg-tint has-checked:text-tint-ink",
-              fill ? "cursor-pointer" : "has-[:not(:checked)]:hidden",
-            )}
-          >
-            <input
-              type="radio"
-              disabled={!fill}
-              name={`${idPrefix}-${item.id}-level`}
-              checked={value === level.value}
-              onChange={() => onChange?.((prev) => withValue(prev, item.id, level.value))}
-              className="accent-primary"
-            />
-            {level.value}
-            {fill && suggested === level.value && <span dir={appDir} className="text-[11px] text-ink-muted">({a.suggested})</span>}
-          </label>
-        ))}
-        {!fill && value === undefined && <span className="text-[13px] text-ink-muted">—</span>}
+        {preview
+          ? item.levels.map((level) => (
+              <span key={level.value} className="flex min-h-9 items-center rounded-xl border border-line-strong px-2.5 text-[13px] text-ink-soft">
+                {level.value}
+              </span>
+            ))
+          : item.levels.map((level) => (
+              <label
+                key={level.value}
+                className={clsx(
+                  "flex min-h-9 items-center gap-1.5 rounded-xl border border-line-strong px-2.5 text-[13px] has-checked:border-primary has-checked:bg-tint has-checked:text-tint-ink",
+                  fill ? "cursor-pointer" : "has-[:not(:checked)]:hidden",
+                )}
+              >
+                <input
+                  type="radio"
+                  disabled={!fill}
+                  name={`${idPrefix}-${item.id}-level`}
+                  checked={value === level.value}
+                  onChange={() => onChange?.((prev) => withValue(prev, item.id, level.value))}
+                  className="accent-primary"
+                />
+                {level.value}
+                {fill && suggested === level.value && (
+                  <span dir={appDir} className="text-[11px] text-ink-muted">
+                    ({a.suggested})
+                  </span>
+                )}
+              </label>
+            ))}
+        {!fill && !preview && value === undefined && <span className="text-[13px] text-ink-muted">—</span>}
       </fieldset>
     </div>
   );

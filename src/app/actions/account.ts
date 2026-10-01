@@ -30,7 +30,7 @@ export async function saveLetterhead(_prev: FormState, formData: FormData): Prom
   if (!parsed.success) return { ok: false, errors: toFieldErrors(parsed.error), values: input };
 
   db.update(accounts).set({ letterhead: parsed.data.letterhead }).where(eq(accounts.id, accountId)).run();
-  revalidatePath("/account");
+  revalidatePath("/settings");
   return { ok: true, savedAt: Date.now() };
 }
 
@@ -47,7 +47,7 @@ export async function addTherapist(_prev: FormState, formData: FormData): Promis
     if (error instanceof EmailTakenError) return { ok: false, errors: { email: "emailTaken" }, values };
     throw error;
   }
-  revalidatePath("/account");
+  revalidatePath("/settings");
   return { ok: true, savedAt: Date.now(), addedName: parsed.data.name };
 }
 

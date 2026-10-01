@@ -1,11 +1,12 @@
 import clsx from "clsx";
 import { FileText, Trash2 } from "lucide-react";
 import { deleteDocument, listDocuments } from "@/app/actions/library";
+import { SharedPapers } from "@/components/expert/SharedPapers";
 import { UploadForm } from "@/components/expert/UploadForm";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
-import { openLibrary } from "@/db/library";
+import { listSharedPapers } from "@/db/library";
 import { getI18n } from "@/i18n/server";
 
 export async function generateMetadata() {
@@ -13,19 +14,13 @@ export async function generateMetadata() {
   return { title: `${t.expert.library.title} · ${t.app.name}` };
 }
 
-function sharedArticleCount(): number | null {
-  const library = openLibrary();
-  if (!library) return null;
-  const row = library.prepare("SELECT COUNT(*) AS n FROM documents").get() as { n: number };
-  return row.n;
-}
-
 export default async function LibraryPage(props: PageProps<"/expert/library">) {
   const i18n = await getI18n();
   const { t } = i18n;
   const l = t.expert.library;
   const docs = await listDocuments();
-  const shared = sharedArticleCount();
+  const papers = listSharedPapers();
+  const shared = papers?.length ?? 0;
   const highlight = (await props.searchParams).doc;
 
   return (
@@ -71,6 +66,13 @@ export default async function LibraryPage(props: PageProps<"/expert/library">) {
           </ul>
         )}
       </Card>
+
+      {papers && papers.length > 0 && (
+        <Card>
+          <CardHeader title={l.papersTitle} hint={l.papersHint(papers.length)} />
+          <SharedPapers papers={papers} />
+        </Card>
+      )}
     </div>
   );
 }

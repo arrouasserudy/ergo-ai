@@ -10,7 +10,8 @@ import { urgency, worse, type Urgency } from "./deadlines";
 export function listTemplates(accountId: string, { publishedOnly = false } = {}) {
   const conditions = [eq(formTemplates.accountId, accountId)];
   if (publishedOnly) conditions.push(eq(formTemplates.status, "published"));
-  return db.select().from(formTemplates).where(and(...conditions)).orderBy(desc(formTemplates.updatedAt)).all();
+  // Built-in forms first, then the most recently edited.
+  return db.select().from(formTemplates).where(and(...conditions)).orderBy(desc(isNotNull(formTemplates.builtinKey)), desc(formTemplates.updatedAt)).all();
 }
 
 export function getTemplate(accountId: string, id: string) {

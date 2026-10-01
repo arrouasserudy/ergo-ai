@@ -2,8 +2,9 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FormAutomation } from "@/components/forms/FormAutomation";
-import { FormBuilder } from "@/components/forms/FormBuilder";
+import { FormBuilder, FormPreview } from "@/components/forms/FormBuilder";
 import { TemplateStatusBadge } from "@/components/forms/TemplateStatusBadge";
+import { Badge } from "@/components/ui/Badge";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { getI18n } from "@/i18n/server";
 import { getTemplate } from "@/lib/forms/queries";
@@ -22,6 +23,7 @@ export default async function FormTemplatePage(props: PageProps<"/forms/[id]">) 
   const { accountId } = await requireTherapist();
   const template = getTemplate(accountId, (await props.params).id);
   if (!template) notFound();
+  const builtin = template.builtinKey !== null;
 
   return (
     <div className="mx-auto max-w-6xl space-y-4">
@@ -35,15 +37,22 @@ export default async function FormTemplatePage(props: PageProps<"/forms/[id]">) 
           <h1 className="text-[24px] leading-tight font-semibold tracking-tight">
             <bdi>{template.title}</bdi>
           </h1>
+          {builtin && <Badge tone="tint">{f.builtin.badge}</Badge>}
           <TemplateStatusBadge status={template.status} />
         </div>
-        <p className="mt-1 text-[12.5px] text-ink-muted">
-          <bdi>{f.convertedFrom(template.sourceFilename)}</bdi>
-        </p>
-        <p className="mt-2 max-w-3xl text-[13px] text-ink-soft">{f.editorHint}</p>
+        {!builtin && (
+          <p className="mt-1 text-[12.5px] text-ink-muted">
+            <bdi>{f.convertedFrom(template.sourceFilename)}</bdi>
+          </p>
+        )}
+        <p className="mt-2 max-w-3xl text-[13px] text-ink-soft">{builtin ? f.builtin.hint : f.editorHint}</p>
       </header>
       <FormAutomation id={template.id} autoAssign={template.autoAssign} deadline={template.deadline} published={template.status === "published"} />
-      <FormBuilder id={template.id} initial={template.schema} status={template.status} />
+      {builtin ? (
+        <FormPreview form={template.schema} />
+      ) : (
+        <FormBuilder id={template.id} initial={template.schema} status={template.status} />
+      )}
     </div>
   );
 }

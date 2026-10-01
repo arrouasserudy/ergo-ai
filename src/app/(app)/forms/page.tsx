@@ -50,6 +50,7 @@ export default async function FormsPage() {
                       {f.questions(allFields(tpl.schema).filter((fl) => fl.type !== "info").length)} · {f.updated(i18n.date(tpl.updatedAt.toISOString()))}
                     </span>
                   </span>
+                  {tpl.builtinKey && <Badge tone="muted">{f.builtin.badge}</Badge>}
                   {tpl.autoAssign && <Badge tone="tint">{f.automation.autoChip}</Badge>}
                   {tpl.deadline && <Badge tone="muted">{f.due.before(i18n.dayMonth(tpl.deadline))}</Badge>}
                   <TemplateStatusBadge status={tpl.status} />

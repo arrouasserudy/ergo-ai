@@ -429,7 +429,8 @@ export type StyleExample = typeof styleExamples.$inferSelect;
 
 export const FORM_TEMPLATE_STATUSES = ["draft", "published", "archived"] as const;
 export type FormTemplateStatus = (typeof FORM_TEMPLATE_STATUSES)[number];
-export const FORM_SOURCE_KINDS = ["pdf", "docx"] as const;
+/** `builtin`: a form shipped with the app (lib/forms/defaults), not converted from a file. */
+export const FORM_SOURCE_KINDS = ["pdf", "docx", "builtin"] as const;
 export type FormSourceKind = (typeof FORM_SOURCE_KINDS)[number];
 
 /**
@@ -454,6 +455,12 @@ export const formTemplates = sqliteTable(
     autoAssign: integer("auto_assign", { mode: "boolean" }).notNull().default(false),
     /** Yearly deadline ("MM-DD"), due once per school year; see lib/forms/deadlines.ts. */
     deadline: text("deadline"),
+    /**
+     * Set on the forms shipped with the app (lib/forms/defaults): present in every cabinet,
+     * never deleted, content replaced when the definition's version goes up.
+     */
+    builtinKey: text("builtin_key"),
+    builtinVersion: integer("builtin_version"),
     model: text("model").notNull(),
     inputTokens: integer("input_tokens"),
     outputTokens: integer("output_tokens"),
@@ -461,7 +468,10 @@ export const formTemplates = sqliteTable(
     generatedAt: integer("generated_at", { mode: "timestamp_ms" }).notNull(),
     ...timestamps(),
   },
-  (table) => [index("form_templates_account_idx").on(table.accountId, table.updatedAt)],
+  (table) => [
+    index("form_templates_account_idx").on(table.accountId, table.updatedAt),
+    uniqueIndex("form_templates_builtin_idx").on(table.accountId, table.builtinKey),
+  ],
 );
 
 export const CHILD_FORM_STATUSES = ["draft", "sent", "submitted"] as const;

@@ -6,14 +6,12 @@ import {
   ClipboardList,
   FileText,
   Gauge,
-  Building2,
   ListChecks,
   Lock,
   LayoutDashboard,
   LogOut,
   Menu,
   MessageCircle,
-  Plus,
   Settings,
   UserRound,
   X,
@@ -31,14 +29,12 @@ type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href: string 
 
 const NAV: NavItem[] = [
   { label: "dashboard", icon: LayoutDashboard, href: "/" },
-  { label: "newReport", icon: Plus, href: "/reports/new" },
   { label: "reports", icon: ListChecks, href: "/reports" },
   { label: "children", icon: UserRound, href: "/children" },
   { label: "crises", icon: Activity, href: "/crises" },
   { label: "expert", icon: MessageCircle, href: "/expert" },
   { label: "forms", icon: ClipboardList, href: "/forms" },
   { label: "assessments", icon: Gauge, href: "/assessments" },
-  { label: "account", icon: Building2, href: "/account" },
   { label: "settings", icon: Settings, href: "/settings" },
 ];
 
@@ -69,7 +65,7 @@ function Logo({ accountName }: { accountName: string }) {
   );
 }
 
-/** The longest matching href wins, so "/reports/new" doesn't also light up "/reports". "/" only matches itself. */
+/** The longest matching href wins, so "/children/1" lights up "/children". "/" only matches itself. */
 function activeHrefOf(pathname: string) {
   return NAV.map((item) => item.href)
     .filter((href) => (href === "/" ? pathname === "/" : pathname.startsWith(href)))

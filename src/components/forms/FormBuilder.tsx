@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { Archive, ArrowDown, ArrowUp, Check, Loader2, Plus, RotateCcw, Send, Undo2, X } from "lucide-react";
+import { Archive, ArrowDown, ArrowUp, Check, Loader2, Pencil, Plus, RotateCcw, Send, Undo2, X } from "lucide-react";
 import { useState, useTransition, type ReactNode } from "react";
 import { deleteFormTemplate, saveFormTemplate, setFormTemplateStatus } from "@/app/actions/forms";
 import { Button } from "@/components/ui/Button";
@@ -58,239 +58,261 @@ function convertField(field: FormField, type: FieldType, newOption: (n: number) 
 
 type Props = { id: string; initial: FormSchema; status: FormTemplateStatus };
 
-/** Editor of a library form (left) with a live preview (right; a tab on smaller screens). */
+/**
+ * A library form: shown as a preview (with its status actions) until "Edit" opens the editor.
+ * Edits stay local until "Save"; "Cancel" restores the last saved version.
+ */
 export function FormBuilder({ id, initial, status }: Props) {
   const { t } = useI18n();
   const f = t.forms;
+  const [saved, setSaved] = useState(initial);
   const [form, setForm] = useState(initial);
+  const [editing, setEditing] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [issues, setIssues] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"edit" | "preview">("edit");
   const [saving, startSaving] = useTransition();
   const [changing, startChanging] = useTransition();
-  const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
 
   const update = (next: FormSchema) => {
     setForm(next);
     setDirty(true);
-    setSavedAt(null);
   };
   const setSection = (si: number, section: FormSection) => update({ ...form, sections: form.sections.map((s, i) => (i === si ? section : s)) });
   const setField = (si: number, fi: number, field: FormField) =>
     setSection(si, { ...form.sections[si], fields: form.sections[si].fields.map((fl, i) => (i === fi ? field : fl)) });
   const fieldIds = () => form.sections.flatMap((s) => s.fields.map((fl) => fl.id));
 
-  const save = () =>
+  const clearErrors = () => {
+    setIssues([]);
+    setError(null);
+  };
+  const edit = () => {
+    clearErrors();
+    setJustSaved(false);
+    setEditing(true);
+  };
+  const cancel = () => {
+    setForm(saved);
+    setDirty(false);
+    clearErrors();
+    setEditing(false);
+  };
+  const save = () => {
+    if (!dirty) return cancel();
     startSaving(async () => {
       const result = await saveFormTemplate(id, form);
       if (result.ok) {
+        setSaved(form);
         setDirty(false);
-        setIssues([]);
-        setError(null);
-        setSavedAt(result.savedAt);
+        clearErrors();
+        setJustSaved(true);
+        setEditing(false);
       } else {
         setIssues(result.issues ?? []);
         setError(result.error);
-        setTab("edit");
       }
     });
+  };
 
   const changeStatus = (next: FormTemplateStatus) =>
     startChanging(async () => {
+      setJustSaved(false);
       const result = await setFormTemplateStatus(id, next);
-      if (result.ok) {
-        setIssues([]);
-        setError(null);
-      } else {
+      if (result.ok) clearErrors();
+      else {
         setIssues(result.issues ?? []);
         setError(result.error);
-        setTab("edit");
+        // Publishing an invalid form: open the editor so the faulty fields are highlighted.
+        if (result.issues?.length) setEditing(true);
       }
     });
   const hasIssue = (prefix: string) => issues.some((p) => p === prefix || p.startsWith(`${prefix}.`));
 
-  const editor = (
-    <div className="space-y-5">
-      <div className="space-y-3 rounded-2xl border border-line bg-surface shadow-card p-4">
-        <Labeled label={f.formTitle} invalid={hasIssue("title")}>
-          <input dir="auto" className={clsx(input, "h-11")} value={form.title} maxLength={200} onChange={(e) => update({ ...form, title: e.target.value })} />
-        </Labeled>
-        <Labeled label={f.formDescription}>
-          <textarea
-            dir="auto"
-            rows={2}
-            className={clsx(input, "py-2")}
-            value={form.description ?? ""}
-            onChange={(e) => update({ ...form, description: e.target.value || undefined })}
-          />
-        </Labeled>
-        <Labeled label={f.formLanguage}>
-          <select className={clsx(input, "h-11 max-w-48")} value={form.language} onChange={(e) => update({ ...form, language: e.target.value as FormSchema["language"] })}>
-            {FORM_LANGUAGES.map((l) => (
-              <option key={l} value={l}>
-                {LOCALE_NAMES[l]}
-              </option>
-            ))}
-          </select>
-        </Labeled>
-      </div>
-
-      {form.sections.map((section, si) => (
-        <div key={section.id} className="space-y-3 rounded-2xl border border-line bg-surface shadow-card p-4">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-[11px] font-medium tracking-[0.12em] text-ink-muted uppercase">{f.section(si + 1)}</p>
-            <Reorder
-              onUp={si > 0 ? () => update({ ...form, sections: move(form.sections, si, si - 1) }) : undefined}
-              onDown={si < form.sections.length - 1 ? () => update({ ...form, sections: move(form.sections, si, si + 1) }) : undefined}
-              onRemove={form.sections.length > 1 ? () => update({ ...form, sections: form.sections.filter((_, i) => i !== si) }) : undefined}
-            />
-          </div>
-          <input
-            dir="auto"
-            aria-label={f.sectionTitle}
-            placeholder={f.sectionTitle}
-            className={clsx(input, "h-10 font-medium")}
-            value={section.title ?? ""}
-            onChange={(e) => setSection(si, { ...section, title: e.target.value || undefined })}
-          />
-          <textarea
-            dir="auto"
-            aria-label={f.sectionDescription}
-            placeholder={f.sectionDescription}
-            rows={1}
-            className={clsx(input, "py-2 text-[13px]")}
-            value={section.description ?? ""}
-            onChange={(e) => setSection(si, { ...section, description: e.target.value || undefined })}
-          />
-
-          <ol className="space-y-3">
-            {section.fields.map((field, fi) => (
-              <li key={field.id}>
-                <FieldEditor
-                  field={field}
-                  invalid={hasIssue(`sections.${si}.fields.${fi}`)}
-                  onChange={(next) => setField(si, fi, next)}
-                  onUp={fi > 0 ? () => setSection(si, { ...section, fields: move(section.fields, fi, fi - 1) }) : undefined}
-                  onDown={fi < section.fields.length - 1 ? () => setSection(si, { ...section, fields: move(section.fields, fi, fi + 1) }) : undefined}
-                  onRemove={() => setSection(si, { ...section, fields: section.fields.filter((_, i) => i !== fi) })}
-                />
-              </li>
-            ))}
-          </ol>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() =>
-              setSection(si, { ...section, fields: [...section.fields, { id: nextId("f", fieldIds()), type: "text", label: f.newField, required: false }] })
-            }
-          >
-            <Plus className="size-3.5" />
-            {f.addField}
-          </Button>
-        </div>
-      ))}
-
-      <Button
-        variant="secondary"
-        onClick={() =>
-          update({
-            ...form,
-            sections: [
-              ...form.sections,
-              { id: nextId("s", form.sections.map((s) => s.id)), fields: [{ id: nextId("f", fieldIds()), type: "text", label: f.newField, required: false }] },
-            ],
-          })
-        }
-      >
-        <Plus className="size-4" />
-        {f.addSection}
+  const toolbar = editing ? (
+    <>
+      <Button onClick={save} disabled={saving}>
+        {saving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+        {saving ? t.common.saving : t.common.save}
       </Button>
-    </div>
+      <Button variant="secondary" onClick={cancel} disabled={saving}>
+        <X className="size-4" />
+        {t.common.cancel}
+      </Button>
+      <span className="text-[12px] text-ink-muted" role="status">
+        {dirty ? f.unsaved : ""}
+      </span>
+    </>
+  ) : (
+    <>
+      <Button onClick={edit}>
+        <Pencil className="size-4" />
+        {t.common.edit}
+      </Button>
+      {status === "draft" && (
+        <Button variant="secondary" disabled={changing} onClick={() => changeStatus("published")}>
+          <Send className="size-4 rtl:-scale-x-100" />
+          {f.publish}
+        </Button>
+      )}
+      {status === "published" && (
+        <Button variant="secondary" disabled={changing} onClick={() => changeStatus("draft")}>
+          <Undo2 className="size-4" />
+          {f.unpublish}
+        </Button>
+      )}
+      {status === "archived" ? (
+        <Button variant="secondary" disabled={changing} onClick={() => changeStatus("draft")}>
+          <RotateCcw className="size-4" />
+          {f.restore}
+        </Button>
+      ) : (
+        <Button variant="ghost" disabled={changing} onClick={() => changeStatus("archived")}>
+          <Archive className="size-4" />
+          {f.archive}
+        </Button>
+      )}
+      <span className="text-[12px] text-ink-muted" role="status">
+        {justSaved ? f.saved : ""}
+      </span>
+      <span className="ms-auto">
+        <ConfirmButton label={f.deleteForm} question={f.deleteConfirm} onConfirm={() => deleteFormTemplate(id)} />
+      </span>
+    </>
   );
 
   return (
     <div className="space-y-4">
-      <div className="sticky top-0 z-10 -mx-1 flex flex-wrap items-center gap-2 bg-canvas/95 px-1 py-2 backdrop-blur">
-        <Button onClick={save} disabled={saving || !dirty}>
-          {saving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-          {saving ? f.saving : f.save}
-        </Button>
-        {status === "draft" && (
-          <Button variant="secondary" disabled={dirty || changing} onClick={() => changeStatus("published")}>
-            <Send className="size-4 rtl:-scale-x-100" />
-            {f.publish}
-          </Button>
-        )}
-        {status === "published" && (
-          <Button variant="secondary" disabled={changing} onClick={() => changeStatus("draft")}>
-            <Undo2 className="size-4" />
-            {f.unpublish}
-          </Button>
-        )}
-        {status === "archived" ? (
-          <Button variant="secondary" disabled={changing} onClick={() => changeStatus("draft")}>
-            <RotateCcw className="size-4" />
-            {f.restore}
-          </Button>
-        ) : (
-          <Button variant="ghost" disabled={changing} onClick={() => changeStatus("archived")}>
-            <Archive className="size-4" />
-            {f.archive}
-          </Button>
-        )}
-        <span className="text-[12px] text-ink-muted" role="status">
-          {dirty ? f.unsaved : savedAt ? f.saved : ""}
-        </span>
-        <span className="ms-auto">
-          <ConfirmButton label={f.deleteForm} question={f.deleteConfirm} onConfirm={() => deleteFormTemplate(id)} />
-        </span>
-      </div>
+      <div className="sticky top-0 z-10 -mx-1 flex flex-wrap items-center gap-2 bg-canvas/95 px-1 py-2 backdrop-blur">{toolbar}</div>
 
       <FormError message={error ? (f.errors[error] ?? f.errors.generic) : undefined} />
 
-      <div className="flex gap-1 rounded-lg bg-surface-muted p-1 lg:hidden" role="tablist">
-        {(["edit", "preview"] as const).map((key) => (
-          <button
-            key={key}
-            role="tab"
-            aria-selected={tab === key}
-            onClick={() => setTab(key)}
-            className={clsx("h-9 flex-1 rounded-md text-[13px] font-medium", tab === key ? "bg-surface shadow-sm" : "text-ink-muted")}
-          >
-            {key === "edit" ? f.editTab : f.previewTab}
-          </button>
-        ))}
-      </div>
+      {editing ? (
+        <div className="space-y-5">
+          <div className="space-y-3 rounded-2xl border border-line bg-surface shadow-card p-4">
+            <Labeled label={f.formTitle} invalid={hasIssue("title")}>
+              <input dir="auto" className={clsx(input, "h-11")} value={form.title} maxLength={200} onChange={(e) => update({ ...form, title: e.target.value })} />
+            </Labeled>
+            <Labeled label={f.formDescription}>
+              <textarea
+                dir="auto"
+                rows={2}
+                className={clsx(input, "py-2")}
+                value={form.description ?? ""}
+                onChange={(e) => update({ ...form, description: e.target.value || undefined })}
+              />
+            </Labeled>
+            <Labeled label={f.formLanguage}>
+              <select className={clsx(input, "h-11 max-w-48")} value={form.language} onChange={(e) => update({ ...form, language: e.target.value as FormSchema["language"] })}>
+                {FORM_LANGUAGES.map((l) => (
+                  <option key={l} value={l}>
+                    {LOCALE_NAMES[l]}
+                  </option>
+                ))}
+              </select>
+            </Labeled>
+          </div>
 
-      <div className="grid items-start gap-5 lg:grid-cols-2">
-        <div className={clsx(tab !== "edit" && "hidden lg:block")}>{editor}</div>
-        <div className={clsx("rounded-2xl border border-line bg-surface shadow-card p-5 lg:sticky lg:top-16 lg:max-h-[calc(100dvh-5rem)] lg:overflow-y-auto", tab !== "preview" && "hidden lg:block")}>
-          <p className="mb-4 text-[11px] font-medium tracking-[0.12em] text-ink-muted uppercase">{f.previewTab}</p>
-          <PreviewPane form={form} />
+          {form.sections.map((section, si) => (
+            <div key={section.id} className="space-y-3 rounded-2xl border border-line bg-surface shadow-card p-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-medium tracking-[0.12em] text-ink-muted uppercase">{f.section(si + 1)}</p>
+                <Reorder
+                  onUp={si > 0 ? () => update({ ...form, sections: move(form.sections, si, si - 1) }) : undefined}
+                  onDown={si < form.sections.length - 1 ? () => update({ ...form, sections: move(form.sections, si, si + 1) }) : undefined}
+                  onRemove={form.sections.length > 1 ? () => update({ ...form, sections: form.sections.filter((_, i) => i !== si) }) : undefined}
+                />
+              </div>
+              <input
+                dir="auto"
+                aria-label={f.sectionTitle}
+                placeholder={f.sectionTitle}
+                className={clsx(input, "h-10 font-medium")}
+                value={section.title ?? ""}
+                onChange={(e) => setSection(si, { ...section, title: e.target.value || undefined })}
+              />
+              <textarea
+                dir="auto"
+                aria-label={f.sectionDescription}
+                placeholder={f.sectionDescription}
+                rows={1}
+                className={clsx(input, "py-2 text-[13px]")}
+                value={section.description ?? ""}
+                onChange={(e) => setSection(si, { ...section, description: e.target.value || undefined })}
+              />
+
+              <ol className="space-y-3">
+                {section.fields.map((field, fi) => (
+                  <li key={field.id}>
+                    <FieldEditor
+                      field={field}
+                      invalid={hasIssue(`sections.${si}.fields.${fi}`)}
+                      onChange={(next) => setField(si, fi, next)}
+                      onUp={fi > 0 ? () => setSection(si, { ...section, fields: move(section.fields, fi, fi - 1) }) : undefined}
+                      onDown={fi < section.fields.length - 1 ? () => setSection(si, { ...section, fields: move(section.fields, fi, fi + 1) }) : undefined}
+                      onRemove={() => setSection(si, { ...section, fields: section.fields.filter((_, i) => i !== fi) })}
+                    />
+                  </li>
+                ))}
+              </ol>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  setSection(si, { ...section, fields: [...section.fields, { id: nextId("f", fieldIds()), type: "text", label: f.newField, required: false }] })
+                }
+              >
+                <Plus className="size-3.5" />
+                {f.addField}
+              </Button>
+            </div>
+          ))}
+
+          <Button
+            variant="secondary"
+            onClick={() =>
+              update({
+                ...form,
+                sections: [
+                  ...form.sections,
+                  { id: nextId("s", form.sections.map((s) => s.id)), fields: [{ id: nextId("f", fieldIds()), type: "text", label: f.newField, required: false }] },
+                ],
+              })
+            }
+          >
+            <Plus className="size-4" />
+            {f.addSection}
+          </Button>
         </div>
-      </div>
+      ) : (
+        <FormPreview form={saved} />
+      )}
     </div>
   );
 }
 
-/** The preview keeps its own answers so the therapist can try the form. */
-function PreviewPane({ form }: { form: FormSchema }) {
+/** The form as parents will see it; the preview keeps its own answers so the therapist can try it (also the view of a built-in form). */
+export function FormPreview({ form }: { form: FormSchema }) {
+  const { t } = useI18n();
   const [answers, setAnswers] = useState({});
   return (
-    <FormRenderer
-      form={form}
-      answers={answers}
-      idPrefix="preview"
-      onChange={(fieldId, answer) =>
-        setAnswers((prev: Record<string, unknown>) => {
-          const next = { ...prev };
-          if (answer === undefined) delete next[fieldId];
-          else next[fieldId] = answer;
-          return next;
-        })
-      }
-    />
+    <div className="rounded-2xl border border-line bg-surface p-5 shadow-card">
+      <p className="mb-4 text-[11px] font-medium tracking-[0.12em] text-ink-muted uppercase">{t.forms.previewTab}</p>
+      <FormRenderer
+        form={form}
+        answers={answers}
+        idPrefix="preview"
+        onChange={(fieldId, answer) =>
+          setAnswers((prev: Record<string, unknown>) => {
+            const next = { ...prev };
+            if (answer === undefined) delete next[fieldId];
+            else next[fieldId] = answer;
+            return next;
+          })
+        }
+      />
+    </div>
   );
 }
 

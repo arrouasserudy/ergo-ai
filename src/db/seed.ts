@@ -9,6 +9,7 @@
  *   other@demo.local      owner  · Autre cabinet (isolation check)
  */
 import { hashPassword } from "better-auth/crypto";
+import { ensureBuiltinForms } from "../lib/forms/builtin";
 import { db } from "./index";
 import {
   accounts,
@@ -313,6 +314,7 @@ async function seed() {
   db.insert(children)
     .values(OTHER_CHILDREN.map((c) => ({ ...c, accountId: other.id, createdBy: otherOwner.id })))
     .run();
+  ensureBuiltinForms(db, [demo.id, other.id]);
 }
 
 async function main() {

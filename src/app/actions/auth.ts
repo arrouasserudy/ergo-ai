@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { accounts } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { ensureBuiltinForms } from "@/lib/forms/builtin";
 import { createTherapist, EmailTakenError } from "@/lib/therapists";
 import { formDataToStrings, loginSchema, signupSchema, toFieldErrors } from "@/lib/validation";
 import type { FormState } from "./children";
@@ -41,6 +42,7 @@ export async function signup(_prev: FormState, formData: FormData): Promise<Form
     if (error instanceof EmailTakenError) return { ok: false, errors: { email: "emailTaken" }, values };
     throw error;
   }
+  ensureBuiltinForms(db, [account.id]);
 
   await auth.api.signInEmail({ body: { email, password }, headers: await headers() });
   redirect("/");

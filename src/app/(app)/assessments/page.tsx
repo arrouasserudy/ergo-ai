@@ -1,4 +1,4 @@
-import { Gauge } from "lucide-react";
+import { ChevronRight, Gauge } from "lucide-react";
 import Link from "next/link";
 import { AssessmentStatusBadge } from "@/components/assessments/AssessmentStatusBadge";
 import { Badge } from "@/components/ui/Badge";
@@ -30,20 +30,26 @@ export default async function AssessmentsPage() {
         <CardHeader title={a.catalogTitle} />
         <ul className="divide-y divide-line border-t border-line">
           {ASSESSMENTS.map((d) => (
-            <li key={d.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3.5">
-              <Gauge className="size-4 shrink-0 text-ink-muted" />
-              <span className="min-w-0 flex-1">
-                <bdi className="block text-[14px] font-medium">{d.name}</bdi>
-                <span className="block text-[12px] text-ink-muted">
-                  {a.items(d.sections.reduce((n, s) => n + s.items.length, 0))}
-                  {d.ageRange && ` · ${a.ageRange(a.age(d.ageRange.minMonths), a.age(d.ageRange.maxMonths))}`}
+            <li key={d.id}>
+              <Link
+                href={`/assessments/${d.id}`}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3.5 transition-colors outline-none hover:bg-surface-muted focus-visible:bg-surface-muted focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-inset"
+              >
+                <Gauge className="size-4 shrink-0 text-ink-muted" />
+                <span className="min-w-0 flex-1">
+                  <bdi className="block text-[14px] font-medium">{d.name}</bdi>
+                  <span className="block text-[12px] text-ink-muted">
+                    {a.items(d.sections.reduce((n, s) => n + s.items.length, 0))}
+                    {d.ageRange && ` · ${a.ageRange(a.age(d.ageRange.minMonths), a.age(d.ageRange.maxMonths))}`}
+                  </span>
                 </span>
-              </span>
-              {d.respondents.map((r) => (
-                <Badge key={r} tone={r === "parent" ? "tint" : "muted"}>
-                  {a.respondents[r]}
-                </Badge>
-              ))}
+                {d.respondents.map((r) => (
+                  <Badge key={r} tone={r === "parent" ? "tint" : "muted"}>
+                    {a.respondents[r]}
+                  </Badge>
+                ))}
+                <ChevronRight className="size-4 shrink-0 text-ink-muted rtl:rotate-180" />
+              </Link>
             </li>
           ))}
         </ul>

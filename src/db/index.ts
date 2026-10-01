@@ -4,6 +4,7 @@ import Database from "better-sqlite3";
 import { drizzle, type BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import * as sqliteVec from "sqlite-vec";
+import { ensureBuiltinForms } from "../lib/forms/builtin";
 import * as schema from "./schema";
 
 const DB_PATH = process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ergoai.db");
@@ -18,6 +19,8 @@ function createDb() {
   const db = drizzle(sqlite, { schema });
   // Keep the local database in sync with the committed migrations.
   migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
+  // Every cabinet has the forms shipped with the app, in their current version.
+  ensureBuiltinForms(db);
   return db;
 }
 

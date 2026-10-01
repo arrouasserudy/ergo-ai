@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
@@ -70,7 +70,10 @@ export async function uploadFormTemplate(_prev: FormState, formData: FormData): 
 
 export type SaveTemplateResult = { ok: true; savedAt: number } | { ok: false; error: string; issues?: string[] };
 
-/** Saves the edited form. Issues are the paths ("sections.0.fields.2.label") of invalid values. */
+/**
+ * Saves the edited form. Issues are the paths ("sections.0.fields.2.label") of invalid values.
+ * Built-in forms are not editable: their content comes from `lib/forms/defaults`.
+ */
 export async function saveFormTemplate(id: string, schema: FormSchema): Promise<SaveTemplateResult> {
   const { accountId } = await requireTherapist();
   const parsed = formSchema.safeParse(schema);
@@ -78,7 +81,7 @@ export async function saveFormTemplate(id: string, schema: FormSchema): Promise<
   const updated = db
     .update(formTemplates)
     .set({ schema: parsed.data, title: parsed.data.title })
-    .where(and(eq(formTemplates.id, id), eq(formTemplates.accountId, accountId)))
+    .where(and(eq(formTemplates.id, id), eq(formTemplates.accountId, accountId), isNull(formTemplates.builtinKey)))
     .run();
   if (updated.changes === 0) return { ok: false, error: "generic" };
   revalidateTemplate(id);
@@ -87,12 +90,12 @@ export async function saveFormTemplate(id: string, schema: FormSchema): Promise<
 
 export type StatusResult = { ok: true } | { ok: false; error: string; issues?: string[] };
 
-/** Publish, back to draft, archive or restore. Publishing an invalid form returns its issues. */
+/** Publish, back to draft, archive or restore. Publishing an invalid form returns its issues. Built-in forms stay published. */
 export async function setFormTemplateStatus(id: string, status: FormTemplateStatus): Promise<StatusResult> {
   const { accountId } = await requireTherapist();
   if (!FORM_TEMPLATE_STATUSES.includes(status)) return { ok: false, error: "generic" };
   const template = getTemplate(accountId, id);
-  if (!template) return { ok: false, error: "generic" };
+  if (!template || template.builtinKey) return { ok: false, error: "generic" };
   if (status === "published") {
     const parsed = formSchema.safeParse(template.schema);
     if (!parsed.success) return { ok: false, error: "invalid", issues: parsed.error.issues.map((i) => i.path.join(".")) };
@@ -122,10 +125,10 @@ export async function setFormTemplateAutomation(id: string, input: AutomationInp
   return { ok: true };
 }
 
-/** Forms already attached to children keep their own copy of the schema. */
+/** Forms already attached to children keep their own copy of the schema. Built-in forms cannot be deleted. */
 export async function deleteFormTemplate(id: string) {
   const { accountId } = await requireTherapist();
-  db.delete(formTemplates).where(and(eq(formTemplates.id, id), eq(formTemplates.accountId, accountId))).run();
+  db.delete(formTemplates).where(and(eq(formTemplates.id, id), eq(formTemplates.accountId, accountId), isNull(formTemplates.builtinKey))).run();
   revalidateTemplate();
   redirect("/forms");
 }
