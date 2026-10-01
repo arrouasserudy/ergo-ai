@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { openLibrary } from "@/db/library";
 import { searchLiterature, type Passage } from "./retrieval";
 import { activeEmbedder } from "./embeddings";
+import { PASSAGES_PER_SEARCH, SEARCH_BUDGET_SPENT, searchBudget } from "./search-budget";
 
 export const SEARCH_UNAVAILABLE =
   "The literature search is unavailable right now. Say so, and answer only from general clinical reasoning, clearly flagged as such.";
@@ -35,7 +36,7 @@ export async function runSearch(accountId: string, query: string): Promise<Passa
   const embedder = activeEmbedder();
   if (!embedder) return null;
   const uploads = (db as unknown as { $client: import("better-sqlite3").Database }).$client;
-  return searchLiterature({ library: openLibrary(), uploads, accountId }, query, { embedder, limit: 8 });
+  return searchLiterature({ library: openLibrary(), uploads, accountId }, query, { embedder, limit: PASSAGES_PER_SEARCH });
 }
 
 export const SEARCH_TOOL_DESCRIPTION =
@@ -47,9 +48,11 @@ export const SEARCH_QUERY_DESCRIPTION = "English search query, no names or ident
 
 /**
  * The literature search tool for Claude (search_result blocks, native citations).
- * `onSearch` lets the chat route show "Recherche : …" while it runs.
+ * `onSearch` lets the chat route show "Recherche : …" while it runs. One tool per
+ * answer: beyond the search budget, calls get a "budget spent" result.
  */
 export function searchLiteratureTool(accountId: string, onSearch: (query: string) => void) {
+  const budget = searchBudget();
   return betaZodTool({
     name: "search_literature",
     description: SEARCH_TOOL_DESCRIPTION,
@@ -57,6 +60,7 @@ export function searchLiteratureTool(accountId: string, onSearch: (query: string
       query: z.string().min(3).max(300).describe(SEARCH_QUERY_DESCRIPTION),
     }),
     run: async ({ query }) => {
+      if (!budget.take()) return [{ type: "text" as const, text: SEARCH_BUDGET_SPENT }];
       onSearch(query);
       try {
         const passages = await runSearch(accountId, query);

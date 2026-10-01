@@ -27,35 +27,77 @@ export function substituteName(text: string, childName: string, firstName: strin
   return replacement && pattern ? text.replace(pattern, replacement) : text;
 }
 
-/** The full name, then each word of it ("Léa", "Martin"), but not lone initials, which would hit ordinary words. */
-function nameForms(childName: string): string[] {
-  return [childName, ...childName.split(/[\s.]+/).filter((w) => [...w].length > 1)];
+/** Name particles never matched on their own ("de", "Le", "Ben"…): they are ordinary words. */
+const PARTICLES = new Set(["de", "du", "des", "la", "le", "les", "el", "al", "da", "di", "do", "dos", "van", "von", "der", "den", "ben", "bat", "bar", "bin", "ibn"]);
+
+/** Strips accents ("é" → "e", Hebrew vowel points), with a map from each folded character back to the original text. */
+function fold(text: string): { folded: string; origin: number[] } {
+  let folded = "";
+  const origin: number[] = [];
+  let i = 0;
+  for (const ch of text) {
+    const f = ch.normalize("NFD").replace(/\p{M}/gu, "");
+    for (let k = 0; k < f.length; k++) origin.push(i);
+    folded += f;
+    i += ch.length;
+  }
+  origin.push(text.length);
+  return { folded, origin };
 }
 
-/** Swaps every form of the child's name for `replacement`, whatever its case. */
+const bounded = (pattern: string, flags: string) => new RegExp(`(?<![\\p{L}\\p{N}])(?:${pattern})(?![\\p{L}\\p{N}])`, flags);
+
+/**
+ * Every way the child's name may be typed, accents ignored: the full name, each word
+ * of it (two letters or more, not a particle), whatever the case, and its initials
+ * ("J C", "J.C.", "j. c." — separated, any case — or "JC" in capitals only, so that
+ * initials like "L. A." never hit ordinary words such as "la").
+ */
+function namePatterns(childName: string): RegExp[] {
+  const words = fold(childName).folded.split(/[\s.-]+/).filter(Boolean);
+  if (words.length === 0) return [];
+  const patterns: RegExp[] = [];
+  const isInitial = (w: string) => [...w].length === 1;
+  if (!words.every(isInitial)) {
+    patterns.push(bounded(words.map(escapeRegExp).join("[\\s.-]*") + (isInitial(words.at(-1)!) ? "\\.?" : ""), "giu"));
+    for (const w of words) if (!isInitial(w) && !PARTICLES.has(w.toLowerCase())) patterns.push(bounded(escapeRegExp(w), "giu"));
+  }
+  const initials = words.filter((w) => !PARTICLES.has(w.toLowerCase())).map((w) => escapeRegExp([...w][0].toUpperCase()));
+  if (initials.length >= 2) {
+    patterns.push(bounded(initials.join("(?:\\s*[.-]\\s*|\\s+)") + "\\.?", "giu"));
+    patterns.push(bounded(initials.join("") + "\\.?", "gu"));
+  }
+  return patterns;
+}
+
+/** Where the child's name appears in free text: [start, end) ranges, in order, never overlapping. */
+export function childNameRanges(text: string, childName: string): [number, number][] {
+  const { folded, origin } = fold(text);
+  const found: [number, number][] = [];
+  for (const pattern of namePatterns(childName)) {
+    for (const m of folded.matchAll(pattern)) found.push([origin[m.index], origin[m.index + m[0].length]]);
+  }
+  // Longest first at each position, then drop matches inside an earlier one ("Léa" in "Léa Martin").
+  found.sort((a, b) => a[0] - b[0] || b[1] - a[1]);
+  const ranges: [number, number][] = [];
+  for (const r of found) if (!ranges.length || r[0] >= ranges.at(-1)![1]) ranges.push(r);
+  return ranges;
+}
+
+/** Swaps every form of the child's name for `replacement` (see childNameRanges). */
 export function replaceChildName(text: string, childName: string, replacement: string): string {
-  return nameForms(childName).reduce((t, name) => {
-    const pattern = namePattern(name, "giu");
-    return pattern ? t.replace(pattern, replacement) : t;
-  }, text);
+  let out = "";
+  let last = 0;
+  for (const [start, end] of childNameRanges(text, childName)) {
+    out += text.slice(last, start) + replacement;
+    last = end;
+  }
+  return out + text.slice(last);
 }
 
 /** The forms of the child's name found in free text (as typed), for a warning before it is sent. */
 export function findChildName(text: string, childName: string): string[] {
-  const found = new Set<string>();
-  const covered: [number, number][] = [];
-  for (const name of nameForms(childName)) {
-    const pattern = namePattern(name, "giu");
-    for (const match of pattern ? text.matchAll(pattern) : []) {
-      const start = match.index;
-      const end = start + match[0].length;
-      // "Léa" inside an already found "Léa Martin" is the same mention.
-      if (covered.some(([s, e]) => start >= s && end <= e)) continue;
-      covered.push([start, end]);
-      found.add(match[0]);
-    }
-  }
-  return [...found];
+  return [...new Set(childNameRanges(text, childName).map(([s, e]) => text.slice(s, e)))];
 }
 
 export function substituteSections(sections: ReportSection[], childName: string, firstName: string): ReportSection[] {

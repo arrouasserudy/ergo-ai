@@ -2,7 +2,6 @@
 
 import clsx from "clsx";
 import { ArrowUp, ChevronDown, Info, Loader2, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { previewChildContext } from "@/app/actions/expert";
 import { NameWarning } from "@/components/ui/NameWarning";
@@ -24,15 +23,19 @@ type ChatViewProps = {
   child: ChildOption | null;
   /** Episode in progress of the preselected child: sent as context, help asked on arrival. */
   liveEpisode?: { id: string; kind: string } | null;
+  /** Called once the server has created the conversation (first question). */
+  onConversation?: (id: string) => void;
+  /** Called after each answer (or failure), e.g. to refresh the history list. */
+  onAnswered?: () => void;
 };
 
 /** The answer being streamed: finished assistant messages + the text still arriving. */
 type Pending = { parts: AnswerPart[]; live: string; searches: string[] };
 
-export function ChatView({ conversationId: initialId, initialTurns, childOptions, child, liveEpisode = null }: ChatViewProps) {
+/** The chat itself (messages, composer, child context); it fills its container, which is the Amit panel. */
+export function ChatView({ conversationId: initialId, initialTurns, childOptions, child, liveEpisode = null, onConversation, onAnswered }: ChatViewProps) {
   const { t, childName } = useI18n();
   const e = t.expert;
-  const router = useRouter();
 
   const [conversationId, setConversationId] = useState(initialId);
   const [turns, setTurns] = useState<DisplayTurn[]>(initialTurns);
@@ -100,8 +103,7 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
           switch (ev.type) {
             case "conversation":
               setConversationId(ev.id);
-              // Update the URL without remounting the page mid-stream.
-              window.history.replaceState(null, "", `/expert/${ev.id}`);
+              onConversation?.(ev.id);
               break;
             case "search":
               state.searches.push(ev.query);
@@ -131,7 +133,7 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
     setTurns((ts) => (answerParts.length ? [...ts, { role: "assistant", parts: answerParts }] : ts));
     setPending(null);
     if (failed) setError(failed);
-    router.refresh(); // conversation list
+    onAnswered?.();
   }
 
   // Coming from an episode in progress: ask for help right away (once, even under Strict Mode).
@@ -145,163 +147,163 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
   const pendingAnswer = useMemo(() => (pending ? buildAnswer(pending.parts) : null), [pending]);
 
   return (
-    <section className="flex min-h-[calc(100dvh-7rem)] flex-col rounded-2xl border border-line bg-surface shadow-card md:min-h-[calc(100dvh-4rem)]">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
-        <div className="flex items-center gap-3">
-          <span className="grid size-9 place-items-center rounded-full bg-primary text-[15px] font-semibold text-white">E</span>
-          <div>
-            <h1 className="text-[17px] leading-tight font-semibold tracking-tight">{e.title}</h1>
-            <p className="text-[12px] text-ink-muted">{e.subtitle}</p>
-          </div>
-        </div>
-        {attached && (
-          <span className="rounded-full bg-warn px-3 py-1 text-[12px] text-warn-ink">
-            {e.contextBadge("")}
-            <bdi>{childName(attached)}</bdi>
-          </span>
-        )}
-      </header>
-
-      <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
-        {turns.map((turn, i) =>
-          turn.role === "user" ? (
-            <div key={i} className="flex justify-end">
-              <p dir="auto" className="max-w-[85%] rounded-2xl rounded-ee-md bg-primary px-4 py-2.5 text-[14px] leading-relaxed whitespace-pre-line text-white">
-                {turn.text}
-              </p>
-            </div>
-          ) : (
-            <div key={i} className="max-w-[92%] rounded-2xl rounded-es-md bg-surface-muted px-4 py-3">
-              <AnswerView answer={buildAnswer(turn.parts)} answerId={`a${i}`} />
-            </div>
-          ),
-        )}
-
-        {pending && (
-          <div className="max-w-[92%] space-y-2 rounded-2xl rounded-es-md bg-surface-muted px-4 py-3">
-            {pending.searches.map((q, i) => (
-              <p key={i} className="flex items-center gap-1.5 text-[12px] text-ink-muted">
-                <Search className="size-3.5" />
-                <bdi>{e.searching(q)}</bdi>
-              </p>
-            ))}
-            {pendingAnswer && (pendingAnswer.markdown || pendingAnswer.sources.length > 0) && <AnswerView answer={pendingAnswer} answerId="pending" />}
-            {pending.live && (
-              <p dir="auto" className="text-[14px] leading-relaxed whitespace-pre-line text-ink">
-                {stripMarkers(pending.live)}
-              </p>
-            )}
-            {!pending.live && (
-              <p className="flex items-center gap-1.5 text-[12px] text-ink-muted">
-                <Loader2 className="size-3.5 animate-spin" />
-                {e.thinking}
-              </p>
-            )}
-          </div>
-        )}
-
-        {error && (
-          <p role="alert" className="rounded-xl border border-warn-ink/20 bg-warn px-3 py-2 text-[13px] text-warn-ink">
-            {error}
-          </p>
-        )}
-        <div ref={bottom} />
-      </div>
-
-      <div className="space-y-3 border-t border-line px-5 py-4">
-        {isNew && childOptions.length > 0 && (
-          <div className="space-y-2">
-            <label className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink-soft">
-              {e.context}
-              <select
-                value={childId ?? ""}
-                onChange={(ev) => {
-                  setChildId(ev.target.value || null);
-                  setPreview(null);
-                }}
-                className="h-10 rounded-xl border border-line-strong bg-surface px-2.5 text-[14px]"
-              >
-                <option value="">{e.noContext}</option>
-                {childOptions.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {childName(c)}
-                  </option>
-                ))}
-              </select>
-              {childId && (
-                <button type="button" onClick={() => setShowPreview((s) => !s)} className="inline-flex min-h-10 items-center gap-1 text-[13px] text-primary">
-                  {e.contextPreview}
-                  <ChevronDown className={clsx("size-3.5 transition-transform", showPreview && "rotate-180")} />
-                </button>
-              )}
-            </label>
-            {childId && showPreview && (
-              <div className="rounded-lg bg-surface-muted px-3 py-2">
-                <p className="mb-1 flex items-center gap-1 text-[11.5px] text-ink-muted">
-                  <Info className="size-3.5" />
-                  {e.contextHint}
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
+        {/* A readable column when the panel is expanded. */}
+        <div className="mx-auto max-w-3xl space-y-4">
+          {/* New conversations show the picker below instead. */}
+          {!isNew && attached && (
+            <p className="w-fit rounded-full bg-warn px-3 py-1 text-[12px] text-warn-ink">
+              {e.contextBadge("")}
+              <bdi>{childName(attached)}</bdi>
+            </p>
+          )}
+          {turns.length === 0 && !pending && <p className="text-[13px] leading-relaxed text-ink-muted">{e.subtitle}</p>}
+          {turns.map((turn, i) =>
+            turn.role === "user" ? (
+              <div key={i} className="flex justify-end">
+                <p
+                  dir="auto"
+                  className="max-w-[85%] rounded-2xl rounded-ee-md bg-primary px-4 py-2.5 text-[14px] leading-relaxed whitespace-pre-line text-white"
+                >
+                  {turn.text}
                 </p>
-                <pre dir="auto" className="text-[12px] whitespace-pre-wrap text-ink-soft">
-                  {preview ?? "…"}
-                </pre>
               </div>
-            )}
-          </div>
-        )}
+            ) : (
+              <div key={i} className="max-w-[92%] rounded-2xl rounded-es-md bg-surface-muted px-4 py-3">
+                <AnswerView answer={buildAnswer(turn.parts)} answerId={`a${i}`} />
+              </div>
+            ),
+          )}
 
-        {turns.length === 0 && (
-          <div className="flex flex-wrap gap-2">
-            {e.suggestions.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setInput(s)}
-                className="min-h-10 rounded-full border border-line-strong bg-surface px-3.5 py-2 text-start text-[13.5px] text-ink-soft hover:bg-surface-muted"
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
+          {pending && (
+            <div className="max-w-[92%] space-y-2 rounded-2xl rounded-es-md bg-surface-muted px-4 py-3">
+              {pending.searches.map((q, i) => (
+                <p key={i} className="flex items-center gap-1.5 text-[12px] text-ink-muted">
+                  <Search className="size-3.5" />
+                  <bdi>{e.searching(q)}</bdi>
+                </p>
+              ))}
+              {pendingAnswer && (pendingAnswer.markdown || pendingAnswer.sources.length > 0) && <AnswerView answer={pendingAnswer} answerId="pending" />}
+              {pending.live && (
+                <p dir="auto" className="text-[14px] leading-relaxed whitespace-pre-line text-ink">
+                  {stripMarkers(pending.live)}
+                </p>
+              )}
+              {!pending.live && (
+                <p className="flex items-center gap-1.5 text-[12px] text-ink-muted">
+                  <Loader2 className="size-3.5 animate-spin" />
+                  {e.thinking}
+                </p>
+              )}
+            </div>
+          )}
 
-        <form
-          onSubmit={(ev) => {
-            ev.preventDefault();
-            ask(input);
-          }}
-          className="flex items-end gap-2"
-        >
-          <textarea
-            dir="auto"
-            value={input}
-            onChange={(ev) => setInput(ev.target.value)}
-            onKeyDown={(ev) => {
-              if (ev.key === "Enter" && !ev.shiftKey) {
-                ev.preventDefault();
-                ask(input);
-              }
-            }}
-            rows={2}
-            maxLength={4000}
-            placeholder={e.placeholder}
-            aria-label={e.placeholder}
-            className="min-h-11 flex-1 resize-none rounded-xl border border-line-strong bg-surface px-3 py-2 text-[14px] placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
-          />
-          <button
-            type="submit"
-            disabled={busy || !input.trim()}
-            aria-label={e.send}
-            className="grid size-11 shrink-0 place-items-center rounded-lg bg-primary text-white transition-colors hover:bg-primary-hover disabled:opacity-50"
-          >
-            {busy ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
-          </button>
-        </form>
-        {attached && <NameWarning text={input} childName={attached.name} />}
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[11.5px] text-ink-muted">{e.guardrail}</p>
-          <PrivacyBadge />
+          {error && (
+            <p role="alert" className="rounded-xl border border-warn-ink/20 bg-warn px-3 py-2 text-[13px] text-warn-ink">
+              {error}
+            </p>
+          )}
+          <div ref={bottom} />
         </div>
       </div>
-    </section>
+
+      <div className="border-t border-line px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="mx-auto max-w-3xl space-y-2.5">
+          {isNew && childOptions.length > 0 && (
+            <div className="space-y-2">
+              <label className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink-soft">
+                {e.context}
+                <select
+                  value={childId ?? ""}
+                  onChange={(ev) => {
+                    setChildId(ev.target.value || null);
+                    setPreview(null);
+                  }}
+                  className="h-10 rounded-xl border border-line-strong bg-surface px-2.5 text-[14px]"
+                >
+                  <option value="">{e.noContext}</option>
+                  {childOptions.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {childName(c)}
+                    </option>
+                  ))}
+                </select>
+                {childId && (
+                  <button type="button" onClick={() => setShowPreview((s) => !s)} className="inline-flex min-h-10 items-center gap-1 text-[13px] text-primary">
+                    {e.contextPreview}
+                    <ChevronDown className={clsx("size-3.5 transition-transform", showPreview && "rotate-180")} />
+                  </button>
+                )}
+              </label>
+              {childId && showPreview && (
+                <div className="rounded-lg bg-surface-muted px-3 py-2">
+                  <p className="mb-1 flex items-center gap-1 text-[11.5px] text-ink-muted">
+                    <Info className="size-3.5" />
+                    {e.contextHint}
+                  </p>
+                  <pre dir="auto" className="text-[12px] whitespace-pre-wrap text-ink-soft">
+                    {preview ?? "…"}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+
+          {turns.length === 0 && (
+            <div className="flex flex-wrap gap-2">
+              {e.suggestions.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setInput(s)}
+                  className="min-h-10 rounded-full border border-line-strong bg-surface px-3.5 py-2 text-start text-[13.5px] text-ink-soft hover:bg-surface-muted"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <form
+            onSubmit={(ev) => {
+              ev.preventDefault();
+              ask(input);
+            }}
+            className="flex items-end gap-2"
+          >
+            <textarea
+              dir="auto"
+              value={input}
+              onChange={(ev) => setInput(ev.target.value)}
+              onKeyDown={(ev) => {
+                if (ev.key === "Enter" && !ev.shiftKey) {
+                  ev.preventDefault();
+                  ask(input);
+                }
+              }}
+              rows={2}
+              maxLength={4000}
+              placeholder={e.placeholder}
+              aria-label={e.placeholder}
+              className="min-h-11 flex-1 resize-none rounded-xl border border-line-strong bg-surface px-3 py-2 text-[14px] placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={busy || !input.trim()}
+              aria-label={e.send}
+              className="grid size-11 shrink-0 place-items-center rounded-lg bg-primary text-white transition-colors hover:bg-primary-hover disabled:opacity-50"
+            >
+              {busy ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
+            </button>
+          </form>
+          {attached && <NameWarning text={input} childName={attached.name} replaced />}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[11.5px] text-ink-muted">{e.guardrail}</p>
+            <PrivacyBadge />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

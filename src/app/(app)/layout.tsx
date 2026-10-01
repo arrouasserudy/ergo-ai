@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AmitBubble } from "@/components/expert/AmitBubble";
 import { NotificationBell, type BellItem } from "@/components/shell/NotificationBell";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { getI18n } from "@/i18n/server";
@@ -26,12 +27,14 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh md:flex">
       <Sidebar therapistName={therapist.name} therapistEmail={therapist.email} accountName={account.name} bell={<NotificationBell items={bellItems} />} />
-      <main className="min-w-0 flex-1 px-4 pt-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-8 md:pt-3 xl:px-12 xl:pt-4">
+      <main className="min-w-0 flex-1 px-4 pt-5 pb-[calc(max(1rem,env(safe-area-inset-bottom))+5rem)] md:px-8 md:pt-3 xl:px-12 xl:pt-4">
         <div className="-mb-2 hidden justify-end md:flex">
           <NotificationBell items={bellItems} />
         </div>
         {children}
       </main>
+      {/* Amit, the expert colleague, on every page; the bottom padding above keeps content clear of its button. */}
+      <AmitBubble />
     </div>
   );
 }

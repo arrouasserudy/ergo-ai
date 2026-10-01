@@ -81,4 +81,10 @@ describe("redactChildName", () => {
   it("replaces initials only as a whole", () => {
     expect(redactChildName("L. M. a pleuré. La maîtresse est là.", "L. M.")).toBe("the child a pleuré. La maîtresse est là.");
   });
+
+  it("redacts initials typed in a chat message", () => {
+    expect(redactChildName("comment faire manger J C? JC et j.c. aussi, je sais", "J. C.")).toBe(
+      "comment faire manger the child? the child et the child aussi, je sais",
+    );
+  });
 });

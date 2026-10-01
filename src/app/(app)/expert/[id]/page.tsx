@@ -1,34 +1,7 @@
-import { notFound } from "next/navigation";
-import { ChatView } from "@/components/expert/ChatView";
-import { getI18n } from "@/i18n/server";
-import { getChild } from "@/lib/children";
-import { getConversation, listMessages } from "@/lib/expert/conversations";
-import { toDisplayTurns } from "@/lib/expert/display";
-import { requireTherapist } from "@/lib/session";
+import { redirect } from "next/navigation";
 
-export async function generateMetadata(props: PageProps<"/expert/[id]">) {
-  const { t } = await getI18n();
-  const { accountId, therapist } = await requireTherapist();
-  const conversation = getConversation(accountId, therapist.id, (await props.params).id);
-  return { title: `${conversation?.title ?? t.nav.expert} · ${t.app.name}` };
-}
-
-export default async function ConversationPage(props: PageProps<"/expert/[id]">) {
-  const { accountId, therapist } = await requireTherapist();
+/** Old conversation links open that conversation in the Amit bubble (access is checked when it loads). */
+export default async function ConversationRedirect(props: PageProps<"/expert/[id]">) {
   const { id } = await props.params;
-  const conversation = getConversation(accountId, therapist.id, id);
-  if (!conversation) notFound();
-
-  const child = conversation.childId ? getChild(accountId, conversation.childId) : null;
-  const turns = toDisplayTurns(listMessages(conversation.id), conversation.provider);
-
-  return (
-    <ChatView
-      key={conversation.id}
-      conversationId={conversation.id}
-      initialTurns={turns}
-      childOptions={[]}
-      child={child ? { id: child.id, name: child.name } : null}
-    />
-  );
+  redirect(`/?${new URLSearchParams({ amit: id })}`);
 }

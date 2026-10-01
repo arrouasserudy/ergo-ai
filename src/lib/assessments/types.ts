@@ -80,5 +80,7 @@ export type AssessmentDefinition = {
   ageRange?: { minMonths: number; maxMonths: number };
   instructions?: string;
   sections: AssessmentSection[];
+  /** Id of the score group summarized on the child's timeline (default: the first group). */
+  summaryGroup?: string;
   score: (answers: AssessmentAnswers, context: ScoreContext) => ScoreGroup[];
 };

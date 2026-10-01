@@ -35,6 +35,11 @@ describe("buildAnswer (Anthropic citations)", () => {
     expect(answer).toMatchObject({ markdown: "Try a quiet corner.", limits: "I don't see the child." });
   });
 
+  it("accepts a loosely written marker", () => {
+    const answer = buildAnswer(partsFromAnthropic([text("Try a quiet corner.\n\n**[ LIMITS ]** I don't see the child.")]));
+    expect(answer).toMatchObject({ markdown: "Try a quiet corner.", limits: "I don't see the child." });
+  });
+
   it("has no limits box when the marker is missing", () => {
     expect(buildAnswer(partsFromAnthropic([text("Hello")])).limits).toBeNull();
   });

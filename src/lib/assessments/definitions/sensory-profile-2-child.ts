@@ -241,6 +241,7 @@ export const sensoryProfile2Child: AssessmentDefinition = {
   version: 1,
   name: "Child Sensory Profile 2 — Caregiver Questionnaire",
   shortName: "Sensory Profile 2",
+  summaryGroup: "quadrants",
   language: "en",
   respondents: ["therapist", "parent"],
   ageRange: { minMonths: 36, maxMonths: 179 },

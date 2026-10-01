@@ -1,4 +1,4 @@
-import { Archive, ChevronLeft, MessageCircle, Plus, RotateCcw } from "lucide-react";
+import { Archive, ChevronLeft, History, MessageCircle, Plus, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { setChildStatus } from "@/app/actions/children";
@@ -12,7 +12,9 @@ import { ReportRows } from "@/components/reports/ReportRows";
 import { StartButtons } from "@/components/episodes/StartButtons";
 import { InfoList } from "@/components/children/InfoList";
 import { StatusBadge } from "@/components/children/StatusBadge";
-import { Button, LinkButton } from "@/components/ui/Button";
+import { TimelineView } from "@/components/timeline/TimelineView";
+import { AskAmitButton } from "@/components/expert/AskAmitButton";
+import { Button, buttonClass, LinkButton } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { TagList } from "@/components/ui/TagList";
@@ -25,6 +27,7 @@ import { listReports } from "@/lib/reports/queries";
 import { pendingForms, urgencyByChild } from "@/lib/forms/queries";
 import { requireTherapist } from "@/lib/session";
 import { localToday } from "@/lib/time";
+import { childTimeline } from "@/lib/timeline/queries";
 
 export async function generateMetadata(props: PageProps<"/children/[id]">) {
   const i18n = await getI18n();
@@ -58,6 +61,7 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
   const openEpisodes = episodes.filter((ep) => ep.status === "open");
   const recentEpisodes = episodes.filter((ep) => ep.status === "closed").slice(0, 3);
   const reports = listReports(accountId, { childId: child.id });
+  const latestEvents = childTimeline(accountId, child).slice(-5).reverse();
 
   const age = i18n.age(child.birthDate);
   const archived = child.status === "archived";
@@ -88,10 +92,14 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <LinkButton href={`/expert?child=${child.id}`} variant="secondary">
+          <LinkButton href={`/children/${child.id}/timeline`} variant="secondary">
+            <History className="size-4" />
+            {t.timeline.button}
+          </LinkButton>
+          <AskAmitButton childId={child.id} className={buttonClass("secondary")}>
             <MessageCircle className="size-4" />
             {t.expert.askExpert}
-          </LinkButton>
+          </AskAmitButton>
           <form action={toggleStatus}>
           <Button type="submit" variant="secondary">
             {archived ? <RotateCcw className="size-4" /> : <Archive className="size-4" />}
@@ -141,6 +149,19 @@ export default async function ChildPage(props: PageProps<"/children/[id]">) {
               ]}
             />
           </EditableSection>
+
+          <Card>
+            <CardHeader title={t.timeline.previewTitle} hint={t.timeline.previewHint} />
+            <div className="px-5 pb-2">
+              <TimelineView events={latestEvents} birthDate={child.birthDate} preview />
+            </div>
+            <Link
+              href={`/children/${child.id}/timeline`}
+              className="block border-t border-line px-5 py-3 text-[12.5px] font-medium text-primary hover:underline"
+            >
+              {t.timeline.seeAll}
+            </Link>
+          </Card>
         </div>
 
         <div className="space-y-5">

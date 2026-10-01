@@ -14,6 +14,7 @@ vi.mock("../search-tool", () => ({
 }));
 
 const { runOpenAI } = await import("./openai");
+const { runSearch } = await import("../search-tool");
 
 /** Server-sent events body, as the Chat Completions streaming API returns it. */
 function sse(chunks: object[]) {
@@ -64,5 +65,32 @@ describe("runOpenAI", () => {
     expect(result.usage).toEqual({ input: 300, output: 30 });
     // Stored passages are never sent back to the API.
     expect(requests[1].messages.find((m) => m.role === "tool")).not.toHaveProperty("passages");
+  });
+  it("caps searches per answer and still answers every tool call", async () => {
+    vi.mocked(runSearch).mockClear();
+    const requests: { tool_choice?: string; messages: { role: string; tool_call_id?: string; content?: string }[] }[] = [];
+    const call = (i: number) => ({ index: i, id: `call_${i}`, type: "function", function: { name: "search_literature", arguments: `{"query":"q${i}"}` } });
+    const responses = [
+      sse([chunk({ role: "assistant", tool_calls: [0, 1, 2, 3].map(call) }, "tool_calls"), usage(1, 1)]),
+      sse([chunk({ content: "Answer." }, "stop"), usage(1, 1)]),
+    ];
+    const api = new OpenAI({
+      apiKey: "test",
+      fetch: async (_url, init) => {
+        requests.push(JSON.parse(String(init?.body)));
+        return responses.shift()!;
+      },
+    });
+
+    const events: ChatEvent[] = [];
+    await runOpenAI({ history: [], prompt: "Q?", locale: "fr", accountId: "acc", send: (e) => events.push(e) }, api);
+
+    expect(runSearch).toHaveBeenCalledTimes(3);
+    expect(events.filter((e) => e.type === "search")).toHaveLength(3);
+    const tools = requests[1].messages.filter((m) => m.role === "tool");
+    expect(tools.map((m) => m.tool_call_id)).toEqual(["call_0", "call_1", "call_2", "call_3"]);
+    expect(tools[3].content).toMatch(/budget/);
+    expect(requests[0].tool_choice).toBeUndefined();
+    expect(requests[1].tool_choice).toBe("none");
   });
 });

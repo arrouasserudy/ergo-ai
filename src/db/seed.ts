@@ -8,14 +8,26 @@
  *   colleague@demo.local  member · Cabinet Démo
  *   other@demo.local      owner  · Autre cabinet (isolation check)
  */
+import { randomBytes } from "node:crypto";
+import { and, eq } from "drizzle-orm";
 import { hashPassword } from "better-auth/crypto";
+import { sensoryProfile2Child } from "../lib/assessments/definitions/sensory-profile-2-child";
+import { ageAtTest } from "../lib/assessments/registry";
+import type { AssessmentAnswers } from "../lib/assessments/types";
+import { sanitizeAnswers } from "../lib/forms/answers";
 import { ensureBuiltinForms } from "../lib/forms/builtin";
+import { date, multi, section, single, text, textarea, yesNo } from "../lib/forms/defaults/build";
+import { normalizeForm } from "../lib/forms/normalize";
+import { allFields, type FormSchema } from "../lib/forms/schema";
 import { db } from "./index";
 import {
   accounts,
+  assessments,
   authCredentials,
+  childForms,
   children,
   episodes,
+  formTemplates,
   reports,
   reportVariants,
   therapists,
@@ -279,6 +291,274 @@ function seedReports(seeds: ReportSeed[], accountId: string, authorId: string, k
   }
 }
 
+// ---------------------------------------------------------------------------
+// J. C.: a child with two years of history, to show the timeline (birth, dates
+// answered in forms, crises and difficulties, reports, tests). Added on its own when
+// missing, so it can be run on an existing database.
+
+const TIMELINE_CHILD = "J. C.";
+
+/** Local date `days` ago (YYYY-MM-DD). */
+const isoDaysAgo = (days: number) => daysAgo(days, 9).toISOString().slice(0, 10);
+
+const JC_EPISODES: EpisodeSeed[] = [
+  { days: 700, hour: 7, minutes: 25, kind: "crisis", antecedent: "Arrivée à la crèche, salle bruyante", behavior: "Cris, se jette au sol", causes: ["noise", "crowd"], helped: ["headphones", "quietCorner"] },
+  { days: 655, hour: 16, minutes: 10, kind: "difficulty", situation: "eating", antecedent: "Goûter : compote avec morceaux", behavior: "Recrache, repousse le bol", causes: ["textures"], helped: ["Texture lisse"] },
+  { days: 590, hour: 8, minutes: 18, kind: "crisis", antecedent: "Changement d'éducatrice", behavior: "Pleurs, refuse d'enlever son manteau", causes: ["personChange", "transition"], helped: ["Annoncer le changement la veille"] },
+  { days: 520, hour: 10, minutes: 6, kind: "difficulty", situation: "hygiene", antecedent: "Lavage des mains, eau froide", behavior: "Retire ses mains, s'agite", causes: ["touch"], helped: ["Eau tiède", "removeCause"] },
+  { days: 455, hour: 11, minutes: 30, kind: "crisis", antecedent: "Nuit très courte, sortie scolaire", behavior: "Opposition, morsure de la manche", causes: ["sleep", "unfamiliarPlace", "crowd"], helped: ["break", "weightedCushion"] },
+  { days: 390, hour: 9, minutes: 8, kind: "difficulty", situation: "enteringRoom", antecedent: "Nouvelle salle de motricité", behavior: "Reste sur le seuil", causes: ["unfamiliarPlace", "light"], helped: ["Visite de la salle vide d'abord"] },
+  { days: 300, hour: 13, minutes: 14, kind: "crisis", antecedent: "Fin de la récréation", behavior: "Refuse de rentrer, tape le mur", causes: ["transition", "lossOfControl"], helped: ["Minuteur visuel", "quietCorner"] },
+  { days: 210, hour: 10, minutes: 5, kind: "difficulty", situation: "activity", antecedent: "Découpage d'une forme complexe", behavior: "Froisse la feuille", causes: ["tooDifficult", "frustration"], helped: ["Découper en étapes"] },
+  { days: 120, hour: 7, minutes: 12, kind: "crisis", antecedent: "Pull neuf avec étiquette", behavior: "Tire sur son pull, pleure", causes: ["clothing", "sleep"], helped: ["removeCause"] },
+  { days: 45, hour: 12, minutes: 4, kind: "difficulty", situation: "eating", antecedent: "Cantine, plat mélangé", behavior: "Trie les aliments, mange peu", causes: ["textures", "smells"], helped: ["Aliments séparés dans l'assiette"] },
+  { days: 12, hour: 10, minutes: 9, kind: "crisis", antecedent: "Exercice d'écriture prolongé", behavior: "Jette le crayon, se cache sous la table", causes: ["fatigue", "demand"], helped: ["break", "weightedCushion"] },
+];
+
+const JC_REPORTS = (followUpDays: number): ReportSeed[] => [
+  {
+    name: TIMELINE_CHILD,
+    docType: "initial_assessment",
+    days: followUpDays - 8,
+    notes: "- bilan initial : hypersensibilité auditive et tactile\n- graphisme : prise palmaire, tracés peu contrôlés\n- à proposer : suivi hebdomadaire, profil sensoriel",
+    recipients: ["parents"],
+    state: "exported",
+    variants: {
+      parents: [
+        { heading: "Ce que nous avons observé", body: "{{child}} réagit fortement aux bruits et à certains contacts. Sa prise du crayon est encore palmaire." },
+        { heading: "La suite", body: "Une séance par semaine, et un questionnaire sensoriel à remplir ensemble." },
+      ],
+    },
+  },
+  {
+    name: TIMELINE_CHILD,
+    docType: "year_end_summary",
+    days: 95,
+    notes: "- prise tripode acquise\n- casque anti-bruit utilisé en classe\n- crises moins fréquentes, encore à l'habillage\n- à proposer : poursuite, travail de l'écriture",
+    recipients: ["parents"],
+    state: "validated",
+    variants: {
+      parents: [
+        { heading: "Ce qui avance", body: "La prise du crayon est maintenant tripode. Le casque anti-bruit l'aide beaucoup en classe." },
+        { heading: "Ce qui reste difficile", body: "L'habillage et les vêtements neufs restent des moments sensibles." },
+      ],
+    },
+  },
+];
+
+/** The parents' history questionnaire: several dated milestones (diagnosis, other therapies…). */
+function anamnesisSchema(): FormSchema {
+  return normalizeForm(
+    {
+      title: "Anamnèse — parcours de soins",
+      description: "À remplir par les parents avant le premier rendez-vous.",
+      language: "fr",
+      sections: [
+        section("Identité", [text("Nom et prénom de l'enfant", { identifying: true }), date("Date de naissance", { identifying: true })]),
+        section("Développement", [
+          date("Premiers pas (date approximative)"),
+          date("Entrée à l'école maternelle"),
+          textarea("Quelles sont vos principales inquiétudes ?"),
+        ]),
+        section("Diagnostics et suivis", [
+          text("Diagnostic posé"),
+          date("Date du premier diagnostic"),
+          date("Début de l'orthophonie"),
+          date("Début de la psychomotricité"),
+          date("Dernière consultation chez le neuropédiatre"),
+          multi("Suivis en cours", ["Orthophonie", "Psychomotricité", "Psychologue", "Neuropédiatre"], { other: true }),
+          yesNo("Traitement médicamenteux"),
+          single("Main dominante", ["Droite", "Gauche", "Pas encore établie"]),
+        ]),
+      ],
+    },
+    "Anamnèse",
+    "fr",
+  );
+}
+
+/** Answers keyed by field label, turned into field ids and checked against the schema. */
+function answersByLabel(schema: FormSchema, byLabel: Record<string, unknown>) {
+  const raw: Record<string, unknown> = {};
+  for (const field of allFields(schema)) {
+    if (field.label in byLabel) raw[field.id] = byLabel[field.label];
+  }
+  return sanitizeAnswers(schema, raw);
+}
+
+/** Every Sensory Profile 2 item answered (a fixed pattern), `shift` lowering the ratings. */
+function sp2Answers(shift: number): AssessmentAnswers {
+  const pattern = [4, 3, 4, 5, 3, 2, 4, 3, 2, 4];
+  const ids = sensoryProfile2Child.sections.flatMap((s) => s.items.map((i) => i.id));
+  const values = Object.fromEntries(ids.map((id, i) => [id, Math.max(1, pattern[i % pattern.length] - (i % 3 === 0 ? 0 : shift))]));
+  return { values, ticks: {}, comments: {} };
+}
+
+async function seedTimelineChild(accountId: string, ownerId: string) {
+  const exists = db.select({ id: children.id }).from(children).where(and(eq(children.accountId, accountId), eq(children.name, TIMELINE_CHILD))).get();
+  if (exists) return false;
+
+  const followUpDays = 730;
+  const birthYear = new Date().getFullYear() - 7;
+  const birthDate = `${birthYear}-05-14`;
+  const child = db
+    .insert(children)
+    .values({
+      accountId,
+      createdBy: ownerId,
+      name: TIMELINE_CHILD,
+      birthDate,
+      referralReason: "Régulation sensorielle, graphomotricité",
+      schoolLevel: "CE1",
+      followUpStart: isoDaysAgo(followUpDays),
+      medicalHistory: "Otites à répétition. Suivi neuropédiatrique.",
+      geneticDiagnoses: "TSA (trouble du spectre de l'autisme), sans déficience intellectuelle.",
+      familyComposition: "Vit avec ses deux parents et une grande sœur.",
+      siblingsCount: 1,
+      knownTriggers: "Bruits forts, étiquettes, changements d'intervenant.",
+      hyperSensitivities: ["noise", "clothing", "touch"],
+      seeksDeepPressure: true,
+      backgroundFactors: ["sleep"],
+      calmingStrategies: ["headphones", "weightedCushion", "quietCorner"],
+      interests: ["cars"],
+      createdAt: `${isoDaysAgo(followUpDays + 6)} 08:00:00`,
+    })
+    .returning()
+    .get();
+
+  db.insert(episodes).values(episodeRows(JC_EPISODES, accountId, child.id, ownerId)).run();
+  seedReports(JC_REPORTS(followUpDays), accountId, ownerId, () => child.id);
+
+  // Forms: the parents' history questionnaire (filled through the link), the built-in
+  // evaluation form (filled by the therapist), the eating observation sent recently.
+  const anamnesis = anamnesisSchema();
+  const template = db
+    .insert(formTemplates)
+    .values({
+      accountId,
+      createdBy: ownerId,
+      title: anamnesis.title,
+      sourceFilename: "anamnese-parcours.docx",
+      sourceKind: "docx",
+      schema: anamnesis,
+      status: "published",
+      model: "seed",
+      generatedAt: daysAgo(followUpDays + 20, 9),
+    })
+    .returning({ id: formTemplates.id })
+    .get();
+  const linkToken = () => randomBytes(32).toString("hex");
+  const SHARE_DAYS = 30;
+  const sentDays = followUpDays + 5;
+  db.insert(childForms)
+    .values({
+      accountId,
+      childId: child.id,
+      templateId: template.id,
+      schema: anamnesis,
+      answers: answersByLabel(anamnesis, {
+        "Nom et prénom de l'enfant": "J. C.",
+        "Date de naissance": birthDate,
+        "Premiers pas (date approximative)": `${birthYear + 1}-07-02`,
+        "Entrée à l'école maternelle": `${birthYear + 3}-09-01`,
+        "Quelles sont vos principales inquiétudes ?": "Les crises au réveil et à l'habillage, et la tenue du crayon.",
+        "Diagnostic posé": "TSA",
+        "Date du premier diagnostic": `${birthYear + 4}-01-22`,
+        "Début de l'orthophonie": `${birthYear + 4}-03-04`,
+        "Dernière consultation chez le neuropédiatre": isoDaysAgo(followUpDays + 40),
+        "Traitement médicamenteux": false,
+      }),
+      status: "submitted",
+      submittedAt: daysAgo(followUpDays + 2, 17, 40),
+      submittedBy: "parent",
+      shareTokenHash: linkToken(),
+      shareExpiresAt: daysAgo(sentDays - SHARE_DAYS, 8),
+      createdAt: daysAgo(sentDays, 8),
+      updatedAt: daysAgo(followUpDays + 2, 17, 40),
+    })
+    .run();
+
+  const builtin = (key: string) =>
+    db
+      .select({ id: formTemplates.id, schema: formTemplates.schema })
+      .from(formTemplates)
+      .where(and(eq(formTemplates.accountId, accountId), eq(formTemplates.builtinKey, key)))
+      .get();
+  const firstDate = (schema: FormSchema) => allFields(schema).find((f) => f.type === "date")!;
+
+  const evaluation = builtin("evaluation");
+  if (evaluation) {
+    const evaluationDay = isoDaysAgo(followUpDays - 3);
+    db.insert(childForms)
+      .values({
+        accountId,
+        childId: child.id,
+        templateId: evaluation.id,
+        schema: evaluation.schema,
+        answers: sanitizeAnswers(evaluation.schema, {
+          [firstDate(evaluation.schema).id]: evaluationDay,
+          ...Object.fromEntries(
+            allFields(evaluation.schema)
+              .filter((f) => f.type === "textarea")
+              .slice(0, 1)
+              .map((f) => [f.id, "קשיי ויסות חושי והתפרצויות בגן; אחיזת עיפרון לא בשלה."]),
+          ),
+        }),
+        status: "submitted",
+        submittedAt: daysAgo(followUpDays - 3, 13, 5),
+        submittedBy: "therapist",
+        createdAt: daysAgo(followUpDays - 3, 10),
+        updatedAt: daysAgo(followUpDays - 3, 13, 5),
+      })
+      .run();
+  }
+
+  const eating = builtin("eating_observation");
+  if (eating) {
+    db.insert(childForms)
+      .values({
+        accountId,
+        childId: child.id,
+        templateId: eating.id,
+        schema: eating.schema,
+        status: "sent",
+        shareTokenHash: linkToken(),
+        shareExpiresAt: daysAgo(6 - SHARE_DAYS, 8),
+        createdAt: daysAgo(6, 8),
+        updatedAt: daysAgo(6, 8),
+      })
+      .onConflictDoNothing()
+      .run();
+  }
+
+  // Two Sensory Profile 2 administrations: at the start, then a year later.
+  for (const { days, shift, by } of [
+    { days: followUpDays - 15, shift: 0, by: "parent" as const },
+    { days: 360, shift: 1, by: "therapist" as const },
+  ]) {
+    const testDate = isoDaysAgo(days);
+    const answers = sp2Answers(shift);
+    db.insert(assessments)
+      .values({
+        accountId,
+        childId: child.id,
+        createdBy: ownerId,
+        definitionId: sensoryProfile2Child.id,
+        definitionVersion: sensoryProfile2Child.version,
+        testDate,
+        answers,
+        scores: sensoryProfile2Child.score(answers, { ageMonths: ageAtTest(birthDate, testDate) }),
+        status: "completed",
+        completedAt: daysAgo(days - 2, 15),
+        completedBy: by,
+        createdAt: daysAgo(days, 9),
+        updatedAt: daysAgo(days - 2, 15),
+      })
+      .run();
+  }
+  return true;
+}
+
 async function createTherapist(accountId: string, role: TherapistRole, name: string, email: string) {
   const therapist = db.insert(therapists).values({ accountId, role, name, email }).returning().get();
   db.insert(authCredentials)
@@ -315,6 +595,7 @@ async function seed() {
     .values(OTHER_CHILDREN.map((c) => ({ ...c, accountId: other.id, createdBy: otherOwner.id })))
     .run();
   ensureBuiltinForms(db, [demo.id, other.id]);
+  await seedTimelineChild(demo.id, owner.id);
 }
 
 async function main() {
@@ -323,12 +604,19 @@ async function main() {
   if (reset) db.delete(accounts).run();
 
   if (db.select({ id: accounts.id }).from(accounts).limit(1).all().length) {
-    console.log("Database already has data — skipping (use --reset to reseed).");
+    // Existing database: only add the timeline demo child to the demo cabinet, if missing.
+    const owner = db.select().from(therapists).where(eq(therapists.email, "michaela@demo.local")).get();
+    if (owner) {
+      ensureBuiltinForms(db, [owner.accountId]);
+      const added = await seedTimelineChild(owner.accountId, owner.id);
+      console.log(added ? `Added the timeline demo child "${TIMELINE_CHILD}".` : `${TIMELINE_CHILD} already exists.`);
+    }
+    console.log("Database already has data — skipping the rest (use --reset to reseed).");
     return;
   }
   await seed();
   console.log(
-    `Seeded 2 accounts, 3 therapists (password "${DEMO_PASSWORD}"), ${DEMO_CHILDREN.length + OTHER_CHILDREN.length} children, ${LM_EPISODES.length + TR_EPISODES.length} episodes, ${REPORTS.length} reports.`,
+    `Seeded 2 accounts, 3 therapists (password "${DEMO_PASSWORD}"), ${DEMO_CHILDREN.length + OTHER_CHILDREN.length} children, ${LM_EPISODES.length + TR_EPISODES.length} episodes, ${REPORTS.length} reports, plus the timeline demo child "${TIMELINE_CHILD}".`,
   );
 }
 

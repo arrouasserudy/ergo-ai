@@ -53,6 +53,8 @@ export function toDisplayTurns(rows: Row[], provider: "anthropic" | "openai" = "
 
 export type Source = { n: number; title: string; url: string; passages: string[] };
 
+const LIMITS_PATTERN = new RegExp(`(?:\\*\\*)?\\[\\s*${LIMITS_MARKER.slice(1, -1)}\\s*\\](?:\\*\\*)?`, "i");
+
 export type Answer = { markdown: string; limits: string | null; sources: Source[] };
 
 /** Markdown with `[n](#cite-n)` markers after cited text, the numbered sources, and the limits paragraph. */
@@ -74,7 +76,9 @@ export function buildAnswer(parts: AnswerPart[]): Answer {
     if (numbers.length) markdown += numbers.map((n) => ` [${n}](#cite-${n})`).join("");
   }
 
-  const at = markdown.indexOf(LIMITS_MARKER);
-  const limits = at === -1 ? null : markdown.slice(at + LIMITS_MARKER.length).replace(/^[\s:—-]+/, "").trim() || null;
+  // Models sometimes write the marker loosely ("[ LIMITS ]", "**[LIMITS]**").
+  const marker = markdown.match(LIMITS_PATTERN);
+  const at = marker?.index ?? -1;
+  const limits = marker ? markdown.slice(at + marker[0].length).replace(/^[\s:—*-]+/, "").trim() || null : null;
   return { markdown: (at === -1 ? markdown : markdown.slice(0, at)).trim(), limits, sources: [...sources.values()] };
 }

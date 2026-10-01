@@ -5,9 +5,9 @@ import { SharedPapers } from "@/components/expert/SharedPapers";
 import { UploadForm } from "@/components/expert/UploadForm";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
-import { Eyebrow } from "@/components/ui/Eyebrow";
 import { listSharedPapers } from "@/db/library";
 import { getI18n } from "@/i18n/server";
+import { requireTherapist } from "@/lib/session";
 
 export async function generateMetadata() {
   const { t } = await getI18n();
@@ -17,6 +17,7 @@ export async function generateMetadata() {
 export default async function LibraryPage(props: PageProps<"/expert/library">) {
   const i18n = await getI18n();
   const { t } = i18n;
+  await requireTherapist();
   const l = t.expert.library;
   const docs = await listDocuments();
   const papers = listSharedPapers();
@@ -24,10 +25,9 @@ export default async function LibraryPage(props: PageProps<"/expert/library">) {
   const highlight = (await props.searchParams).doc;
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto max-w-6xl space-y-5">
       <header>
-        <Eyebrow>{t.nav.expert}</Eyebrow>
-        <h1 className="mt-1 text-[24px] leading-tight font-semibold tracking-tight">{l.title}</h1>
+        <h1 className="text-[28px] leading-tight font-semibold tracking-tight">{l.title}</h1>
         <p className="mt-1 max-w-2xl text-[13px] text-ink-muted">{l.subtitle}</p>
         <p className="mt-1 text-[12.5px] text-ink-muted">{shared ? l.shared(shared) : l.noShared}</p>
       </header>

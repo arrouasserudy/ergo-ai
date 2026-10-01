@@ -73,4 +73,37 @@ describe("replaceChildName", () => {
   it("replaces every form of the name, whatever the case", () => {
     expect(replaceChildName("LÉA MARTIN progresse. Bravo léa !", "Léa Martin", "{{child}}")).toBe("{{child}} progresse. Bravo {{child}} !");
   });
+
+  it.each([
+    ["comment faire manger J C?", "comment faire manger X?"],
+    ["J.C. mange peu", "X mange peu"],
+    ["avec J. C. et sa mère", "avec X et sa mère"],
+    ["JC refuse", "X refuse"],
+    ["j c refuse", "X refuse"],
+    ["J-C refuse", "X refuse"],
+  ])("replaces initials typed as %s", (input, expected) => {
+    expect(replaceChildName(input, "J. C.", "X")).toBe(expected);
+  });
+
+  it("leaves ordinary words alone", () => {
+    const text = "Je pense que ça va, c'est jc ou JCB ? J'ai vu J et C. Jc";
+    expect(replaceChildName(text, "J. C.", "X")).toBe(text);
+    const la = "Comment la faire manger ? Là, elle est là. Et E et T.";
+    expect(replaceChildName(la, "L. A.", "X")).toBe(la);
+    expect(replaceChildName(la, "E. T.", "X")).toBe(la);
+    expect(replaceChildName("Le Goff arrive, le chat aussi. Goff rit.", "Le Goff", "X")).toBe("X arrive, le chat aussi. X rit.");
+  });
+
+  it("ignores accents and case", () => {
+    expect(replaceChildName("Lea est venue, LÉA aussi, puis lèa.", "Léa Martin", "X")).toBe("X est venue, X aussi, puis X.");
+    expect(replaceChildName("Noemie et Zoé", "Noémie Zoe", "X")).toBe("X et X");
+  });
+
+  it("finds the initials of a full name", () => {
+    expect(replaceChildName("L. M. et LM, pas lm.", "Léa Martin", "X")).toBe("X et X, pas lm.");
+  });
+
+  it("works with Hebrew vowel points", () => {
+    expect(replaceChildName("נוֹעָה שיחקה", "נועה כהן", "X")).toBe("X שיחקה");
+  });
 });

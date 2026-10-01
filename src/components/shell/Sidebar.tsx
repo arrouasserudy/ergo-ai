@@ -3,15 +3,13 @@
 import clsx from "clsx";
 import {
   Activity,
-  ClipboardList,
   FileText,
-  Gauge,
+  FolderOpen,
   ListChecks,
   Lock,
   LayoutDashboard,
   LogOut,
   Menu,
-  MessageCircle,
   Settings,
   UserRound,
   X,
@@ -23,18 +21,18 @@ import { useState, type ReactNode } from "react";
 import { signOut } from "@/app/actions/auth";
 import { useI18n } from "@/i18n/client";
 import { initialsOf } from "@/lib/child-name";
+import { RESOURCE_TABS } from "@/components/shell/ResourcesTabs";
 import type { Dictionary } from "@/i18n/fr";
 
-type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href: string };
+/** `match`: other path prefixes that light up the item (defaults to `href` alone). */
+type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href: string; match?: string[] };
 
 const NAV: NavItem[] = [
   { label: "dashboard", icon: LayoutDashboard, href: "/" },
   { label: "reports", icon: ListChecks, href: "/reports" },
   { label: "children", icon: UserRound, href: "/children" },
   { label: "crises", icon: Activity, href: "/crises" },
-  { label: "expert", icon: MessageCircle, href: "/expert" },
-  { label: "forms", icon: ClipboardList, href: "/forms" },
-  { label: "assessments", icon: Gauge, href: "/assessments" },
+  { label: "resources", icon: FolderOpen, href: "/forms", match: RESOURCE_TABS.map((tab) => tab.href) },
   { label: "settings", icon: Settings, href: "/settings" },
 ];
 
@@ -65,11 +63,13 @@ function Logo({ accountName }: { accountName: string }) {
   );
 }
 
-/** The longest matching href wins, so "/children/1" lights up "/children". "/" only matches itself. */
+const matches = (pathname: string, prefix: string) => (prefix === "/" ? pathname === "/" : pathname === prefix || pathname.startsWith(`${prefix}/`));
+
+/** The item with the longest matching prefix wins, so "/children/1" lights up "/children". "/" only matches itself. */
 function activeHrefOf(pathname: string) {
-  return NAV.map((item) => item.href)
-    .filter((href) => (href === "/" ? pathname === "/" : pathname.startsWith(href)))
-    .sort((a, b) => b.length - a.length)[0];
+  return NAV.flatMap((item) => (item.match ?? [item.href]).map((prefix) => ({ href: item.href, prefix })))
+    .filter(({ prefix }) => matches(pathname, prefix))
+    .sort((a, b) => b.prefix.length - a.prefix.length)[0]?.href;
 }
 
 function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {

@@ -152,6 +152,7 @@ export const knoxPreschoolPlayScale: AssessmentDefinition = {
   version: 1,
   name: "Revised Knox Preschool Play Scale",
   shortName: "Knox",
+  summaryGroup: "overall",
   language: "he",
   respondents: ["therapist"],
   ageRange: { minMonths: 0, maxMonths: 36 },

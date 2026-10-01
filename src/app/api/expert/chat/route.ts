@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { chatMessages, conversations } from "@/db/schema";
 import { getLocale } from "@/i18n/server";
 import { getChild } from "@/lib/children";
+import { redactChildName } from "@/lib/expert/child-context";
 import { contextFor } from "@/lib/expert/context";
 import { DAILY_QUESTION_LIMIT, getConversation, listMessages, questionsToday } from "@/lib/expert/conversations";
 import type { ChatEvent } from "@/lib/expert/events";
@@ -55,14 +56,19 @@ export async function POST(request: Request) {
 
         const history = conversation ? listMessages(conversation.id).map((m) => ({ role: m.role, content: m.content })) : [];
 
+        // The conversation's child: its name typed in any message is replaced by "the child"
+        // before it is sent (and stored, as sent).
+        const childRef = conversation ? conversation.childId : childId;
+        const child = childRef ? getChild(accountId, childRef) : null;
+        const typed = child ? redactChildName(message, child.name) : message;
+
         // Pseudonymized child context goes into the first message only (stable, cacheable prefix).
-        let prompt = message;
+        let prompt = typed;
         if (!conversation) {
-          const child = childId ? getChild(accountId, childId) : null;
-          if (child) prompt = `${contextFor(accountId, child, episodeId)}\n\n${message}`;
+          if (child) prompt = `${contextFor(accountId, child, episodeId)}\n\n${typed}`;
           conversation = db
             .insert(conversations)
-            .values({ accountId, therapistId, childId: child?.id ?? null, title: message.slice(0, 80), provider })
+            .values({ accountId, therapistId, childId: child?.id ?? null, title: typed.slice(0, 80), provider })
             .returning()
             .get();
           send({ type: "conversation", id: conversation.id });

@@ -1,5 +1,6 @@
 import { ChevronRight, MessageCircle } from "lucide-react";
 import Link from "next/link";
+import { AskAmitButton } from "@/components/expert/AskAmitButton";
 import type { Episode } from "@/db/schema";
 import { getI18n } from "@/i18n/server";
 
@@ -27,13 +28,14 @@ export async function OpenEpisodes({ items }: { items: { episode: Episode; child
               <ChevronRight className="size-4 rtl:rotate-180" />
             </span>
           </Link>
-          <Link
-            href={`/expert?child=${child.id}&episode=${episode.id}`}
+          <AskAmitButton
+            childId={child.id}
+            episodeId={episode.id}
             className="flex items-center gap-1.5 rounded-xl border border-line-strong bg-surface px-4 py-3 text-[13px] font-medium text-primary transition-colors hover:bg-surface-muted"
           >
             <MessageCircle className="size-4" />
             {t.episodes.askAmit}
-          </Link>
+          </AskAmitButton>
         </li>
       ))}
     </ul>

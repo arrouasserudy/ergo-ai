@@ -7,6 +7,7 @@ import type {
 } from "openai/resources/chat/completions";
 import { partsFromMarkers, type CitablePassage } from "../answer";
 import type { Passage } from "../retrieval";
+import { SEARCH_BUDGET_SPENT, searchBudget } from "../search-budget";
 import { citationTitle, runSearch, SEARCH_QUERY_DESCRIPTION, SEARCH_TOOL_DESCRIPTION, SEARCH_UNAVAILABLE } from "../search-tool";
 import { expertSystemPrompt } from "../system-prompt";
 import { ProviderUnavailableError, type RunArgs, type RunResult, type StoredMessage } from "./types";
@@ -77,12 +78,15 @@ export async function runOpenAI({ history, prompt, locale, accountId, send }: Ru
 
   const usage = { input: 0, output: 0 };
   let refused = false;
+  const budget = searchBudget();
   try {
     for (let step = 0; step < MAX_STEPS; step++) {
       const stream = await openai.chat.completions.create({
         model: OPENAI_MODEL,
         messages,
         tools: [searchTool],
+        // Budget spent: the model must answer (tools stay listed, so the prefix stays cached).
+        ...(budget.spent ? { tool_choice: "none" as const } : {}),
         stream: true,
         stream_options: { include_usage: true },
         max_completion_tokens: 16000,
@@ -139,7 +143,9 @@ export async function runOpenAI({ history, prompt, locale, accountId, send }: Ru
         }
         let content = "Invalid arguments: expected {\"query\": string}.";
         let passages: CitablePassage[] = [];
-        if (query) {
+        // Every tool call needs its tool message, even beyond the budget.
+        if (query && !budget.take()) content = SEARCH_BUDGET_SPENT;
+        else if (query) {
           send({ type: "search", query });
           try {
             const found = await runSearch(accountId, query);

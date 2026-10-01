@@ -2,9 +2,9 @@
 
 import clsx from "clsx";
 import { Check, ChevronDown, CircleAlert, Info, Loader2, MessageCircle, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { deleteEpisode, finishEpisode, saveEpisode } from "@/app/actions/episodes";
+import { openAmit } from "@/components/expert/amit-store";
 import { Badge } from "@/components/ui/Badge";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
@@ -47,7 +47,6 @@ export function EpisodeScreen({ episode, child, profile, history, helpedOptions,
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [finishing, startFinishing] = useTransition();
   const [asking, startAsking] = useTransition();
-  const router = useRouter();
   const [finishError, setFinishError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showMore, setShowMore] = useState(false);
@@ -103,7 +102,7 @@ export function EpisodeScreen({ episode, child, profile, history, helpedOptions,
   const askAmit = () =>
     startAsking(async () => {
       if (dirty.current) await saveEpisode(episode.id, data).catch(() => null);
-      router.push(`/expert?child=${child.id}&episode=${episode.id}`);
+      openAmit({ kind: "new", childId: child.id, episodeId: episode.id });
     });
 
   return (
