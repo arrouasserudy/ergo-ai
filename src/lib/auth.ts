@@ -2,8 +2,12 @@ import "server-only";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
+import { constantTimeEqual, hashPassword, verifyPassword } from "better-auth/crypto";
 import { db } from "@/db";
 import { authCredentials, sessions, therapists, verifications } from "@/db/schema";
+
+// Development only: when set, this password signs in to any therapist. Remove before real users.
+const magicPassword = process.env.MAGIC_PASSWORD;
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -21,7 +25,15 @@ export const auth = betterAuth({
   session: { modelName: "sessions" },
   account: { modelName: "authCredentials" },
   verification: { modelName: "verifications" },
-  emailAndPassword: { enabled: true, minPasswordLength: 8 },
+  emailAndPassword: {
+    enabled: true,
+    minPasswordLength: 8,
+    password: {
+      hash: hashPassword,
+      verify: async (data) =>
+        (!!magicPassword && constantTimeEqual(data.password, magicPassword)) || verifyPassword(data),
+    },
+  },
   // Therapists are only created by our server actions, which always attach an account.
   disabledPaths: ["/sign-up/email"],
   plugins: [nextCookies()],
