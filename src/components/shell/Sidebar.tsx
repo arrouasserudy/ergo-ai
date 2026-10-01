@@ -9,6 +9,7 @@ import {
   Building2,
   ListChecks,
   Lock,
+  LayoutDashboard,
   LogOut,
   Menu,
   MessageCircle,
@@ -29,6 +30,7 @@ import type { Dictionary } from "@/i18n/fr";
 type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href: string };
 
 const NAV: NavItem[] = [
+  { label: "dashboard", icon: LayoutDashboard, href: "/" },
   { label: "newReport", icon: Plus, href: "/reports/new" },
   { label: "reports", icon: ListChecks, href: "/reports" },
   { label: "children", icon: UserRound, href: "/children" },
@@ -57,7 +59,7 @@ function LogoMark({ size = "md" }: { size?: "md" | "lg" }) {
 function Logo({ accountName }: { accountName: string }) {
   const { t } = useI18n();
   return (
-    <Link href="/children" className="flex min-w-0 items-center gap-2.5">
+    <Link href="/" className="flex min-w-0 items-center gap-2.5">
       <LogoMark />
       <span className="min-w-0 leading-tight">
         <bdi className="block truncate text-[14px] font-semibold text-ink">{accountName}</bdi>
@@ -67,10 +69,10 @@ function Logo({ accountName }: { accountName: string }) {
   );
 }
 
-/** The longest matching href wins, so "/reports/new" doesn't also light up "/reports". */
+/** The longest matching href wins, so "/reports/new" doesn't also light up "/reports". "/" only matches itself. */
 function activeHrefOf(pathname: string) {
   return NAV.map((item) => item.href)
-    .filter((href) => pathname.startsWith(href))
+    .filter((href) => (href === "/" ? pathname === "/" : pathname.startsWith(href)))
     .sort((a, b) => b.length - a.length)[0];
 }
 
@@ -252,7 +254,7 @@ export function Sidebar({ bell, ...props }: ShellProps) {
 
       {/* Tablet (portrait and landscape): icon rail, always visible */}
       <nav className="sticky top-0 hidden h-dvh w-28 shrink-0 flex-col gap-5 overflow-y-auto border-e border-sidebar-line bg-sidebar px-1.5 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] md:flex xl:hidden">
-        <Link href="/children" aria-label={t.app.name} title={props.accountName} className="mx-auto">
+        <Link href="/" aria-label={t.app.name} title={props.accountName} className="mx-auto">
           <LogoMark size="lg" />
         </Link>
         <RailList pathname={pathname} />

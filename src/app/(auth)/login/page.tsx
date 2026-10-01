@@ -12,7 +12,7 @@ export async function generateMetadata() {
 export default async function LoginPage() {
   const i18n = await getI18n();
   const { t } = i18n;
-  if (await getSession()) redirect("/children");
+  if (await getSession()) redirect("/");
 
   return (
     <Card className="p-6 sm:p-8">
