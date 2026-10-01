@@ -26,9 +26,12 @@ export default async function NewReportPage(props: PageProps<"/reports/new">) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
-      <Link href="/reports" className="-my-2 inline-flex min-h-11 items-center gap-1 text-[13.5px] text-ink-muted hover:text-ink">
+      <Link
+        href={preselected ? `/children/${preselected}/reports` : "/children"}
+        className="-my-2 inline-flex min-h-11 items-center gap-1 text-[13.5px] text-ink-muted hover:text-ink"
+      >
         <ChevronLeft className="size-4 rtl:rotate-180" />
-        {r.backToList}
+        {preselected ? r.backToList : t.nav.children}
       </Link>
       <header>
         <Eyebrow>{r.newEyebrow}</Eyebrow>

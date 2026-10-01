@@ -36,7 +36,6 @@ import { reportSchema, reportSectionsSchema, toFieldErrors, type FieldErrors, ty
 const isRecipient = (value: unknown): value is ReportRecipient => (REPORT_RECIPIENTS as readonly unknown[]).includes(value);
 
 function revalidateReport(id: string, childId: string) {
-  revalidatePath("/reports");
   revalidatePath(`/reports/${id}`);
   revalidatePath(`/children/${childId}`, "layout");
 }
@@ -270,5 +269,5 @@ export async function deleteReport(id: string) {
     .returning({ childId: reports.childId })
     .get();
   if (deleted) revalidateReport(id, deleted.childId);
-  redirect("/reports");
+  redirect(deleted ? `/children/${deleted.childId}/reports` : "/children");
 }

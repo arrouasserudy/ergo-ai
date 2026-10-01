@@ -5,7 +5,6 @@ import {
   Activity,
   FileText,
   FolderOpen,
-  ListChecks,
   Lock,
   LayoutDashboard,
   LogOut,
@@ -29,8 +28,7 @@ type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href: string;
 
 const NAV: NavItem[] = [
   { label: "dashboard", icon: LayoutDashboard, href: "/" },
-  { label: "reports", icon: ListChecks, href: "/reports" },
-  { label: "children", icon: UserRound, href: "/children" },
+  { label: "children", icon: UserRound, href: "/children", match: ["/children", "/reports"] },
   { label: "crises", icon: Activity, href: "/crises" },
   { label: "resources", icon: FolderOpen, href: "/forms", match: RESOURCE_TABS.map((tab) => tab.href) },
   { label: "settings", icon: Settings, href: "/settings" },

@@ -9,7 +9,6 @@ export const fr = {
   nav: {
     dashboard: "Tableau de bord",
     newReport: "Nouveau compte-rendu",
-    reports: "Mes comptes-rendus",
     crises: "Crises",
     library: "Bibliothèque",
     resources: "Ressources",
@@ -218,7 +217,7 @@ export const fr = {
     context: "Contexte",
     noContext: "Sans enfant",
     contextBadge: (name: string) => `Contexte : ${name}`,
-    contextHint: "Seules des informations pseudonymisées sont partagées : jamais le nom.",
+    contextHint: "Pseudonymisé : le nom de l'enfant est retiré. Les autres noms écrits dans la fiche sont envoyés tels quels.",
     contextPreview: "Ce qui sera partagé avec l'assistant",
     searching: (query: string) => `Recherche : ${query}`,
     thinking: "Réflexion…",
@@ -265,16 +264,12 @@ export const fr = {
   },
   reports: {
     listTitle: "Mes comptes-rendus",
-    listSubtitle: "Brouillons à relire, documents validés et exportés.",
     newButton: "Nouveau compte-rendu",
     searchPlaceholder: "Rechercher un enfant par son nom…",
     statusFilter: { all: "Tous les statuts", draft: "Brouillons", validated: "Validés", exported: "Exportés" } as Record<string, string>,
     thisMonth: "Ce mois-ci",
     columns: { child: "Enfant", type: "Type", date: "Date", status: "Statut" },
     count: (n: number) => (n <= 1 ? `${n} compte-rendu` : `${n} comptes-rendus`),
-    emptyTitle: "Aucun compte-rendu pour l'instant",
-    emptyBody: "Après une séance, dictez ou tapez vos notes : le compte-rendu est rédigé pour chaque destinataire.",
-    noResults: "Aucun compte-rendu ne correspond à cette recherche.",
 
     docType: {
       follow_up: "Suivi",
@@ -928,7 +923,7 @@ export const fr = {
         dictation: { name: "Dictée", sent: "L'enregistrement audio, tel quel : évitez d'y prononcer le nom de l'enfant." },
         expert: {
           name: "Amit",
-          sent: "Vos messages et, si vous choisissez un enfant, un résumé pseudonymisé de sa fiche (âge, motif, profil sensoriel, schémas de crises). Pour une crise en cours : les notes des crises, nom de l'enfant retiré.",
+          sent: "Vos messages et, si vous choisissez un enfant, un résumé pseudonymisé de sa fiche : âge, motif, profil sensoriel, schémas de crises, antécédents médicaux et familiaux, scores des tests, dernier bilan raccourci et dates des questionnaires, nom de l'enfant retiré (les autres noms que vous avez écrits sont envoyés tels quels). Pour une crise en cours : les notes des crises, nom de l'enfant retiré.",
         },
         forms: {
           name: "Formulaires",
@@ -952,7 +947,7 @@ export const fr = {
       neverSent: [
         "Le nom de l'enfant. Si vous l'écrivez vous-même dans vos notes ou vos messages, il est envoyé tel quel : l'application vous prévient.",
         "Sa date de naissance : seul l'âge est transmis.",
-        "Ses antécédents médicaux et familiaux.",
+        "Ses antécédents médicaux et familiaux, sauf dans le résumé envoyé à Amit quand vous choisissez l'enfant (raccourcis, nom retiré).",
         "Votre nom, celui de votre cabinet et votre en-tête.",
       ],
       storedTitle: "Ce qui est conservé",

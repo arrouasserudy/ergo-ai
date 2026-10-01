@@ -40,7 +40,8 @@ export type TimelineEvent = Base &
     | { kind: "crisis" | "difficulty"; situation: string | null; causes: string[]; minutes: number | null; open: boolean }
     | { kind: "report"; docType: string; status: string }
     | { kind: "form"; action: "sent" | "submitted"; title: string; by: "therapist" | "parent" | null }
-    | { kind: "formDate"; label: string; formTitle: string }
+    /** `identifying`: the question identifies the child or family (shown here, never sent to the AI). */
+    | { kind: "formDate"; label: string; formTitle: string; identifying?: true }
     | { kind: "assessment"; name: string; status: AssessmentStatus; scores: TimelineScore[] }
   );
 
@@ -159,6 +160,7 @@ export function buildTimeline({ child, episodes, reports, forms, assessments, ti
         href,
         label: field.label.replace(/\s*[:：]\s*$/, ""),
         formTitle: title,
+        ...(field.identifying ? { identifying: true as const } : {}),
       });
     }
   }

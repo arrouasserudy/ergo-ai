@@ -43,7 +43,7 @@ export default async function ReportPage(props: PageProps<"/reports/[id]">) {
 
   return (
     <div className="mx-auto max-w-7xl space-y-4">
-      <Link href="/reports" className="inline-flex items-center gap-1 text-[13px] text-ink-muted hover:text-ink">
+      <Link href={`/children/${child.id}/reports`} className="inline-flex items-center gap-1 text-[13px] text-ink-muted hover:text-ink">
         <ChevronLeft className="size-4 rtl:rotate-180" />
         {i18n.t.reports.backToList}
       </Link>

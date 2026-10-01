@@ -254,7 +254,7 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
                     <Info className="size-3.5" />
                     {e.contextHint}
                   </p>
-                  <pre dir="auto" className="text-[12px] whitespace-pre-wrap text-ink-soft">
+                  <pre dir="auto" className="max-h-[min(16rem,35dvh)] overflow-y-auto overscroll-contain font-sans text-[12px] leading-relaxed break-words whitespace-pre-wrap text-ink-soft">
                     {preview ?? "…"}
                   </pre>
                 </div>

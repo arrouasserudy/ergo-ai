@@ -72,3 +72,28 @@ export function recentStyleExamples(therapistId: string, recipients: ReportRecip
   }
   return byRecipient;
 }
+
+/** A child's latest reports (by session date) with their versions, for Amit's child context. */
+export function childReportsWithVariants(accountId: string, childId: string, limit = 10) {
+  const rows = db
+    .select({ id: reports.id, sessionDate: reports.sessionDate, docType: reports.docType, status: reports.status })
+    .from(reports)
+    .where(and(eq(reports.accountId, accountId), eq(reports.childId, childId)))
+    .orderBy(desc(reports.sessionDate))
+    .limit(limit)
+    .all();
+  if (rows.length === 0) return [];
+  const variants = db
+    .select({
+      reportId: reportVariants.reportId,
+      recipient: reportVariants.recipient,
+      generated: reportVariants.generated,
+      sections: reportVariants.sections,
+      validatedAt: reportVariants.validatedAt,
+      exportedAt: reportVariants.exportedAt,
+    })
+    .from(reportVariants)
+    .where(and(eq(reportVariants.accountId, accountId), inArray(reportVariants.reportId, rows.map((r) => r.id))))
+    .all();
+  return rows.map((report) => ({ ...report, variants: variants.filter((v) => v.reportId === report.id) }));
+}

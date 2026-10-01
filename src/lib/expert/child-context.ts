@@ -1,20 +1,190 @@
-import type { Child, Episode } from "@/db/schema";
+import type { Child, Episode, ReportSection } from "@/db/schema";
 import { ageInMonths } from "@/i18n";
+import { scoreValueText } from "@/lib/assessments/prompt";
 import { computePatterns, timeOfDay } from "@/lib/episode-insights";
 import { replaceChildName } from "@/lib/reports/text";
+import type { TimelineEvent } from "@/lib/timeline/events";
 import { minutesBetween } from "@/lib/time";
 
-/**
- * Pseudonymized summary of a child for the expert chat. Structured fields and the
- * therapist's own profile notes only: no initials, no name, no free-text crisis notes
- * (they could mention people). Shown verbatim to the therapist before it is sent.
- */
-export function childContextText(child: Child, episodes: Episode[], timeZone: string): string {
-  const lines: string[] = ["Context about the child we are discussing (pseudonymized):"];
-  if (child.birthDate) {
-    const months = ageInMonths(child.birthDate);
-    lines.push(`- Age: ${months < 24 ? `${months} months` : `${Math.floor(months / 12)} years`}`);
+/** Size caps (characters) of the child context: the whole text, and each added section. */
+export const CONTEXT_CAPS = {
+  total: 5000,
+  backgroundField: 300,
+  background: 1200,
+  tests: 3,
+  reportSection: 400,
+  report: 1500,
+  dates: 8,
+} as const;
+
+/** One report of the child with its versions (the child's real name is in the stored text). */
+export type ContextReport = {
+  sessionDate: string;
+  docType: string;
+  status: string;
+  variants: { recipient: string; generated: ReportSection[]; sections: ReportSection[]; validatedAt: Date | null; exportedAt: Date | null }[];
+};
+
+/** Data loaded beside the child's file (see `contextFor`); each section appears only when there is data. */
+export type ChildContextExtras = {
+  /** The child's timeline (`childTimeline`): completed OT tests (score snapshot only) and dates answered in forms. */
+  timeline?: TimelineEvent[];
+  /** The child's recent reports, any order. */
+  reports?: ContextReport[];
+};
+
+const ageText = (months: number) => (months < 24 ? `${months} months` : `${Math.floor(months / 12)} years`);
+
+/** Whitespace collapsed, cut at a word boundary with an ellipsis when longer than `max`. */
+export function truncate(text: string, max: number): string {
+  const flat = text.replace(/\s+/g, " ").trim();
+  if (flat.length <= max) return flat;
+  const cut = flat.slice(0, max - 1);
+  const space = cut.lastIndexOf(" ");
+  return `${(space > max * 0.6 ? cut.slice(0, space) : cut).replace(/[\s,;:.\-–—]+$/u, "")}…`;
+}
+
+/** Keeps lines while they fit in `max` characters (newlines counted); the line that overflows is shortened if enough room is left. */
+function capLines(lines: string[], max: number): string[] {
+  const kept: string[] = [];
+  let used = 0;
+  for (const line of lines) {
+    const room = max - used - (kept.length ? 1 : 0);
+    if (line.length <= room) {
+      used += line.length + (kept.length ? 1 : 0);
+      kept.push(line);
+      continue;
+    }
+    if (room >= 60) kept.push(truncate(line, room));
+    break;
   }
+  // A heading alone says nothing.
+  return kept.length > 1 ? kept : [];
+}
+
+const BACKGROUND_FIELDS = [
+  ["medicalHistory", "Medical history"],
+  ["birthHistory", "Birth history"],
+  ["surgicalHistory", "Surgical history"],
+  ["geneticDiagnoses", "Genetic diagnoses"],
+  ["familyHistory", "Family history"],
+  ["familyComposition", "Family composition"],
+  ["otherInfo", "Other information"],
+] as const;
+
+function backgroundSection(child: Child): string[] {
+  const lines: string[] = [];
+  for (const [key, label] of BACKGROUND_FIELDS) {
+    const raw = child[key]?.trim();
+    let value = raw ? truncate(redactChildName(raw, child.name), CONTEXT_CAPS.backgroundField) : "";
+    if (key === "familyComposition" && child.siblingsCount !== null && child.siblingsCount !== undefined) {
+      value = value ? `${value} (siblings: ${child.siblingsCount})` : `siblings: ${child.siblingsCount}`;
+    }
+    if (value) lines.push(`- ${label}: ${value}`);
+  }
+  return lines.length ? capLines(["Background:", ...lines], CONTEXT_CAPS.background) : [];
+}
+
+/** Age at a calendar day, or "before birth"; null without a birth date. */
+function ageAt(birthDate: string | null, day: string): string | null {
+  if (!birthDate) return null;
+  if (day < birthDate) return "before birth";
+  return `age ${ageText(ageInMonths(birthDate, new Date(`${day}T12:00:00`)))}`;
+}
+
+/** Completed tests, latest first: the summary scores of the stored snapshot (never answers or comments). */
+function testsSection(child: Child, timeline: TimelineEvent[]): string[] {
+  const tests = timeline
+    .filter((e): e is Extract<TimelineEvent, { kind: "assessment" }> => e.kind === "assessment" && e.status === "completed" && e.scores.length > 0)
+    .reverse()
+    .slice(0, CONTEXT_CAPS.tests);
+  if (!tests.length) return [];
+  return [
+    "OT test results (scores computed by the app, latest first):",
+    ...tests.map((t) => {
+      const age = ageAt(child.birthDate, t.day);
+      const scores = t.scores.map((s) => `${s.label}: ${scoreValueText(s)}${s.band ? ` (${s.band})` : ""}`).join("; ");
+      return `- ${t.name}, ${t.day.slice(0, 7)}${age ? ` (${age})` : ""}: ${scores}`;
+    }),
+  ];
+}
+
+/** Dates answered in the child's forms, most recent first (the child's birth date is not a form date in the timeline). */
+function datesSection(child: Child, timeline: TimelineEvent[]): string[] {
+  const seen = new Set<string>();
+  const lines: string[] = [];
+  for (const e of [...timeline].reverse()) {
+    // Identifying questions (a parent's birth date…) are never sent to the AI, as with reports.
+    if (e.kind !== "formDate" || e.identifying) continue;
+    const label = truncate(redactChildName(e.label, child.name), 80);
+    const key = `${label.toLowerCase()}|${e.day}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const age = ageAt(child.birthDate, e.day);
+    lines.push(`- ${label}: ${e.day.slice(0, 7)}${age ? ` (${age})` : ""}`);
+    if (lines.length === CONTEXT_CAPS.dates) break;
+  }
+  return lines.length ? ["Key dates (from the forms):", ...lines] : [];
+}
+
+const hasText = (sections: ReportSection[]) => sections.some((s) => s.body.trim());
+const reportRank = (status: string) => (status === "draft" ? 1 : 0);
+
+/** The latest report with text, validated or exported ones first; its best version (exported, validated, parents), shortened. */
+function reportSection(child: Child, reports: ContextReport[]): string[] {
+  const candidates = reports
+    .map((report) => {
+      const variant = [...report.variants]
+        .filter((v) => hasText(v.sections) || hasText(v.generated))
+        .sort((a, b) => Number(!a.exportedAt) - Number(!b.exportedAt) || Number(!a.validatedAt) - Number(!b.validatedAt) || Number(a.recipient !== "parents") - Number(b.recipient !== "parents"))[0];
+      return variant ? { report, variant } : null;
+    })
+    .filter((c) => c !== null)
+    .sort((a, b) => reportRank(a.report.status) - reportRank(b.report.status) || (a.report.sessionDate < b.report.sessionDate ? 1 : a.report.sessionDate > b.report.sessionDate ? -1 : 0));
+  const pick = candidates[0];
+  if (!pick) return [];
+  const { report, variant } = pick;
+  const sections = hasText(variant.sections) ? variant.sections : variant.generated;
+  const clean = (text: string) => redactChildName(text.replace(/\*\*/g, ""), child.name);
+  const lines = sections
+    .filter((s) => s.body.trim())
+    .map((s) => `- ${truncate(clean(s.heading), 80)}: ${truncate(clean(s.body), CONTEXT_CAPS.reportSection)}`);
+  const kind = report.docType.replace(/_/g, " ");
+  return capLines([`Latest report (${report.sessionDate}, ${kind} for ${variant.recipient}, ${report.status}; shortened):`, ...lines], CONTEXT_CAPS.report);
+}
+
+/**
+ * Fits the added sections under the total cap: the lowest-priority one is shortened
+ * (its last lines dropped), or removed, first: report, then background, dates, tests.
+ * The profile lines are kept; the text is cut as a last resort if they alone are too long.
+ */
+export function fitContext(profile: string[], sections: Record<"background" | "tests" | "report" | "dates", string[]>): string {
+  const order = ["background", "tests", "report", "dates"] as const;
+  const kept = { ...sections };
+  const render = () => [profile.join("\n"), ...order.filter((k) => kept[k].length).map((k) => kept[k].join("\n"))].join("\n\n");
+  for (const key of ["report", "background", "dates", "tests"] as const) {
+    while (render().length > CONTEXT_CAPS.total && kept[key].length) {
+      // Keep at least the heading and one line; below that, drop the section.
+      kept[key] = kept[key].length > 2 ? kept[key].slice(0, -1) : [];
+    }
+  }
+  const text = render();
+  return text.length > CONTEXT_CAPS.total ? `${text.slice(0, CONTEXT_CAPS.total - 1)}…` : text;
+}
+
+/**
+ * Pseudonymized summary of a child for the expert chat, shown verbatim to the therapist
+ * before it is sent. The profile (age, referral, school level, sensory profile, triggers,
+ * calming strategies, interests) and a counts-only summary of the last crises (no free-text
+ * crisis notes); then, when there is data: background history, completed OT test scores
+ * (stored snapshot, never answers or comments), a shortened latest report and dates answered
+ * in forms. Never the name or birth date: the child's name and initials are redacted from
+ * every free text; other names typed by the therapist are sent as written. Capped at
+ * CONTEXT_CAPS.total characters (see fitContext).
+ */
+export function childContextText(child: Child, episodes: Episode[], timeZone: string, extras: ChildContextExtras = {}): string {
+  const lines: string[] = ["Context about the child we are discussing (pseudonymized):"];
+  if (child.birthDate) lines.push(`- Age: ${ageText(ageInMonths(child.birthDate))}`);
   lines.push(`- Reason for referral: ${child.referralReason}`);
   if (child.schoolLevel) lines.push(`- School level: ${child.schoolLevel}`);
   const list = (label: string, values: string[]) => values.length && lines.push(`- ${label}: ${values.join(", ")}`);
@@ -38,7 +208,13 @@ export function childContextText(child: Child, episodes: Episode[], timeZone: st
     ].filter(Boolean);
     lines.push(`- Last ${crises.length} recorded crises${parts.length ? `: ${parts.join("; ")}` : ""}`);
   }
-  return lines.join("\n");
+  const timeline = extras.timeline ?? [];
+  return fitContext(lines, {
+    background: backgroundSection(child),
+    tests: testsSection(child, timeline),
+    report: reportSection(child, extras.reports ?? []),
+    dates: datesSection(child, timeline),
+  });
 }
 
 /** Swaps the child's name (full name or any word of it) for "the child" in free text. */
@@ -67,11 +243,18 @@ function episodeFacts(episode: Episode, childName: string, timeZone: string, now
  * free-text notes (the child's name swapped for "the child"; other names they
  * typed are sent as written).
  */
-export function crisisContextText(child: Child, current: Episode, episodes: Episode[], timeZone: string, now = new Date()): string {
+export function crisisContextText(
+  child: Child,
+  current: Episode,
+  episodes: Episode[],
+  timeZone: string,
+  now = new Date(),
+  extras: ChildContextExtras = {},
+): string {
   const past = episodes.filter((e) => e.id !== current.id && e.kind === "crisis" && e.status === "closed").slice(0, 15);
   const days = (d: Date) => Math.floor((now.getTime() - d.getTime()) / 86_400_000);
   const lines = [
-    childContextText(child, episodes, timeZone),
+    childContextText(child, episodes, timeZone, extras),
     "",
     `A ${current.kind === "crisis" ? "crisis" : "difficulty"} is happening right now: ${episodeFacts(current, child.name, timeZone, now).join("; ")}.`,
   ];

@@ -11,7 +11,6 @@ export const en: Dictionary = {
   nav: {
     dashboard: "Dashboard",
     newReport: "New report",
-    reports: "My reports",
     crises: "Crises",
     library: "Library",
     resources: "Resources",
@@ -220,7 +219,7 @@ export const en: Dictionary = {
     context: "Context",
     noContext: "No child",
     contextBadge: (name: string) => `Context: ${name}`,
-    contextHint: "Only pseudonymized information is shared: never the name.",
+    contextHint: "Pseudonymized: the child's name is removed. Other names written in the file are sent as written.",
     contextPreview: "What will be shared with the assistant",
     searching: (query: string) => `Searching: ${query}`,
     thinking: "Thinking…",
@@ -266,16 +265,12 @@ export const en: Dictionary = {
   },
   reports: {
     listTitle: "My reports",
-    listSubtitle: "Drafts to review, validated and exported documents.",
     newButton: "New report",
     searchPlaceholder: "Search for a child by name…",
     statusFilter: { all: "All statuses", draft: "Drafts", validated: "Validated", exported: "Exported" } as Record<string, string>,
     thisMonth: "This month",
     columns: { child: "Child", type: "Type", date: "Date", status: "Status" },
     count: (n: number) => (n === 1 ? `${n} report` : `${n} reports`),
-    emptyTitle: "No reports yet",
-    emptyBody: "After a session, dictate or type your notes: the report is written for each recipient.",
-    noResults: "No report matches this search.",
 
     docType: {
       follow_up: "Follow-up",
@@ -925,7 +920,7 @@ export const en: Dictionary = {
         dictation: { name: "Dictation", sent: "The audio recording, as is: avoid saying the child's name in it." },
         expert: {
           name: "Amit",
-          sent: "Your messages and, if you pick a child, a pseudonymized summary of their file (age, reason, sensory profile, crisis patterns). For a crisis in progress: the crisis notes, with the child's name removed.",
+          sent: "Your messages and, if you pick a child, a pseudonymized summary of their file: age, reason, sensory profile, crisis patterns, medical and family history, OT test scores, a shortened latest report and dates from forms, with the child's name removed (other names you typed are sent as written). For a crisis in progress: the crisis notes, with the child's name removed.",
         },
         forms: {
           name: "Forms",
@@ -949,7 +944,7 @@ export const en: Dictionary = {
       neverSent: [
         "The child's name. If you type it yourself in your notes or messages, it is sent as written: the app warns you.",
         "Their date of birth: only the age is sent.",
-        "Their medical and family history.",
+        "Their medical and family history, except in the summary sent to Amit when you pick the child (shortened, name removed).",
         "Your name, your practice's name and your letterhead.",
       ],
       storedTitle: "What is kept",
