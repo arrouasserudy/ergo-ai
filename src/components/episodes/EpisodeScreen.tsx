@@ -1,15 +1,15 @@
 "use client";
 
 import clsx from "clsx";
-import { Check, ChevronDown, CircleAlert, Info, Loader2, MessageCircle, Trash2 } from "lucide-react";
+import { Check, ChevronDown, CircleAlert, Info, Loader2, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { deleteEpisode, finishEpisode, saveEpisode } from "@/app/actions/episodes";
+import { AmitAvatar } from "@/components/expert/AmitAvatar";
 import { openAmit } from "@/components/expert/amit-store";
 import { Badge } from "@/components/ui/Badge";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { ChipPicker } from "@/components/ui/ChipPicker";
-import { Eyebrow } from "@/components/ui/Eyebrow";
 import { SaveIndicator, type SaveState } from "@/components/ui/SaveIndicator";
 import type { Episode } from "@/db/schema";
 import { useI18n } from "@/i18n/client";
@@ -22,7 +22,7 @@ type Profile = { hyperSensitivities: string[]; hypoReactivities: string[]; backg
 
 type EpisodeScreenProps = {
   episode: Episode;
-  child: { id: string; title: string; knownTriggers: string | null };
+  child: { id: string; knownTriggers: string | null };
   profile: Profile;
   /** Other episodes of this child, used to order the check-list. */
   history: HistoryItem[];
@@ -106,27 +106,27 @@ export function EpisodeScreen({ episode, child, profile, history, helpedOptions,
     });
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5">
+    <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
+          {/* The child's name is the page title, in the child layout's header. */}
           {isOpen ? (
             <div className="flex flex-wrap items-center gap-2">
               <LiveBadge kind={kind} startedAt={episode.startedAt} />
               <span className="text-[12px] text-ink-muted">{e.liveHint}</span>
             </div>
           ) : (
-            <Eyebrow>
-              {e.kind[kind]}
-              {closedMeta && ` · ${closedMeta}`}
-            </Eyebrow>
+            <>
+              <h2 className="text-[20px] leading-tight font-semibold tracking-tight">{e.kind[kind]}</h2>
+              {closedMeta && <p className="mt-1 text-[13px] text-ink-muted">{closedMeta}</p>}
+            </>
           )}
-          <h1 className="mt-1 text-[28px] leading-tight font-semibold tracking-tight">{child.title}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <SaveIndicator state={saveState} />
           {isOpen && (
             <Button variant="secondary" onClick={askAmit} disabled={asking}>
-              {asking ? <Loader2 className="size-4 animate-spin" /> : <MessageCircle className="size-4" />}
+              {asking ? <Loader2 className="size-4 animate-spin" /> : <AmitAvatar size={20} />}
               {e.askAmit}
             </Button>
           )}
@@ -149,7 +149,7 @@ export function EpisodeScreen({ episode, child, profile, history, helpedOptions,
         </p>
       )}
 
-      <div className="grid items-start gap-5 lg:grid-cols-[1.1fr_1fr]">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[1.1fr_1fr]">
         <div className="space-y-5">
           {kind === "difficulty" && (
             <Card>

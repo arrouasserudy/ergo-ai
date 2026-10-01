@@ -60,7 +60,7 @@ export async function updateChildSection(
   if (result.changes === 0) return { ok: false, errors: { form: "generic" } };
 
   revalidatePath("/children");
-  revalidatePath(`/children/${id}`);
+  revalidatePath(`/children/${id}`, "layout");
   return { ok: true, savedAt: Date.now() };
 }
 

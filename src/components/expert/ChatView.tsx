@@ -10,6 +10,7 @@ import { useI18n } from "@/i18n/client";
 import { stripMarkers, type AnswerPart } from "@/lib/expert/answer";
 import { buildAnswer, type DisplayTurn } from "@/lib/expert/display";
 import { parseEvents } from "@/lib/expert/events";
+import { AmitAvatar } from "./AmitAvatar";
 import { AnswerView } from "./AnswerView";
 
 type ChildOption = { id: string; name: string };
@@ -158,7 +159,12 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
               <bdi>{childName(attached)}</bdi>
             </p>
           )}
-          {turns.length === 0 && !pending && <p className="text-[13px] leading-relaxed text-ink-muted">{e.subtitle}</p>}
+          {turns.length === 0 && !pending && (
+            <div className="flex items-start gap-2.5">
+              <AmitAvatar size={32} />
+              <p className="text-[13px] leading-relaxed text-ink-muted">{e.subtitle}</p>
+            </div>
+          )}
           {turns.map((turn, i) =>
             turn.role === "user" ? (
               <div key={i} className="flex justify-end">
@@ -170,32 +176,38 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
                 </p>
               </div>
             ) : (
-              <div key={i} className="max-w-[92%] rounded-2xl rounded-es-md bg-surface-muted px-4 py-3">
-                <AnswerView answer={buildAnswer(turn.parts)} answerId={`a${i}`} />
+              <div key={i} className="flex items-end gap-2">
+                <AmitAvatar size={24} className="mb-0.5" />
+                <div className="max-w-[92%] min-w-0 rounded-2xl rounded-es-md bg-surface-muted px-4 py-3">
+                  <AnswerView answer={buildAnswer(turn.parts)} answerId={`a${i}`} />
+                </div>
               </div>
             ),
           )}
 
           {pending && (
-            <div className="max-w-[92%] space-y-2 rounded-2xl rounded-es-md bg-surface-muted px-4 py-3">
-              {pending.searches.map((q, i) => (
-                <p key={i} className="flex items-center gap-1.5 text-[12px] text-ink-muted">
-                  <Search className="size-3.5" />
-                  <bdi>{e.searching(q)}</bdi>
-                </p>
-              ))}
-              {pendingAnswer && (pendingAnswer.markdown || pendingAnswer.sources.length > 0) && <AnswerView answer={pendingAnswer} answerId="pending" />}
-              {pending.live && (
-                <p dir="auto" className="text-[14px] leading-relaxed whitespace-pre-line text-ink">
-                  {stripMarkers(pending.live)}
-                </p>
-              )}
-              {!pending.live && (
-                <p className="flex items-center gap-1.5 text-[12px] text-ink-muted">
-                  <Loader2 className="size-3.5 animate-spin" />
-                  {e.thinking}
-                </p>
-              )}
+            <div className="flex items-end gap-2">
+              <AmitAvatar size={24} className="mb-0.5" />
+              <div className="max-w-[92%] min-w-0 space-y-2 rounded-2xl rounded-es-md bg-surface-muted px-4 py-3">
+                {pending.searches.map((q, i) => (
+                  <p key={i} className="flex items-center gap-1.5 text-[12px] text-ink-muted">
+                    <Search className="size-3.5" />
+                    <bdi>{e.searching(q)}</bdi>
+                  </p>
+                ))}
+                {pendingAnswer && (pendingAnswer.markdown || pendingAnswer.sources.length > 0) && <AnswerView answer={pendingAnswer} answerId="pending" />}
+                {pending.live && (
+                  <p dir="auto" className="text-[14px] leading-relaxed whitespace-pre-line text-ink">
+                    {stripMarkers(pending.live)}
+                  </p>
+                )}
+                {!pending.live && (
+                  <p className="flex items-center gap-1.5 text-[12px] text-ink-muted">
+                    <Loader2 className="size-3.5 animate-spin" />
+                    {e.thinking}
+                  </p>
+                )}
+              </div>
             </div>
           )}
 

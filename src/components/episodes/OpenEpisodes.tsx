@@ -1,5 +1,6 @@
-import { ChevronRight, MessageCircle } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { AmitAvatar } from "@/components/expert/AmitAvatar";
 import { AskAmitButton } from "@/components/expert/AskAmitButton";
 import type { Episode } from "@/db/schema";
 import { getI18n } from "@/i18n/server";
@@ -15,10 +16,10 @@ export async function OpenEpisodes({ items }: { items: { episode: Episode; child
         <li key={episode.id} className="flex flex-wrap items-stretch gap-2">
           <Link
             href={`/children/${child.id}/episodes/${episode.id}`}
-            className="flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-warn-ink/25 bg-warn px-4 py-3 text-warn-ink transition-colors hover:border-warn-ink/50"
+            className="flex min-w-0 flex-1 basis-60 items-center gap-3 rounded-xl border border-warn-ink/25 bg-warn px-4 py-3 text-warn-ink transition-colors hover:border-warn-ink/50"
           >
             <span className="size-2 shrink-0 animate-pulse rounded-full bg-warn-ink" />
-            <span className="min-w-0 flex-1 text-[13.5px]">
+            <span className="min-w-0 flex-1 text-[13.5px] wrap-break-word">
               <bdi className="font-semibold">{i18n.childName(child)}</bdi> · {t.episodes.inProgress[episode.kind]}{" "}
               {t.episodes.since(i18n.time(episode.startedAt))}
               {episode.situation && ` · ${i18n.situation(episode.situation)}`}
@@ -33,7 +34,7 @@ export async function OpenEpisodes({ items }: { items: { episode: Episode; child
             episodeId={episode.id}
             className="flex items-center gap-1.5 rounded-xl border border-line-strong bg-surface px-4 py-3 text-[13px] font-medium text-primary transition-colors hover:bg-surface-muted"
           >
-            <MessageCircle className="size-4" />
+            <AmitAvatar size={20} />
             {t.episodes.askAmit}
           </AskAmitButton>
         </li>

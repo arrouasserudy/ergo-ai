@@ -1,5 +1,4 @@
-import { ChevronLeft, RotateCcw } from "lucide-react";
-import Link from "next/link";
+import { RotateCcw } from "lucide-react";
 import { notFound } from "next/navigation";
 import { createAssessmentLink, deleteAssessment, reopenAssessment, revokeAssessmentLink } from "@/app/actions/assessments";
 import { AssessmentFill } from "@/components/assessments/AssessmentFill";
@@ -9,6 +8,7 @@ import { PrintAssessment } from "@/components/assessments/PrintAssessment";
 import { ScoreSummary } from "@/components/assessments/ScoreSummary";
 import { ConfirmButton } from "@/components/forms/ConfirmButton";
 import { SharePanel } from "@/components/forms/SharePanel";
+import { BackLink } from "@/components/ui/BackLink";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
@@ -47,21 +47,16 @@ export default async function AssessmentPage(props: PageProps<"/children/[id]/as
   const printMeta = [a.printChild(child.name), a.printDate(i18n.date(assessment.testDate)), ...(ageMonths !== null ? [a.ageAtTest(a.age(ageMonths))] : [])];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5">
-      <Link href={`/children/${child.id}`} className="-my-2 inline-flex min-h-11 items-center gap-1 text-[13.5px] text-ink-muted hover:text-ink">
-        <ChevronLeft className="size-4 rtl:rotate-180" />
-        {a.backToChild}
-      </Link>
+    <div className="space-y-5">
+      <BackLink href={`/children/${child.id}/forms`}>{i18n.t.children.tabs.forms}</BackLink>
 
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <Eyebrow>
-            {a.eyebrow} · <bdi>{i18n.childName(child)}</bdi>
-          </Eyebrow>
+          <Eyebrow>{a.eyebrow}</Eyebrow>
           <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="text-[24px] leading-tight font-semibold tracking-tight">
+            <h2 className="text-[24px] leading-tight font-semibold tracking-tight">
               <bdi>{definition.name}</bdi>
-            </h1>
+            </h2>
             <AssessmentStatusBadge status={assessment.status} />
           </div>
           <p className="mt-1 text-[13px] text-ink-muted">
@@ -97,7 +92,7 @@ export default async function AssessmentPage(props: PageProps<"/children/[id]/as
         </div>
       </header>
 
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0 space-y-5">
           {completed && (
             <Card className="p-5 sm:p-6">

@@ -215,7 +215,7 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
         </div>
       </header>
 
-      <div className="grid items-start gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
         {/* 1. Notes */}
         <Card>
           <CardHeader number={1} title={r.notesTitle} action={<span className="text-[12px] text-ink-muted">{r.notesHint}</span>} />

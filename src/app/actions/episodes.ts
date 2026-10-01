@@ -11,10 +11,9 @@ import { episodeSchema, toFieldErrors, type EpisodeInput, type FieldErrors } fro
 
 // Each action re-checks the session and scopes by account (actions are reachable by direct POST).
 
-function revalidateEpisode(childId: string, episodeId?: string) {
-  revalidatePath(`/children/${childId}`);
-  revalidatePath(`/children/${childId}/episodes`);
-  if (episodeId) revalidatePath(`/children/${childId}/episodes/${episodeId}`);
+function revalidateEpisode(childId: string) {
+  // The whole child file: its header, overview and crises tab.
+  revalidatePath(`/children/${childId}`, "layout");
   revalidatePath("/crises");
 }
 
@@ -59,7 +58,7 @@ export async function saveEpisode(id: string, data: EpisodeInput): Promise<SaveE
     .get();
   if (!updated) return { ok: false, errors: { form: "generic" } };
 
-  revalidateEpisode(updated.childId, id);
+  revalidateEpisode(updated.childId);
   return { ok: true, savedAt: Date.now() };
 }
 
@@ -82,7 +81,7 @@ export async function finishEpisode(id: string, data: EpisodeInput): Promise<Sav
     .where(and(eq(episodes.id, id), eq(episodes.accountId, accountId), isNull(episodes.endedAt)))
     .run();
 
-  revalidateEpisode(episode!.childId, id);
+  revalidateEpisode(episode!.childId);
   redirect(`/children/${episode!.childId}/episodes`);
 }
 

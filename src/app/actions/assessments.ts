@@ -21,8 +21,7 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 function revalidateAssessment(a: Pick<Assessment, "id" | "childId">) {
   revalidatePath("/assessments");
-  revalidatePath(`/children/${a.childId}`);
-  revalidatePath(`/children/${a.childId}/assessments/${a.id}`);
+  revalidatePath(`/children/${a.childId}`, "layout");
 }
 
 /** Status once a completed test is reopened, or a link revoked. */
@@ -34,7 +33,7 @@ export async function startAssessment(childId: string, formData: FormData) {
   const child = getChild(accountId, childId);
   const definition = getDefinition(String(formData.get("definitionId") ?? ""));
   const date = String(formData.get("testDate") ?? "");
-  if (!child || !definition) redirect(`/children/${childId}`);
+  if (!child || !definition) redirect(`/children/${childId}/forms`);
 
   const { id } = db
     .insert(assessments)
@@ -67,6 +66,7 @@ export async function saveAssessmentAnswers(id: string, answers: unknown): Promi
   if (!found) return { ok: false, error: "generic" };
   db.update(assessments).set({ answers: sanitizeAnswers(found.definition, answers) }).where(eq(assessments.id, id)).run();
   revalidatePath(`/children/${found.assessment.childId}`);
+  revalidatePath(`/children/${found.assessment.childId}/forms`);
   return { ok: true, savedAt: Date.now() };
 }
 
@@ -107,7 +107,7 @@ export async function deleteAssessment(id: string) {
     .get();
   if (!deleted) redirect("/assessments");
   revalidateAssessment(deleted);
-  redirect(`/children/${deleted.childId}`);
+  redirect(`/children/${deleted.childId}/forms`);
 }
 
 /** A new parent link (replaces any previous one), for tests parents can fill in. Only its hash is stored. */

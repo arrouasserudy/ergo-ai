@@ -38,7 +38,7 @@ const isRecipient = (value: unknown): value is ReportRecipient => (REPORT_RECIPI
 function revalidateReport(id: string, childId: string) {
   revalidatePath("/reports");
   revalidatePath(`/reports/${id}`);
-  revalidatePath(`/children/${childId}`);
+  revalidatePath(`/children/${childId}`, "layout");
 }
 
 /** Recomputes the stored status from the variants (the update also bumps `updatedAt`). */

@@ -189,14 +189,11 @@ export const fr = {
     guardrail: "Une aide pour chercher plus vite. Le jugement clinique reste le vôtre.",
     abcNote: "Grille Avant · Épisode · Ce qui a aidé, inspirée de l'analyse A-B-C.",
 
-    childCardTitle: "Crises et difficultés",
     childCardHint: "Check-list issue de l'entretien, affinée à chaque épisode.",
-    recent: "Derniers épisodes",
     seeHistory: "Voir tout l'historique",
     none: "Aucun épisode enregistré.",
     historyPageTitle: "Crises et difficultés",
     allEpisodes: "Tous les épisodes",
-    backToChild: (name: string) => `Fiche ${name}`,
 
     startTitle: "Démarrer pour un enfant",
     startHint: "Ouvrez l'enfant concerné pour lancer la check-list.",
@@ -378,7 +375,6 @@ export const fr = {
     childCardTitle: "Comptes-rendus",
     childCardHint: "Notes de séance et comptes-rendus pour les parents, le médecin et l'école.",
     childNone: "Aucun compte-rendu pour cet enfant.",
-    seeAll: "Voir tous ses comptes-rendus",
 
     errors: {
       notesRequired: "Ajoutez d'abord vos notes de séance.",
@@ -461,8 +457,6 @@ export const fr = {
     newSubtitle: "L'essentiel pour commencer. L'historique et le profil sensoriel se complètent ensuite.",
     createButton: "Créer la fiche",
 
-    detailEyebrow: "Enfant suivi",
-    since: (date: string) => `Suivi depuis le ${date}`,
     reasonMeta: (reason: string) => `Motif : ${reason}`,
     archive: "Archiver",
     reactivate: "Réactiver",
@@ -470,13 +464,32 @@ export const fr = {
     backToList: "Enfants suivis",
     notFound: "Cette fiche n'existe pas ou a été supprimée.",
 
+    tabs: {
+      label: "Sections de la fiche",
+      overview: "Vue d'ensemble",
+      profile: "Profil",
+      crises: "Crises",
+      reports: "Comptes-rendus",
+      forms: "Formulaires et tests",
+      timeline: "Frise",
+    },
+    overview: {
+      attentionTitle: "À traiter",
+      attentionHint: "Épisodes en cours, formulaires à rendre, brouillons et tests à terminer.",
+      nothingPending: "Rien en attente pour cet enfant.",
+      draftReport: "Compte-rendu en brouillon",
+      unfinishedTest: "Test à terminer",
+      recentTitle: "Activité récente",
+      recentHint: "Les derniers événements du dossier.",
+      glanceTitle: "En un coup d'œil",
+      glanceHint: "L'essentiel du profil, pour la séance.",
+      glanceEmpty: "Le profil sensoriel n'est pas encore renseigné.",
+      editInProfile: "Modifier dans le profil",
+    },
   },
   timeline: {
-    button: "Frise chronologique",
     title: "Frise chronologique",
     subtitle: "De la naissance à aujourd'hui : tout ce qui est daté dans le dossier.",
-    previewTitle: "Frise chronologique",
-    previewHint: "Les derniers événements du dossier.",
     seeAll: "Voir toute la frise",
     empty: "Aucun événement daté pour cet enfant.",
     noMatch: "Aucun événement pour ce filtre.",
@@ -719,7 +732,6 @@ export const fr = {
     childStatus: { draft: "À remplir", sent: "Envoyé aux parents", submitted: "Complété" } as Record<string, string>,
     progress: (pct: number) => `${pct} % rempli`,
 
-    backToChild: "Retour à la fiche",
     fillEyebrow: "Formulaire",
     submit: "Marquer comme complété",
     reopen: "Rouvrir",
@@ -809,7 +821,6 @@ export const fr = {
     testDate: "Date du test",
     start: "Commencer",
 
-    backToChild: "Retour à la fiche",
     eyebrow: "Test d'ergo",
     ageAtTest: (age: string) => `Âge à la date du test : ${age}`,
     noBirthDate: "Date de naissance non renseignée : l'âge n'est pas calculé.",

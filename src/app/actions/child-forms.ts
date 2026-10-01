@@ -32,7 +32,7 @@ export async function attachForm(childId: string, formData: FormData) {
   const { accountId, account } = await requireTherapist();
   const child = getChild(accountId, childId);
   const template = getTemplate(accountId, String(formData.get("templateId") ?? ""));
-  if (!child || !template || template.status !== "published") redirect(`/children/${childId}`);
+  if (!child || !template || template.status !== "published") redirect(`/children/${childId}/forms`);
 
   const today = localToday();
   const yearly = template.deadline
@@ -65,6 +65,7 @@ export async function saveChildFormAnswers(id: string, answers: unknown): Promis
   db.update(childForms).set({ answers: sanitizeAnswers(form.schema, answers) }).where(eq(childForms.id, id)).run();
   // Not the form page itself: the answers being typed are the client's state.
   revalidatePath(`/children/${form.childId}`);
+  revalidatePath(`/children/${form.childId}/forms`);
   return { ok: true, savedAt: Date.now() };
 }
 
@@ -136,5 +137,5 @@ export async function deleteChildForm(id: string) {
     .get();
   if (!deleted) redirect("/children");
   revalidateChildForm();
-  redirect(`/children/${deleted.childId}`);
+  redirect(`/children/${deleted.childId}/forms`);
 }

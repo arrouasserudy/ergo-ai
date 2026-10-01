@@ -194,14 +194,11 @@ export const he: Dictionary = {
     guardrail: "כלי עזר לחיפוש מהיר יותר. שיקול הדעת הקליני נשאר שלך.",
     abcNote: "טבלת לפני · אירוע · מה עזר, בהשראת ניתוח ABC.",
 
-    childCardTitle: "משברים וקשיים",
     childCardHint: "רשימת בדיקה מבוססת הראיון, שמתדייקת עם כל אירוע.",
-    recent: "אירועים אחרונים",
     seeHistory: "לכל ההיסטוריה",
     none: "לא תועדו אירועים.",
     historyPageTitle: "משברים וקשיים",
     allEpisodes: "כל האירועים",
-    backToChild: (name: string) => `התיק של ${name}`,
 
     startTitle: "התחלה עבור ילד/ה",
     startHint: "יש לבחור את הילד/ה כדי לפתוח את רשימת הבדיקה.",
@@ -381,7 +378,6 @@ export const he: Dictionary = {
     childCardTitle: "סיכומי טיפול",
     childCardHint: "הערות מפגש וסיכומים להורים, לרופא/ה ולבית הספר.",
     childNone: "אין עדיין סיכומים עבור ילד/ה זה/ו.",
-    seeAll: "לכל הסיכומים",
 
     errors: {
       notesRequired: "יש להוסיף קודם את הערות המפגש.",
@@ -464,8 +460,6 @@ export const he: Dictionary = {
     newSubtitle: "הפרטים הבסיסיים להתחלה. את ההיסטוריה ואת הפרופיל החושי אפשר להשלים אחר כך.",
     createButton: "יצירת התיק",
 
-    detailEyebrow: "ילד/ה במעקב",
-    since: (date: string) => `בטיפול מאז ${date}`,
     reasonMeta: (reason: string) => `סיבת הפנייה: ${reason}`,
     archive: "העברה לארכיון",
     reactivate: "החזרה לפעילים",
@@ -473,13 +467,32 @@ export const he: Dictionary = {
     backToList: "ילדים במעקב",
     notFound: "התיק לא קיים או שנמחק.",
 
+    tabs: {
+      label: "חלקי התיק",
+      overview: "סקירה",
+      profile: "פרופיל",
+      crises: "משברים",
+      reports: "סיכומי טיפול",
+      forms: "טפסים ומבדקים",
+      timeline: "ציר זמן",
+    },
+    overview: {
+      attentionTitle: "דורש טיפול",
+      attentionHint: "אירועים פתוחים, טפסים להגשה, טיוטות ומבדקים להשלמה.",
+      nothingPending: "אין משימות פתוחות לילד/ה זה/ו.",
+      draftReport: "סיכום בטיוטה",
+      unfinishedTest: "מבדק להשלמה",
+      recentTitle: "פעילות אחרונה",
+      recentHint: "האירועים האחרונים בתיק.",
+      glanceTitle: "במבט מהיר",
+      glanceHint: "עיקרי הפרופיל, לקראת המפגש.",
+      glanceEmpty: "הפרופיל החושי עדיין לא מולא.",
+      editInProfile: "עריכה בפרופיל",
+    },
   },
   timeline: {
-    button: "ציר זמן",
     title: "ציר זמן",
     subtitle: "מהלידה ועד היום: כל מה שמתוארך בתיק.",
-    previewTitle: "ציר זמן",
-    previewHint: "האירועים האחרונים בתיק.",
     seeAll: "לציר הזמן המלא",
     empty: "אין אירועים מתוארכים לילד/ה זה/ו.",
     noMatch: "אין אירועים לסינון הזה.",
@@ -721,7 +734,6 @@ export const he: Dictionary = {
     childStatus: { draft: "למילוי", sent: "נשלח להורים", submitted: "מולא" } as Record<string, string>,
     progress: (pct: number) => `מולא ${pct}%`,
 
-    backToChild: "חזרה לתיק",
     fillEyebrow: "טופס",
     submit: "סימון כמולא",
     reopen: "פתיחה מחדש",
@@ -810,7 +822,6 @@ export const he: Dictionary = {
     testDate: "תאריך המבדק",
     start: "התחלה",
 
-    backToChild: "חזרה לתיק",
     eyebrow: "מבדק",
     ageAtTest: (age: string) => `גיל בתאריך המבדק: ${age}`,
     noBirthDate: "תאריך הלידה לא הוזן: הגיל אינו מחושב.",

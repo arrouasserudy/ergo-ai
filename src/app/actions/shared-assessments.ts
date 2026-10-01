@@ -48,7 +48,6 @@ export async function submitSharedAssessment(token: string, answers: unknown): P
     .where(eq(assessments.id, assessment.id))
     .run();
   revalidatePath("/assessments");
-  revalidatePath(`/children/${assessment.childId}`);
-  revalidatePath(`/children/${assessment.childId}/assessments/${assessment.id}`);
+  revalidatePath(`/children/${assessment.childId}`, "layout");
   return { ok: true, savedAt: Date.now() };
 }

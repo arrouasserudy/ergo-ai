@@ -34,7 +34,7 @@ export default async function CrisesPage() {
 
       <OpenEpisodes items={open} />
 
-      <div className="grid items-start gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader title={t.episodes.startTitle} hint={t.episodes.startHint} />
           {kids.length === 0 ? (

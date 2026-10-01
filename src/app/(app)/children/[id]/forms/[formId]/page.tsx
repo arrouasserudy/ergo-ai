@@ -1,5 +1,4 @@
-import { ChevronLeft, RotateCcw } from "lucide-react";
-import Link from "next/link";
+import { RotateCcw } from "lucide-react";
 import { notFound } from "next/navigation";
 import { createShareLink, deleteChildForm, reopenChildForm, revokeShareLink } from "@/app/actions/child-forms";
 import { ChildFormFill } from "@/components/forms/ChildFormFill";
@@ -8,6 +7,7 @@ import { FormRenderer } from "@/components/forms/FormRenderer";
 import { PrintForm } from "@/components/forms/PrintForm";
 import { SharePanel } from "@/components/forms/SharePanel";
 import { ChildFormStatusBadge } from "@/components/forms/TemplateStatusBadge";
+import { BackLink } from "@/components/ui/BackLink";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
@@ -39,21 +39,16 @@ export default async function ChildFormPage(props: PageProps<"/children/[id]/for
   const printMeta = [f.printChild(child.name), ...(form.submittedAt && form.submittedBy ? [f.submittedBy[form.submittedBy](i18n.date(form.submittedAt.toISOString()))] : [])];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5">
-      <Link href={`/children/${child.id}`} className="-my-2 inline-flex min-h-11 items-center gap-1 text-[13.5px] text-ink-muted hover:text-ink">
-        <ChevronLeft className="size-4 rtl:rotate-180" />
-        {f.backToChild}
-      </Link>
+    <div className="space-y-5">
+      <BackLink href={`/children/${child.id}/forms`}>{i18n.t.children.tabs.forms}</BackLink>
 
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <Eyebrow>
-            {f.fillEyebrow} · <bdi>{i18n.childName(child)}</bdi>
-          </Eyebrow>
+          <Eyebrow>{f.fillEyebrow}</Eyebrow>
           <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="text-[24px] leading-tight font-semibold tracking-tight">
+            <h2 className="text-[24px] leading-tight font-semibold tracking-tight">
               <bdi>{form.schema.title}</bdi>
-            </h1>
+            </h2>
             <ChildFormStatusBadge status={form.status} />
           </div>
           {form.submittedAt && form.submittedBy && (
@@ -79,7 +74,7 @@ export default async function ChildFormPage(props: PageProps<"/children/[id]/for
         </div>
       </header>
 
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <Card className="p-5 sm:p-6">
           {form.schema.description && <p className="mb-6 text-[13.5px] whitespace-pre-line text-ink-soft">{form.schema.description}</p>}
           {submitted ? (

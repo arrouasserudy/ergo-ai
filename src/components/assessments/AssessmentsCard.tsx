@@ -13,7 +13,7 @@ import { AssessmentStatusBadge } from "./AssessmentStatusBadge";
 const control =
   "h-9 min-w-0 rounded-xl border border-line-strong bg-surface px-2 text-[13px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
 
-/** "OT tests" card of the child page: the child's tests and the picker to start one. */
+/** "OT tests" card of the child's "Forms & tests" tab: the child's tests and the picker to start one. */
 export async function AssessmentsCard({ accountId, childId, archived }: { accountId: string; childId: string; archived: boolean }) {
   const i18n = await getI18n();
   const a = i18n.t.assessments;

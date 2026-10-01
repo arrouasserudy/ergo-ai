@@ -8,6 +8,7 @@ import { startTransition, Suspense, useCallback, useEffect, useRef, useState } f
 import { listMyConversations, newChatSetup, openConversation, type NewChatSetup } from "@/app/actions/expert";
 import { useI18n } from "@/i18n/client";
 import type { DisplayTurn } from "@/lib/expert/display";
+import { AmitAvatar } from "./AmitAvatar";
 import { onAmitRequest, openAmit, type AmitRequest } from "./amit-store";
 import { ChatView } from "./ChatView";
 
@@ -46,10 +47,6 @@ function writeStored(value: Stored) {
 /** The child whose pages are being viewed (`/children/[id]/...`), preselected as context. */
 function childIdOf(pathname: string): string | null {
   return pathname.match(/^\/children\/([^/]+)/)?.[1] ?? null;
-}
-
-export function AmitAvatar({ className }: { className?: string }) {
-  return <span className={clsx("grid shrink-0 place-items-center rounded-full bg-primary font-semibold text-white", className)}>E</span>;
 }
 
 /** Amit, the expert colleague: a floating button on every app page that opens the chat in a panel. */
@@ -213,7 +210,7 @@ export function AmitBubble() {
               <ArrowLeft className="size-4 rtl:rotate-180" />
             </button>
           ) : (
-            <AmitAvatar className="ms-1 size-8 text-[14px]" />
+            <AmitAvatar size={32} className="ms-1" />
           )}
           <div className="min-w-0 flex-1">
             <p className="truncate text-[14.5px] leading-tight font-semibold tracking-tight">{view === "history" ? e.discussions : e.title}</p>
@@ -316,12 +313,23 @@ export function AmitBubble() {
         aria-label={open ? e.close : e.askExpert}
         title={open ? e.close : e.askExpert}
         className={clsx(
-          "fixed end-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 size-14 place-items-center rounded-full bg-primary text-white shadow-pop transition-transform hover:scale-105 hover:bg-primary-hover focus-visible:ring-4 focus-visible:ring-primary/30 focus-visible:outline-none",
+          "fixed end-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 size-14 place-items-center rounded-full shadow-pop transition-transform hover:scale-105 focus-visible:ring-4 focus-visible:ring-primary/30 focus-visible:outline-none",
+          open ? "bg-primary text-white hover:bg-primary-hover" : "bg-surface ring-2 ring-surface",
           // Full-screen on phones: the panel has its own close button.
           open ? "hidden md:grid" : "grid",
         )}
       >
-        {open ? <X className="size-6" /> : <MessageCircle className="size-6" />}
+        {open ? (
+          <X className="size-6" />
+        ) : (
+          <>
+            <AmitAvatar size={56} />
+            {/* A small chat badge, so the portrait still reads as "open the chat". */}
+            <span className="absolute -end-0.5 -top-0.5 grid size-5 place-items-center rounded-full bg-primary text-white ring-2 ring-surface">
+              <MessageCircle className="size-3" strokeWidth={2.5} />
+            </span>
+          </>
+        )}
       </button>
     </div>
   );

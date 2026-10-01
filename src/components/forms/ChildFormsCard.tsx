@@ -23,7 +23,7 @@ async function DueLabel({ dueDate, level }: { dueDate: string; level: Urgency })
   );
 }
 
-/** "Forms and documents" card of the child page: attached forms and the picker to add one. */
+/** "Forms and documents" card of the child's "Forms & tests" tab: attached forms and the picker to add one. */
 export async function ChildFormsCard({ accountId, childId, archived, warnDays }: { accountId: string; childId: string; archived: boolean; warnDays: number }) {
   const i18n = await getI18n();
   const f = i18n.t.forms;
