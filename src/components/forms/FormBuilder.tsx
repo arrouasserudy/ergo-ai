@@ -14,7 +14,7 @@ import { ConfirmButton } from "./ConfirmButton";
 import { FormRenderer } from "./FormRenderer";
 
 const input =
-  "w-full rounded-lg border border-line-strong bg-surface px-3 text-[14px] text-ink focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
+  "w-full rounded-xl border border-line-strong bg-surface px-3 text-[14px] text-ink focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
 
 const move = <T,>(list: T[], from: number, to: number): T[] => {
   if (to < 0 || to >= list.length) return list;
@@ -112,7 +112,7 @@ export function FormBuilder({ id, initial, status }: Props) {
 
   const editor = (
     <div className="space-y-5">
-      <div className="space-y-3 rounded-xl border border-line bg-surface p-4">
+      <div className="space-y-3 rounded-2xl border border-line bg-surface shadow-card p-4">
         <Labeled label={f.formTitle} invalid={hasIssue("title")}>
           <input dir="auto" className={clsx(input, "h-11")} value={form.title} maxLength={200} onChange={(e) => update({ ...form, title: e.target.value })} />
         </Labeled>
@@ -137,7 +137,7 @@ export function FormBuilder({ id, initial, status }: Props) {
       </div>
 
       {form.sections.map((section, si) => (
-        <div key={section.id} className="space-y-3 rounded-xl border border-line bg-surface p-4">
+        <div key={section.id} className="space-y-3 rounded-2xl border border-line bg-surface shadow-card p-4">
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-medium tracking-[0.12em] text-ink-muted uppercase">{f.section(si + 1)}</p>
             <Reorder
@@ -265,7 +265,7 @@ export function FormBuilder({ id, initial, status }: Props) {
 
       <div className="grid items-start gap-5 lg:grid-cols-2">
         <div className={clsx(tab !== "edit" && "hidden lg:block")}>{editor}</div>
-        <div className={clsx("rounded-xl border border-line bg-surface p-5 lg:sticky lg:top-16 lg:max-h-[calc(100dvh-5rem)] lg:overflow-y-auto", tab !== "preview" && "hidden lg:block")}>
+        <div className={clsx("rounded-2xl border border-line bg-surface shadow-card p-5 lg:sticky lg:top-16 lg:max-h-[calc(100dvh-5rem)] lg:overflow-y-auto", tab !== "preview" && "hidden lg:block")}>
           <p className="mb-4 text-[11px] font-medium tracking-[0.12em] text-ink-muted uppercase">{f.previewTab}</p>
           <PreviewPane form={form} />
         </div>
@@ -335,7 +335,7 @@ function FieldEditor({ field, invalid, onChange, onUp, onDown, onRemove }: Field
   const f = t.forms;
 
   return (
-    <div className={clsx("space-y-2.5 rounded-lg border p-3", invalid ? "border-danger" : "border-line")}>
+    <div className={clsx("space-y-2.5 rounded-xl border p-3", invalid ? "border-danger" : "border-line")}>
       <div className="flex items-start gap-2">
         <textarea
           dir="auto"

@@ -145,12 +145,12 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
   const pendingAnswer = useMemo(() => (pending ? buildAnswer(pending.parts) : null), [pending]);
 
   return (
-    <section className="flex min-h-[calc(100dvh-7rem)] flex-col rounded-xl border border-line bg-surface md:min-h-[calc(100dvh-4rem)]">
+    <section className="flex min-h-[calc(100dvh-7rem)] flex-col rounded-2xl border border-line bg-surface shadow-card md:min-h-[calc(100dvh-4rem)]">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
         <div className="flex items-center gap-3">
-          <span className="grid size-9 place-items-center rounded-full bg-primary font-serif text-lg text-white">E</span>
+          <span className="grid size-9 place-items-center rounded-full bg-primary text-[15px] font-semibold text-white">E</span>
           <div>
-            <h1 className="font-serif text-[20px] leading-tight font-medium">{e.title}</h1>
+            <h1 className="text-[17px] leading-tight font-semibold tracking-tight">{e.title}</h1>
             <p className="text-[12px] text-ink-muted">{e.subtitle}</p>
           </div>
         </div>
@@ -201,7 +201,7 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
         )}
 
         {error && (
-          <p role="alert" className="rounded-lg border border-warn-ink/20 bg-warn px-3 py-2 text-[13px] text-warn-ink">
+          <p role="alert" className="rounded-xl border border-warn-ink/20 bg-warn px-3 py-2 text-[13px] text-warn-ink">
             {error}
           </p>
         )}
@@ -219,7 +219,7 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
                   setChildId(ev.target.value || null);
                   setPreview(null);
                 }}
-                className="h-10 rounded-lg border border-line-strong bg-surface px-2.5 text-[14px]"
+                className="h-10 rounded-xl border border-line-strong bg-surface px-2.5 text-[14px]"
               >
                 <option value="">{e.noContext}</option>
                 {childOptions.map((c) => (
@@ -285,7 +285,7 @@ export function ChatView({ conversationId: initialId, initialTurns, childOptions
             maxLength={4000}
             placeholder={e.placeholder}
             aria-label={e.placeholder}
-            className="min-h-11 flex-1 resize-none rounded-lg border border-line-strong bg-surface px-3 py-2 text-[14px] placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+            className="min-h-11 flex-1 resize-none rounded-xl border border-line-strong bg-surface px-3 py-2 text-[14px] placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
           />
           <button
             type="submit"

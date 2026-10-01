@@ -16,7 +16,7 @@ export function LocaleSwitcher() {
       role="group"
       aria-label={t.language.label}
       className={clsx(
-        "inline-flex rounded-lg p-0.5 text-[12.5px]",
+        "inline-flex rounded-full p-1 text-[12.5px]",
         "border border-line-strong bg-surface-muted",
         pending && "opacity-70",
       )}
@@ -30,7 +30,7 @@ export function LocaleSwitcher() {
           disabled={pending}
           onClick={() => startTransition(() => setLocale(l))}
           className={clsx(
-            "min-h-9 rounded-md px-2.5 py-1 transition-colors",
+            "min-h-9 rounded-full px-3 py-1 transition-colors",
             locale === l ? "bg-surface font-medium text-ink shadow-sm" : "text-ink-muted hover:text-ink",
           )}
         >

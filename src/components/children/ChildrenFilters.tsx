@@ -50,12 +50,12 @@ export function ChildrenFilters({ search, status }: { search: string; status: St
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t.children.searchPlaceholder}
           className={clsx(
-            "h-11 w-full rounded-lg border border-line-strong bg-surface pe-3 ps-9 text-[14px] placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none",
+            "h-11 w-full rounded-xl border border-line-strong bg-surface pe-3 ps-9 text-[14px] placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none",
             pending && "opacity-80",
           )}
         />
       </label>
-      <div role="group" className="flex rounded-lg border border-line-strong bg-surface-muted p-0.5">
+      <div role="group" className="flex rounded-xl border border-line-strong bg-surface-muted p-0.5">
         {FILTERS.map((f) => (
           <button
             key={f}

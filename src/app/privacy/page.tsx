@@ -43,15 +43,15 @@ export default async function PrivacyPage() {
           <span className="grid size-7 place-items-center rounded-md bg-primary text-white">
             <FileText className="size-4" strokeWidth={2} />
           </span>
-          <span className="font-serif text-xl font-medium">{t.app.name}</span>
+          <span className="text-xl font-semibold tracking-tight">{t.app.name}</span>
         </div>
-        <h1 className="font-serif text-[32px] leading-tight font-medium">{p.heading}</h1>
+        <h1 className="text-[28px] leading-tight font-semibold tracking-tight">{p.heading}</h1>
         <p className="text-[14px] text-ink-muted">{p.intro}</p>
       </header>
 
       <ul className="grid gap-2 sm:grid-cols-2">
         {p.essentials.map((item) => (
-          <li key={item} className="flex gap-2 rounded-xl border border-line bg-surface px-4 py-3 text-[14px]">
+          <li key={item} className="flex gap-2 rounded-2xl border border-line bg-surface shadow-card px-4 py-3 text-[14px]">
             <Check className="mt-0.5 size-4 shrink-0 text-ok-ink" />
             {item}
           </li>
@@ -60,7 +60,7 @@ export default async function PrivacyPage() {
 
       <Section id="ai" title={p.aiTitle}>
         <p>{p.aiIntro}</p>
-        <div className="overflow-x-auto rounded-xl border border-line bg-surface">
+        <div className="overflow-x-auto rounded-2xl border border-line bg-surface shadow-card">
           <table className="w-full min-w-[32rem] text-start text-[13.5px]">
             <thead className="bg-surface-muted text-[12px] text-ink-muted">
               <tr>
@@ -106,7 +106,7 @@ export default async function PrivacyPage() {
 function Section({ id, title, children }: { id?: string; title: string; children: ReactNode }) {
   return (
     <section id={id} className="scroll-mt-6 space-y-3 text-[14px] leading-relaxed">
-      <h2 className="font-serif text-[21px] leading-tight font-medium">{title}</h2>
+      <h2 className="text-[17px] leading-tight font-semibold tracking-tight">{title}</h2>
       {children}
     </section>
   );

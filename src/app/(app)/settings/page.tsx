@@ -21,7 +21,7 @@ export default async function SettingsPage() {
     <div className="mx-auto max-w-4xl space-y-5">
       <header>
         <Eyebrow>{t.settings.eyebrow}</Eyebrow>
-        <h1 className="mt-1 font-serif text-[32px] leading-tight font-medium">{t.settings.title}</h1>
+        <h1 className="mt-1 text-[28px] leading-tight font-semibold tracking-tight">{t.settings.title}</h1>
         <p className="mt-1 text-[13px] text-ink-muted">{t.settings.subtitle}</p>
       </header>
 

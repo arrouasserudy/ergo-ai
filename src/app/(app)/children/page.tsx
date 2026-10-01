@@ -36,7 +36,7 @@ export default async function ChildrenPage(props: PageProps<"/children">) {
     <div className="mx-auto max-w-6xl space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-serif text-[32px] leading-tight font-medium">{t.children.listTitle}</h1>
+          <h1 className="text-[28px] leading-tight font-semibold tracking-tight">{t.children.listTitle}</h1>
           <p className="mt-1 text-[13px] text-ink-muted">{t.children.listSubtitle}</p>
         </div>
         <LinkButton href="/children/new">
@@ -47,7 +47,7 @@ export default async function ChildrenPage(props: PageProps<"/children">) {
 
       <ChildrenFilters search={search} status={status} />
 
-      <section className="overflow-hidden rounded-xl border border-line bg-surface">
+      <section className="overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
         {rows.length === 0 ? (
           <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
             <span className="grid size-12 place-items-center rounded-full bg-tint text-tint-ink">
@@ -57,7 +57,7 @@ export default async function ChildrenPage(props: PageProps<"/children">) {
               <p className="text-ink-muted">{t.children.noResults}</p>
             ) : (
               <>
-                <p className="font-serif text-xl">{t.children.emptyTitle}</p>
+                <p className="text-[16px] font-semibold">{t.children.emptyTitle}</p>
                 <p className="text-[13px] text-ink-muted">{t.children.emptyBody}</p>
                 <LinkButton href="/children/new" className="mt-2">
                   <Plus className="size-4" />

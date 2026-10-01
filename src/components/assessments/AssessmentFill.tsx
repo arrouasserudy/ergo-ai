@@ -38,7 +38,7 @@ export function AssessmentFill({ id, definitionId, initial, ageMonths }: Props) 
     <div className="space-y-8">
       <AssessmentForm definitionId={definition.id} answers={answers} onChange={update} idPrefix="fill" />
 
-      <details className="rounded-lg border border-line p-4">
+      <details className="rounded-xl border border-line p-4">
         <summary className="cursor-pointer text-[13.5px] font-medium">{a.liveResults}</summary>
         <div className="mt-4">
           <ScoreSummary groups={scores} language={definition.language} />

@@ -69,7 +69,7 @@ export function Thanks() {
       <span className="grid size-12 place-items-center rounded-full bg-ok text-ok-ink">
         <CheckCircle2 className="size-6" />
       </span>
-      <p className="font-serif text-2xl">{t.forms.public.thanksTitle}</p>
+      <p className="text-xl font-semibold tracking-tight">{t.forms.public.thanksTitle}</p>
       <p className="max-w-md text-[14px] text-ink-muted">{t.forms.public.thanksBody}</p>
     </div>
   );

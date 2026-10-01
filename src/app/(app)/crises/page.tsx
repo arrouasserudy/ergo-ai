@@ -28,7 +28,7 @@ export default async function CrisesPage() {
     <div className="mx-auto max-w-5xl space-y-5">
       <header>
         <Eyebrow>{t.nav.crises}</Eyebrow>
-        <h1 className="mt-1 font-serif text-[32px] leading-tight font-medium">{t.episodes.navTitle}</h1>
+        <h1 className="mt-1 text-[28px] leading-tight font-semibold tracking-tight">{t.episodes.navTitle}</h1>
         <p className="mt-1 text-[13px] text-ink-muted">{t.episodes.navSubtitle}</p>
       </header>
 

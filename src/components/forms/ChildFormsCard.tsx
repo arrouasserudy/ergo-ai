@@ -73,7 +73,7 @@ export async function ChildFormsCard({ accountId, childId, archived, warnDays }:
                 required
                 defaultValue=""
                 aria-label={f.pickTemplate}
-                className="h-9 min-w-0 flex-1 rounded-lg border border-line-strong bg-surface px-2 text-[13px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+                className="h-9 min-w-0 flex-1 rounded-xl border border-line-strong bg-surface px-2 text-[13px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
               >
                 <option value="" disabled>
                   {f.pickPlaceholder}

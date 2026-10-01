@@ -32,7 +32,7 @@ export default async function NewReportPage(props: PageProps<"/reports/new">) {
       </Link>
       <header>
         <Eyebrow>{r.newEyebrow}</Eyebrow>
-        <h1 className="mt-1 font-serif text-[32px] leading-tight font-medium">{r.newTitle}</h1>
+        <h1 className="mt-1 text-[28px] leading-tight font-semibold tracking-tight">{r.newTitle}</h1>
         <p className="mt-1 text-[13px] text-ink-muted">{r.newSubtitle}</p>
       </header>
 
@@ -53,7 +53,7 @@ export default async function NewReportPage(props: PageProps<"/reports/new">) {
                 name="childId"
                 required
                 defaultValue={kids.some((c) => c.id === preselected) ? preselected : ""}
-                className="h-11 w-full rounded-lg border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+                className="h-11 w-full rounded-xl border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
               >
                 <option value="" disabled>
                   {r.childPlaceholder}
@@ -72,7 +72,7 @@ export default async function NewReportPage(props: PageProps<"/reports/new">) {
                 {REPORT_DOC_TYPES.map((type, i) => (
                   <label
                     key={type}
-                    className="flex cursor-pointer items-center gap-2.5 min-h-11 rounded-lg border border-line-strong px-3 py-2.5 text-[14px] has-checked:border-primary has-checked:bg-tint has-checked:text-tint-ink"
+                    className="flex cursor-pointer items-center gap-2.5 min-h-11 rounded-xl border border-line-strong px-3 py-2.5 text-[14px] has-checked:border-primary has-checked:bg-tint has-checked:text-tint-ink"
                   >
                     <input type="radio" name="docType" value={type} defaultChecked={i === 0} className="accent-primary" />
                     {r.docType[type]}

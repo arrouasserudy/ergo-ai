@@ -65,7 +65,7 @@ export function EditableSection({ child, section, title, hint, empty, children }
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="flex w-full items-center gap-3 rounded-lg border border-dashed border-line-strong bg-surface-muted px-4 py-4 text-start transition-colors hover:border-primary/40 hover:bg-tint"
+            className="flex w-full items-center gap-3 rounded-xl border border-dashed border-line-strong bg-surface-muted px-4 py-4 text-start transition-colors hover:border-primary/40 hover:bg-tint"
           >
             <span className="grid size-8 shrink-0 place-items-center rounded-full bg-tint text-tint-ink">
               <Plus className="size-4" />

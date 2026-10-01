@@ -21,7 +21,7 @@ export default async function SharedFormPage(props: PageProps<"/f/[token]">) {
     return (
       <Shell locale={locale} appName={t.app.name}>
         <div className="flex flex-col items-center gap-2 py-10 text-center">
-          <p className="font-serif text-2xl">{t.forms.public.unavailableTitle}</p>
+          <p className="text-xl font-semibold tracking-tight">{t.forms.public.unavailableTitle}</p>
           <p className="max-w-md text-[14px] text-ink-muted">{t.forms.public.unavailableBody}</p>
         </div>
       </Shell>
@@ -39,7 +39,7 @@ export default async function SharedFormPage(props: PageProps<"/f/[token]">) {
         <p className="text-[12.5px] text-ink-muted">
           <bdi>{p.from(cabinet)}</bdi>
         </p>
-        <h1 className="font-serif text-[28px] leading-tight font-medium">{form.schema.title}</h1>
+        <h1 className="text-[24px] leading-tight font-semibold tracking-tight">{form.schema.title}</h1>
         {form.schema.description && <p className="text-[14px] whitespace-pre-line text-ink-soft">{form.schema.description}</p>}
         <p className="flex items-center gap-1.5 text-[12px] text-ok-ink">
           <Lock className="size-3.5" />

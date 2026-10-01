@@ -8,7 +8,7 @@ export function Avatar({ name, size = "md" }: { name: string; size?: "md" | "lg"
       aria-hidden
       dir="ltr"
       className={clsx(
-        "grid shrink-0 place-items-center rounded-full bg-tint font-medium text-tint-ink",
+        "grid shrink-0 place-items-center rounded-full bg-tint font-semibold text-tint-ink",
         size === "md" ? "size-8 text-[10.5px]" : "size-12 text-sm",
       )}
     >

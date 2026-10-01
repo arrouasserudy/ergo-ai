@@ -121,7 +121,7 @@ export function EpisodeScreen({ episode, child, profile, history, helpedOptions,
               {closedMeta && ` · ${closedMeta}`}
             </Eyebrow>
           )}
-          <h1 className="mt-1 font-serif text-[32px] leading-tight font-medium">{child.title}</h1>
+          <h1 className="mt-1 text-[28px] leading-tight font-semibold tracking-tight">{child.title}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <SaveIndicator state={saveState} />
@@ -144,7 +144,7 @@ export function EpisodeScreen({ episode, child, profile, history, helpedOptions,
       </header>
 
       {finishError && (
-        <p role="alert" className="flex items-center gap-2 rounded-lg border border-warn-ink/20 bg-warn px-3 py-2 text-[13px] text-warn-ink">
+        <p role="alert" className="flex items-center gap-2 rounded-xl border border-warn-ink/20 bg-warn px-3 py-2 text-[13px] text-warn-ink">
           <CircleAlert className="size-4 shrink-0" />
           {finishError}
         </p>
@@ -192,7 +192,7 @@ export function EpisodeScreen({ episode, child, profile, history, helpedOptions,
                 {e.bodyReminder}
               </p>
 
-              <div className="rounded-lg border border-line">
+              <div className="rounded-xl border border-line">
                 <button
                   type="button"
                   onClick={() => setShowMore((s) => !s)}
@@ -297,7 +297,7 @@ function CauseRow({ causeKey, source, checked, onToggle }: { causeKey: string; s
     <li>
       <label
         className={clsx(
-          "flex min-h-14 cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors",
+          "flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors",
           checked ? "border-primary/40 bg-tint" : "border-line bg-surface-muted hover:border-line-strong",
         )}
       >
@@ -339,7 +339,7 @@ function TextArea({
         placeholder={placeholder}
         maxLength={1000}
         onChange={(ev) => onChange(ev.target.value)}
-        className="w-full resize-y rounded-lg border border-line-strong bg-surface px-3 py-2 text-[14px] leading-relaxed placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+        className="w-full resize-y rounded-xl border border-line-strong bg-surface px-3 py-2 text-[14px] leading-relaxed placeholder:text-ink-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
       />
     </label>
   );

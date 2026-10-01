@@ -26,7 +26,7 @@ export default async function AccountPage() {
     <div className="mx-auto max-w-4xl space-y-5">
       <header>
         <Eyebrow>{t.account.eyebrow}</Eyebrow>
-        <h1 className="mt-1 font-serif text-[32px] leading-tight font-medium">{t.account.title}</h1>
+        <h1 className="mt-1 text-[28px] leading-tight font-semibold tracking-tight">{t.account.title}</h1>
         <p className="mt-1 text-[13px] text-ink-muted">{t.account.subtitle}</p>
       </header>
 

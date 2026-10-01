@@ -191,7 +191,7 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
             <Eyebrow>{r.eyebrow(r.docType[data.docType])}</Eyebrow>
             <ReportStatusBadge status={status} />
           </div>
-          <h1 className="mt-1 font-serif text-[32px] leading-tight font-medium">{child.title}</h1>
+          <h1 className="mt-1 text-[28px] leading-tight font-semibold tracking-tight">{child.title}</h1>
           <p className="mt-1 text-[13px] text-ink-muted">{r.sessionMeta(i18n.date(data.sessionDate), child.referralReason)}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -234,7 +234,7 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
                   type="date"
                   value={data.sessionDate}
                   onChange={(e) => e.target.value && update({ sessionDate: e.target.value })}
-                  className="h-11 rounded-lg border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+                  className="h-11 rounded-xl border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
                 />
               </label>
               <SelectField label={r.language} value={data.language} onChange={(v) => update({ language: v as ReportInput["language"] })}>
@@ -260,7 +260,7 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
                 onChange={(e) => update({ notes: e.target.value })}
                 placeholder={r.notesPlaceholder}
                 rows={14}
-                className="w-full resize-y rounded-lg border border-line-strong bg-surface-muted px-3.5 py-3 text-[14px] leading-relaxed placeholder:text-ink-muted/70 focus:border-primary focus:bg-surface focus:ring-2 focus:ring-primary/15 focus:outline-none"
+                className="w-full resize-y rounded-xl border border-line-strong bg-surface-muted px-3.5 py-3 text-[14px] leading-relaxed placeholder:text-ink-muted/70 focus:border-primary focus:bg-surface focus:ring-2 focus:ring-primary/15 focus:outline-none"
               />
               <span className="text-[12px] text-ink-muted">{r.namesHint}</span>
             </label>
@@ -364,7 +364,7 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
 
             {genError && <FormError message={genError} />}
             {confirmRegenerate && (
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-warn-ink/20 bg-warn px-3 py-2 text-[13px] text-warn-ink">
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-warn-ink/20 bg-warn px-3 py-2 text-[13px] text-warn-ink">
                 <span>{r.confirmRegenerate}</span>
                 <span className="flex gap-2">
                   <Button size="sm" variant="ghost" onClick={() => setConfirmRegenerate(false)}>
@@ -378,12 +378,12 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
             )}
 
             {current && generating.includes(current) ? (
-              <div className="flex min-h-64 flex-col items-center justify-center gap-2 rounded-lg border border-line bg-surface-muted text-[13px] text-ink-muted">
+              <div className="flex min-h-64 flex-col items-center justify-center gap-2 rounded-xl border border-line bg-surface-muted text-[13px] text-ink-muted">
                 <Loader2 className="size-5 animate-spin" />
                 {r.generating}
               </div>
             ) : !variant ? (
-              <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-line-strong px-6 text-center">
+              <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-line-strong px-6 text-center">
                 <p className="text-[13px] text-ink-muted">{r.notGenerated}</p>
                 {current && (
                   <Button variant="secondary" onClick={() => generate([current])} disabled={isGenerating}>
@@ -510,7 +510,7 @@ function SelectField({ label, value, onChange, children }: { label: string; valu
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-11 rounded-lg border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+        className="h-11 rounded-xl border border-line-strong bg-surface px-3 text-[14px] focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
       >
         {children}
       </select>
@@ -565,7 +565,7 @@ function SectionsEditor({ sections, dir, onChange }: { sections: ReportSection[]
   const set = (i: number, patch: Partial<ReportSection>) => onChange(sections.map((s, k) => (k === i ? { ...s, ...patch } : s)));
 
   return (
-    <div className="space-y-3 rounded-lg border border-line bg-surface-muted p-4" dir={dir}>
+    <div className="space-y-3 rounded-xl border border-line bg-surface-muted p-4" dir={dir}>
       {sections.map((section, i) => (
         <div key={i} className="group space-y-1">
           <div className="flex items-center gap-2">

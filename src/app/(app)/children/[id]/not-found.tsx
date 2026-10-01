@@ -6,7 +6,7 @@ export default async function ChildNotFound() {
   const { t } = i18n;
   return (
     <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-20 text-center">
-      <p className="font-serif text-xl">{t.children.notFound}</p>
+      <p className="text-[16px] font-semibold">{t.children.notFound}</p>
       <LinkButton href="/children" variant="secondary">
         {t.children.backToList}
       </LinkButton>

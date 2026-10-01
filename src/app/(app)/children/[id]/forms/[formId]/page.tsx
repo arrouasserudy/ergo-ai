@@ -51,7 +51,7 @@ export default async function ChildFormPage(props: PageProps<"/children/[id]/for
             {f.fillEyebrow} · <bdi>{i18n.childName(child)}</bdi>
           </Eyebrow>
           <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="font-serif text-[28px] leading-tight font-medium">
+            <h1 className="text-[24px] leading-tight font-semibold tracking-tight">
               <bdi>{form.schema.title}</bdi>
             </h1>
             <ChildFormStatusBadge status={form.status} />

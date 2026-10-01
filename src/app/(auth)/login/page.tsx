@@ -16,7 +16,7 @@ export default async function LoginPage() {
 
   return (
     <Card className="p-6 sm:p-8">
-      <h1 className="font-serif text-[26px] leading-tight font-medium">{t.auth.loginTitle}</h1>
+      <h1 className="text-[24px] leading-tight font-semibold tracking-tight">{t.auth.loginTitle}</h1>
       <p className="mt-1 mb-6 text-[13px] text-ink-muted">{t.auth.loginSubtitle}</p>
       <LoginForm />
     </Card>

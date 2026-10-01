@@ -23,9 +23,9 @@ type FormRendererProps = {
 };
 
 const control =
-  "w-full rounded-lg border bg-surface px-3 text-[15px] text-ink transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
+  "w-full rounded-xl border bg-surface px-3 text-[15px] text-ink transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
 const choice =
-  "flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg border border-line-strong px-3 py-2 text-[14px] has-checked:border-primary has-checked:bg-tint has-checked:text-tint-ink";
+  "flex min-h-11 cursor-pointer items-center gap-2.5 rounded-xl border border-line-strong px-3 py-2 text-[14px] has-checked:border-primary has-checked:bg-tint has-checked:text-tint-ink";
 
 /**
  * Renders a form in the app's convention: to fill in, read-only, or for printing.
@@ -42,7 +42,7 @@ export function FormRenderer({ form, answers, onChange, mode = "fill", missing =
     <div dir={dir} lang={form.language} className={clsx(print ? "space-y-5" : "space-y-8")}>
       {!hideTitle && (
         <header>
-          <h2 className={clsx("font-serif leading-tight font-medium", print ? "text-[16pt]" : "text-[24px]")}>{form.title}</h2>
+          <h2 className={clsx("leading-tight font-semibold tracking-tight", print ? "text-[16pt]" : "text-[24px]")}>{form.title}</h2>
           {form.description && <p className="mt-2 text-[13.5px] whitespace-pre-line text-ink-soft">{form.description}</p>}
         </header>
       )}
@@ -52,7 +52,7 @@ export function FormRenderer({ form, answers, onChange, mode = "fill", missing =
         <section key={section.id} className={clsx(print ? "space-y-3 break-inside-avoid-page" : "space-y-5")}>
           {(section.title || section.description) && (
             <header className={clsx(!print && "border-b border-line pb-2")}>
-              {section.title && <h3 className={clsx("font-serif font-medium", print ? "text-[13pt]" : "text-[19px]")}>{section.title}</h3>}
+              {section.title && <h3 className={clsx("font-semibold tracking-tight", print ? "text-[13pt]" : "text-[17px]")}>{section.title}</h3>}
               {section.description && <p className="mt-1 text-[13px] whitespace-pre-line text-ink-soft">{section.description}</p>}
             </header>
           )}
@@ -271,7 +271,7 @@ function FieldView({ field, answer, mode, invalid, htmlId, t, onChange }: FieldV
           {/* Phones: one group per row. */}
           <div className="space-y-3 md:hidden">
             {field.rows.map((row) => (
-              <div key={row.id} className="rounded-lg border border-line p-3">
+              <div key={row.id} className="rounded-xl border border-line p-3">
                 <p className="mb-2 text-[13.5px]">{row.label}</p>
                 <div className="flex flex-wrap gap-2">
                   {field.columns.map((col) => (

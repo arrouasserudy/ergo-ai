@@ -13,7 +13,7 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
         <span className="grid size-9 place-items-center rounded-lg bg-primary text-white">
           <FileText className="size-5" strokeWidth={2} />
         </span>
-        <span className="font-serif text-3xl font-medium">{t.app.name}</span>
+        <span className="text-2xl font-semibold tracking-tight">{t.app.name}</span>
       </div>
       <div className="w-full max-w-md">{children}</div>
       <div className="mt-6">

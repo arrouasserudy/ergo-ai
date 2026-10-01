@@ -48,7 +48,7 @@ export function SharePanel({ create: createLink, revoke, path, activeUntil, subm
     <div className="space-y-3">
       <p className="text-[12.5px] text-ink-muted">{hint ?? s.hint}</p>
       {url && (
-        <div className="space-y-2 rounded-lg border border-primary/30 bg-tint p-3">
+        <div className="space-y-2 rounded-xl border border-primary/30 bg-tint p-3">
           <input
             readOnly
             dir="ltr"

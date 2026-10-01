@@ -25,8 +25,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh md:flex">
-      <Sidebar therapistName={therapist.name} accountName={account.name} bell={<NotificationBell items={bellItems} variant="dark" />} />
-      <main className="min-w-0 flex-1 px-4 pt-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-8 md:pt-3 xl:px-10 xl:pt-4">
+      <Sidebar therapistName={therapist.name} therapistEmail={therapist.email} accountName={account.name} bell={<NotificationBell items={bellItems} />} />
+      <main className="min-w-0 flex-1 px-4 pt-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-8 md:pt-3 xl:px-12 xl:pt-4">
         <div className="-mb-2 hidden justify-end md:flex">
           <NotificationBell items={bellItems} />
         </div>
