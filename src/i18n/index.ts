@@ -12,6 +12,8 @@ export const LOCALES = ["fr", "he", "en"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "fr";
 export const LOCALE_COOKIE = "locale";
+/** The locale cookie is kept per device for a year. */
+export const LOCALE_COOKIE_OPTIONS = { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" } as const;
 /** Set when hidden mode is on (settings): child names are replaced by initials + id. */
 export const HIDE_NAMES_COOKIE = "hide_names";
 

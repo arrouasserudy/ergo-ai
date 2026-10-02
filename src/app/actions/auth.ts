@@ -2,10 +2,12 @@
 
 import { eq } from "drizzle-orm";
 import { APIError } from "better-auth/api";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
+import { demoLocale } from "@/db/demo-ids";
 import { accounts } from "@/db/schema";
+import { LOCALE_COOKIE, LOCALE_COOKIE_OPTIONS } from "@/i18n";
 import { auth } from "@/lib/auth";
 import { ensureBuiltinForms } from "@/lib/forms/builtin";
 import { createTherapist, EmailTakenError } from "@/lib/therapists";
@@ -18,12 +20,16 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   const parsed = loginSchema.safeParse(input);
   if (!parsed.success) return { ok: false, errors: toFieldErrors(parsed.error), values };
 
+  let accountId: string;
   try {
-    await auth.api.signInEmail({ body: parsed.data, headers: await headers() });
+    ({ user: { accountId } } = await auth.api.signInEmail({ body: parsed.data, headers: await headers() }));
   } catch (error) {
     if (error instanceof APIError) return { ok: false, errors: { form: "invalidCredentials" }, values };
     throw error;
   }
+  // A demo cabinet opens in its own language (the Hebrew one in Hebrew…); switchable in Settings.
+  const locale = demoLocale(accountId);
+  if (locale) (await cookies()).set(LOCALE_COOKIE, locale, LOCALE_COOKIE_OPTIONS);
   redirect("/");
 }
 

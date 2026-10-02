@@ -1,5 +1,6 @@
 import { MessageCircle, Plus } from "lucide-react";
 import { notFound } from "next/navigation";
+import { AddEventButton } from "@/components/child-events/AddEventButton";
 import { ChildTabs } from "@/components/children/ChildTabs";
 import { StatusBadge } from "@/components/children/StatusBadge";
 import { StartButtons } from "@/components/episodes/StartButtons";
@@ -8,6 +9,7 @@ import { DeadlineBadge } from "@/components/forms/DeadlineBadge";
 import { BackLink } from "@/components/ui/BackLink";
 import { buttonClass, LinkButton } from "@/components/ui/Button";
 import { getI18n } from "@/i18n/server";
+import { reportOptions } from "@/lib/child-events/queries";
 import { getChild } from "@/lib/children";
 import { pendingForms, urgencyByChild } from "@/lib/forms/queries";
 import { requireTherapist } from "@/lib/session";
@@ -61,6 +63,7 @@ export default async function ChildLayout(props: LayoutProps<"/children/[id]">) 
                 {t.reports.newButton}
               </LinkButton>
             )}
+            {!archived && <AddEventButton childId={child.id} reports={reportOptions(accountId, child.id)} today={localToday()} />}
             {!archived && <StartButtons childId={child.id} kinds={["crisis"]} />}
             <AskAmitButton childId={child.id} className={buttonClass("secondary")}>
               <MessageCircle className="size-4" />

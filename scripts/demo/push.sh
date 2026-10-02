@@ -1,22 +1,23 @@
 #!/usr/bin/env bash
-# Copies one account of the local database to production, replacing it there
-# (default: the demo cabinet, see src/db/demo.ts).
+# Copies accounts of the local database to production, replacing them there
+# (default: the three demo cabinets fr, he, en, see src/db/demo.ts).
 #
-#   pnpm demo:push [accountId]
+#   pnpm demo:push                     # every demo cabinet
+#   pnpm demo:push he en               # some of them
+#   pnpm demo:push <accountId>         # any other local account
 #   DATABASE_PATH=data/other.db pnpm demo:push      # export from another local database
 #
-# Safety: refuses when the local and production migrations differ, when the account
+# Safety: refuses when the local and production migrations differ, when an account
 # exists in production under another name or owner email (a real cabinet), when one of
-# its therapists' emails belongs to another production account, or when the production
-# account has uploaded documents. Backs up the production database first (last 5 kept),
-# applies everything in one transaction, then checks the row counts of the account and
-# that every other account is unchanged.
+# its therapists' emails belongs to another production account, or when a production
+# account has uploaded documents. Backs up the production database first (once per run,
+# last 5 kept), applies everything in one transaction, then checks the row counts of the
+# pushed accounts and that every other account is unchanged.
 set -euo pipefail
 
 APP=ergo-ai
 REMOTE_DB=/data/ergoai.db
 LOCAL_DB=${DATABASE_PATH:-data/ergoai.db}
-ACCOUNT=${1:-}
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
@@ -42,9 +43,9 @@ remote_sql() {
 }
 wake() { curl -fsS -o /dev/null "https://$APP.fly.dev/login"; }
 
-echo "→ Exporting the account from ${LOCAL_DB}…"
-DATABASE_PATH="$LOCAL_DB" pnpm -s tsx scripts/demo/export-account.ts "$WORK" ${ACCOUNT:+"$ACCOUNT"}
-ACCOUNT_ID=$(sed -n 's/^-- Account \([0-9a-f-]*\) .*/\1/p' "$WORK/push.sql")
+echo "→ Exporting from ${LOCAL_DB}…"
+DATABASE_PATH="$LOCAL_DB" pnpm -s tsx scripts/demo/export-account.ts "$WORK" "$@"
+ACCOUNT_IDS=$(cut -d'|' -f1 "$WORK/accounts.txt")
 
 echo "→ Waking the machine…"
 wake
@@ -60,26 +61,29 @@ if ! diff -u "$WORK/migrations.prod" "$WORK/migrations.local" >"$WORK/migrations
 fi
 echo "  $(wc -l <"$WORK/migrations.local" | tr -d ' ') migrations, identical."
 
-echo "→ Checking the production account…"
+echo "→ Checking the production accounts…"
 remote_sql "$WORK/check.sql" | tr -d '\r' >"$WORK/check.out"
-check() { sed -n "s/^$1|//p" "$WORK/check.out"; }
-case "$(check account)" in
-  new) echo "  Not in production yet: it will be created." ;;
-  same) echo "  Exists in production with the same name and owner: it will be replaced." ;;
-  different)
-    echo "✗ Account $ACCOUNT_ID exists in production as \"$(check target)\" (name / owner), unlike the local one. Refusing to overwrite it." >&2
-    exit 1 ;;
-  *) echo "✗ Unexpected check output:" >&2; cat "$WORK/check.out" >&2; exit 1 ;;
-esac
-if [ -n "$(check emails_elsewhere)" ]; then
-  echo "✗ These emails belong to another production account: $(check emails_elsewhere)" >&2
-  exit 1
-fi
-if [ "$(check documents)" != "0" ]; then
-  echo "✗ The production account has $(check documents) uploaded document(s); deleting them would orphan their search indexes. Delete them in the app first." >&2
-  exit 1
-fi
-[ "$(check conversations)" = "0" ] || echo "  ! $(check conversations) Amit conversation(s) of this account in production will be deleted."
+check() { sed -n "s/^$1|$2|//p" "$WORK/check.out"; }
+for ID in $ACCOUNT_IDS; do
+  NAME=$(grep "^$ID|" "$WORK/accounts.txt" | cut -d'|' -f2)
+  case "$(check "$ID" account)" in
+    new) echo "  \"$NAME\": not in production yet, it will be created." ;;
+    same) echo "  \"$NAME\": exists in production with the same name and owner, it will be replaced." ;;
+    different)
+      echo "✗ Account $ID exists in production as \"$(check "$ID" target)\" (name / owner), unlike the local one. Refusing to overwrite it." >&2
+      exit 1 ;;
+    *) echo "✗ Unexpected check output for $ID:" >&2; cat "$WORK/check.out" >&2; exit 1 ;;
+  esac
+  if [ -n "$(check "$ID" emails_elsewhere)" ]; then
+    echo "✗ These emails belong to another production account: $(check "$ID" emails_elsewhere)" >&2
+    exit 1
+  fi
+  if [ "$(check "$ID" documents)" != "0" ]; then
+    echo "✗ \"$NAME\" has $(check "$ID" documents) uploaded document(s) in production; deleting them would orphan their search indexes. Delete them in the app first." >&2
+    exit 1
+  fi
+  [ "$(check "$ID" conversations)" = "0" ] || echo "  ! $(check "$ID" conversations) Amit conversation(s) of \"$NAME\" in production will be deleted."
+done
 
 echo "→ Recording the other accounts' row counts…"
 remote_sql "$WORK/others.sql" | tr -d '\r' >"$WORK/others.before"
@@ -107,10 +111,10 @@ remote_sh "rm -f $REMOTE_SQL"
 
 echo "→ Verifying…"
 remote_sql "$WORK/counts.sql" | tr -d '\r' >"$WORK/counts.prod"
-paste -d' ' <(cut -d'|' -f1,2 "$WORK/counts.prod" | tr '|' ' ') <(cut -d'|' -f2 "$WORK/expected.txt") |
-  awk '{ printf "  %-18s %6s  (local %s)%s\n", $1, $2, $3, ($2 == $3 ? "" : "  ✗") }'
+paste -d'|' "$WORK/counts.prod" <(cut -d'|' -f3 "$WORK/expected.txt") |
+  awk -F'|' '{ if ($1 != last) { print "  " $1; last = $1 } printf "    %-18s %6s  (local %s)%s\n", $2, $3, $4, ($3 == $4 ? "" : "  ✗") }'
 if ! diff -q "$WORK/counts.prod" "$WORK/expected.txt" >/dev/null; then
-  echo "✗ Row counts differ from the local account." >&2
+  echo "✗ Row counts differ from the local accounts." >&2
   exit 1
 fi
 remote_sql "$WORK/others.sql" | tr -d '\r' >"$WORK/others.after"
@@ -122,4 +126,4 @@ else
   exit 1
 fi
 remote_sh "sqlite3 $REMOTE_DB 'PRAGMA foreign_key_check' | head -5"
-echo "✓ Account $ACCOUNT_ID pushed to production. Backup: $BACKUP"
+echo "✓ $(wc -l <"$WORK/accounts.txt" | tr -d ' ') account(s) pushed to production: $(cut -d'|' -f2 "$WORK/accounts.txt" | paste -sd, - | sed 's/,/, /g'). Backup: $BACKUP"

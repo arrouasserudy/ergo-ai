@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { accountSql, COPIED_TABLES, insertStatement, sqlValue, unknownScopedTables, whereFor, type TableInfo } from "./account-sql";
+import { accountSql, checkSql, COPIED_TABLES, countsSql, insertStatement, otherAccountsSql, sqlValue, unknownScopedTables, whereFor, type TableInfo } from "./account-sql";
 
 describe("sqlValue", () => {
   it("writes each SQLite storage class exactly", () => {
@@ -47,15 +47,50 @@ describe("whereFor / accountSql", () => {
   });
 
   it("deletes the account then inserts parents before children, in one transaction", () => {
-    const sql = accountSql("acc", [
-      { table: "accounts", rows: [{ id: "acc", name: "A" }] },
-      { table: "children", rows: [{ id: "c", account_id: "acc" }] },
-    ], "header");
+    const sql = accountSql(
+      [
+        {
+          accountId: "acc",
+          rows: [
+            { table: "accounts", rows: [{ id: "acc", name: "A" }] },
+            { table: "children", rows: [{ id: "c", account_id: "acc" }] },
+          ],
+        },
+      ],
+      "header",
+    );
     const lines = sql.trim().split("\n");
     expect(lines.slice(1, 5)).toEqual([".bail on", ".timeout 5000", "PRAGMA foreign_keys = ON;", "BEGIN IMMEDIATE;"]);
     expect(sql.indexOf("DELETE FROM accounts WHERE id = 'acc';")).toBeLessThan(sql.indexOf('INSERT INTO "accounts"'));
     expect(sql.indexOf('INSERT INTO "accounts"')).toBeLessThan(sql.indexOf('INSERT INTO "children"'));
     expect(lines.at(-1)).toBe("COMMIT;");
+  });
+
+  it("replaces several accounts in a single transaction, deleting them all first", () => {
+    const account = (id: string) => ({ accountId: id, rows: [{ table: "accounts", rows: [{ id, name: id }] }] });
+    const sql = accountSql([account("a1"), account("a2")], "header");
+    expect(sql.match(/BEGIN IMMEDIATE;/g)).toHaveLength(1);
+    expect(sql.match(/COMMIT;/g)).toHaveLength(1);
+    expect(sql.indexOf("DELETE FROM accounts WHERE id = 'a2';")).toBeLessThan(sql.indexOf("INSERT INTO \"accounts\""));
+    expect(sql.indexOf("VALUES ('a1'")).toBeLessThan(sql.indexOf("VALUES ('a2'"));
+  });
+});
+
+describe("checkSql / countsSql / otherAccountsSql", () => {
+  it("prefixes every check and count with the account id", () => {
+    const checks = checkSql("a1", "Cabinet d'A", "x@y.z", ["x@y.z"]).split("\n").filter((l) => l.startsWith("SELECT"));
+    expect(checks).toHaveLength(5);
+    for (const line of checks) expect(line).toMatch(/^SELECT 'a1' \|\| '\|[a-z_]+\|' \|\|/);
+    expect(checks[0]).toContain("'Cabinet d''A'");
+    const counts = countsSql("a1").split("\n").filter((l) => l.startsWith("SELECT"));
+    expect(counts).toHaveLength(COPIED_TABLES.length);
+    expect(counts[0]).toBe(`SELECT 'a1' || '|accounts|' || count(*) FROM "accounts" WHERE id = 'a1';`);
+  });
+
+  it("counts the accounts that are not pushed", () => {
+    const sql = otherAccountsSql(["a1", "a'2"]);
+    expect(sql).toContain("WHERE id NOT IN ('a1', 'a''2')");
+    expect(() => otherAccountsSql([])).toThrow();
   });
 
   it("copies parents before the tables that reference them", () => {
@@ -64,6 +99,7 @@ describe("whereFor / accountSql", () => {
     expect(order.indexOf("reports")).toBeLessThan(order.indexOf("report_variants"));
     expect(order.indexOf("report_variants")).toBeLessThan(order.indexOf("style_examples"));
     expect(order.indexOf("form_templates")).toBeLessThan(order.indexOf("child_forms"));
+    expect(order.indexOf("reports")).toBeLessThan(order.indexOf("child_events"));
   });
 });
 

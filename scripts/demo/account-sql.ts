@@ -1,6 +1,6 @@
 /**
- * Builds the SQL that replaces one cabinet ("account") in another database with a copy
- * of it (used by `pnpm demo:push`, see push.sh). Pure: the CLI (export-account.ts) reads
+ * Builds the SQL that replaces cabinets ("accounts") in another database with a copy of
+ * them (used by `pnpm demo:push`, see push.sh). Pure: the CLI (export-account.ts) reads
  * the rows and writes the files.
  */
 
@@ -17,6 +17,7 @@ export const COPIED_TABLES: { table: string; where: string }[] = [
   { table: "style_examples", where: "account_id = :account" },
   { table: "child_forms", where: "account_id = :account" },
   { table: "assessments", where: "account_id = :account" },
+  { table: "child_events", where: "account_id = :account" },
 ];
 
 /** Tables deliberately left out of the copy (the target's rows are still deleted by the cascade). */
@@ -90,56 +91,56 @@ export function whereFor(where: string, accountId: string): string {
 }
 
 /**
- * One transaction: delete the account in the target (cascades through every table that
+ * One transaction: delete each account in the target (cascades through every table that
  * references it; tables holding an account_id without a foreign key are cleared explicitly
  * first), then insert every copied row. sqlite3 CLI script: `.bail on` stops at the first
- * error, leaving the transaction uncommitted (rolled back).
+ * error, leaving the transaction uncommitted (rolled back): all the accounts or none.
  */
-export function accountSql(accountId: string, rows: { table: string; rows: Record<string, unknown>[] }[], header: string): string {
-  const id = sqlValue(accountId);
-  const lines = [
-    `-- ${header.replace(/\n/g, " ")}`,
-    ".bail on",
-    ".timeout 5000",
-    "PRAGMA foreign_keys = ON;",
-    "BEGIN IMMEDIATE;",
-    `DELETE FROM chat_messages WHERE account_id = ${id};`,
-    `DELETE FROM report_variants WHERE account_id = ${id};`,
-    `DELETE FROM document_chunks WHERE account_id = ${id};`,
-    `DELETE FROM accounts WHERE id = ${id};`,
-  ];
-  for (const { table, rows: tableRows } of rows) for (const row of tableRows) lines.push(insertStatement(table, row));
+export function accountSql(accounts: { accountId: string; rows: { table: string; rows: Record<string, unknown>[] }[] }[], header: string): string {
+  const lines = [`-- ${header.replace(/\n/g, " ")}`, ".bail on", ".timeout 5000", "PRAGMA foreign_keys = ON;", "BEGIN IMMEDIATE;"];
+  for (const { accountId } of accounts) {
+    const id = sqlValue(accountId);
+    lines.push(
+      `DELETE FROM chat_messages WHERE account_id = ${id};`,
+      `DELETE FROM report_variants WHERE account_id = ${id};`,
+      `DELETE FROM document_chunks WHERE account_id = ${id};`,
+      `DELETE FROM accounts WHERE id = ${id};`,
+    );
+  }
+  for (const { rows } of accounts) for (const { table, rows: tableRows } of rows) for (const row of tableRows) lines.push(insertStatement(table, row));
   lines.push("COMMIT;", "");
   return lines.join("\n");
 }
 
 /**
- * Checks run on the target before pushing, one "key|value" line each: whether the account
- * exists there with the same name and owner email, emails used by another account,
+ * Checks run on the target before pushing, one "accountId|key|value" line each: whether the
+ * account exists there with the same name and owner email, emails used by another account,
  * uploaded documents and Amit conversations that the push would delete.
  */
 export function checkSql(accountId: string, name: string, ownerEmail: string, emails: string[]): string {
   const id = sqlValue(accountId);
+  const key = (k: string) => `${id} || '|${k}|' ||`;
   return [
     ".timeout 5000",
-    `SELECT 'account|' || CASE WHEN NOT EXISTS (SELECT 1 FROM accounts WHERE id = ${id}) THEN 'new' WHEN EXISTS (SELECT 1 FROM accounts a JOIN therapists t ON t.account_id = a.id AND t.role = 'owner' WHERE a.id = ${id} AND a.name = ${sqlValue(name)} AND t.email = ${sqlValue(ownerEmail)}) THEN 'same' ELSE 'different' END;`,
-    `SELECT 'target|' || coalesce((SELECT a.name || ' / ' || coalesce(group_concat(t.email), '') FROM accounts a LEFT JOIN therapists t ON t.account_id = a.id AND t.role = 'owner' WHERE a.id = ${id} GROUP BY a.id), '');`,
-    `SELECT 'emails_elsewhere|' || coalesce(group_concat(email), '') FROM therapists WHERE email IN (${emails.map(sqlValue).join(", ") || "NULL"}) AND account_id <> ${id};`,
-    `SELECT 'documents|' || count(*) FROM documents WHERE account_id = ${id};`,
-    `SELECT 'conversations|' || count(*) FROM conversations WHERE account_id = ${id};`,
+    `SELECT ${key("account")} CASE WHEN NOT EXISTS (SELECT 1 FROM accounts WHERE id = ${id}) THEN 'new' WHEN EXISTS (SELECT 1 FROM accounts a JOIN therapists t ON t.account_id = a.id AND t.role = 'owner' WHERE a.id = ${id} AND a.name = ${sqlValue(name)} AND t.email = ${sqlValue(ownerEmail)}) THEN 'same' ELSE 'different' END;`,
+    `SELECT ${key("target")} coalesce((SELECT a.name || ' / ' || coalesce(group_concat(t.email), '') FROM accounts a LEFT JOIN therapists t ON t.account_id = a.id AND t.role = 'owner' WHERE a.id = ${id} GROUP BY a.id), '');`,
+    `SELECT ${key("emails_elsewhere")} coalesce(group_concat(email), '') FROM therapists WHERE email IN (${emails.map(sqlValue).join(", ") || "NULL"}) AND account_id <> ${id};`,
+    `SELECT ${key("documents")} count(*) FROM documents WHERE account_id = ${id};`,
+    `SELECT ${key("conversations")} count(*) FROM conversations WHERE account_id = ${id};`,
     "",
   ].join("\n");
 }
 
-/** Row counts per table for the account ("table|count"), compared with the local counts after the push. */
+/** Row counts per table for the account ("accountId|table|count"), compared with the local counts after the push. */
 export function countsSql(accountId: string): string {
-  return [".timeout 5000", ...COPIED_TABLES.map(({ table, where }) => `SELECT '${table}|' || count(*) FROM ${ident(table)} WHERE ${whereFor(where, accountId)};`), ""].join("\n");
+  const id = sqlValue(accountId);
+  return [".timeout 5000", ...COPIED_TABLES.map(({ table, where }) => `SELECT ${id} || '|${table}|' || count(*) FROM ${ident(table)} WHERE ${whereFor(where, accountId)};`), ""].join("\n");
 }
 
 /** Row counts of every other account ("table|count"), recorded before and after to prove they are untouched. */
-export function otherAccountsSql(accountId: string): string {
-  const id = sqlValue(accountId);
-  const others = `(SELECT id FROM accounts WHERE id <> ${id})`;
+export function otherAccountsSql(accountIds: string[]): string {
+  if (accountIds.length === 0) throw new Error("No account to exclude");
+  const others = `(SELECT id FROM accounts WHERE id NOT IN (${accountIds.map(sqlValue).join(", ")}))`;
   const tables: [string, string][] = [
     ["accounts", `id IN ${others}`],
     ["therapists", `account_id IN ${others}`],
@@ -152,6 +153,7 @@ export function otherAccountsSql(accountId: string): string {
     ["style_examples", `account_id IN ${others}`],
     ["child_forms", `account_id IN ${others}`],
     ["assessments", `account_id IN ${others}`],
+    ["child_events", `account_id IN ${others}`],
     ["conversations", `account_id IN ${others}`],
     ["chat_messages", `account_id IN ${others}`],
     ["documents", `account_id IN ${others}`],

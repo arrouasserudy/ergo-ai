@@ -1,8 +1,9 @@
 import clsx from "clsx";
-import { CalendarClock, CalendarDays, CircleCheck, ClipboardList, FileText, Gauge, Pencil, type LucideIcon } from "lucide-react";
+import { CalendarClock, CircleCheck, ClipboardList, FileText, Gauge, Pencil, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
+import { UpcomingEvents } from "@/components/child-events/UpcomingEvents";
 import { OpenEpisodes } from "@/components/episodes/OpenEpisodes";
 import { TimelineView } from "@/components/timeline/TimelineView";
 import { Card, CardHeader } from "@/components/ui/Card";
@@ -13,6 +14,8 @@ import { progress } from "@/lib/assessments/answers";
 import { listChildAssessments } from "@/lib/assessments/queries";
 import { getDefinition } from "@/lib/assessments/registry";
 import { needsAttention, type AttentionItem } from "@/lib/child-attention";
+import { upcomingEvents } from "@/lib/child-events/events";
+import { listEvents, reportOptions } from "@/lib/child-events/queries";
 import { getChild } from "@/lib/children";
 import { listChildEpisodes } from "@/lib/episodes";
 import { listChildForms } from "@/lib/forms/queries";
@@ -39,17 +42,22 @@ export default async function ChildOverviewPage(props: PageProps<"/children/[id]
   const child = getChild(accountId, id);
   if (!child) notFound();
 
+  const today = localToday();
   const openEpisodes = listChildEpisodes(accountId, child.id).filter((ep) => ep.status === "open");
   const assessments = listChildAssessments(accountId, child.id);
   const attention = needsAttention({
     forms: listChildForms(accountId, child.id),
     reports: listReports(accountId, { childId: child.id, status: "draft" }).map(({ report }) => report),
     assessments,
-    today: localToday(),
+    today,
     warnDays: account.deadlineWarnDays,
   });
   const answersOf = new Map(assessments.map((a) => [a.id, a.answers]));
   const latestEvents = childTimeline(accountId, child).slice(-5).reverse();
+  const events = listEvents(accountId, { childId: child.id, today, warnDays: account.deadlineWarnDays });
+  const upcoming = upcomingEvents(events, today);
+  const eventParam = (await props.searchParams).event;
+  const linked = (typeof eventParam === "string" && events.find((e) => e.id === eventParam)) || null;
 
   const f = t.fields;
   const glance: { label: string; value: ReactNode }[] = [
@@ -87,18 +95,23 @@ export default async function ChildOverviewPage(props: PageProps<"/children/[id]
           </Card>
         )}
 
+        <UpcomingEvents
+          childId={child.id}
+          events={upcoming}
+          reports={reportOptions(accountId, child.id)}
+          today={today}
+          linked={linked}
+          canAdd={child.status !== "archived"}
+        />
+
         <Card>
           <CardHeader title={o.recentTitle} hint={o.recentHint} />
           <div className="px-5 pb-2">
             <TimelineView events={latestEvents} birthDate={child.birthDate} preview />
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-x-4 border-t border-line px-5">
-            <Link href={`/children/${child.id}/timeline`} className="py-3 text-[12.5px] font-medium text-primary hover:underline">
+          <div className="border-t border-line px-5">
+            <Link href={`/children/${child.id}/timeline`} className="inline-block py-3 text-[12.5px] font-medium text-primary hover:underline">
               {t.timeline.seeAll}
-            </Link>
-            <Link href={`/calendar?child=${child.id}`} className="inline-flex items-center gap-1.5 py-3 text-[12.5px] font-medium text-primary hover:underline">
-              <CalendarDays className="size-3.5" />
-              {t.calendar.openCalendar}
             </Link>
           </div>
         </Card>

@@ -1,19 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { buildTimeline } from "@/lib/timeline/events";
 import {
+  birthdayEvents,
   birthdaysInRange,
-  childCalendarEvents,
+  childEventEntries,
   deadlineEvents,
   filterCalendar,
   groupByDay,
   parseList,
   parseTypes,
   sortCalendar,
-  typeOf,
   type CalendarEvent,
 } from "./events";
-
-const TZ = "Asia/Jerusalem";
 
 describe("birthdaysInRange", () => {
   it("repeats the birthday every year in range, with the age", () => {
@@ -43,39 +40,29 @@ describe("birthdaysInRange", () => {
   });
 });
 
-describe("childCalendarEvents", () => {
-  const child = { id: "c1", birthDate: "2019-10-03", followUpStart: "2024-10-07", createdAt: "2024-09-10 08:00:00" };
-  const timeline = buildTimeline({
-    child,
-    episodes: [
-      // 23:30 UTC on 30 September is already 1 October in Jerusalem.
-      { id: "e1", kind: "crisis", status: "closed", situation: null, causes: [], startedAt: new Date("2026-09-30T23:30:00Z"), endedAt: null },
-      { id: "e2", kind: "difficulty", status: "closed", situation: null, causes: [], startedAt: new Date("2026-08-02T10:00:00Z"), endedAt: null },
-    ],
-    reports: [{ id: "r1", docType: "progress", sessionDate: "2026-10-12", status: "draft" }],
-    forms: [],
-    assessments: [],
-    timeZone: TZ,
-  });
-  const range = { from: "2026-09-28", to: "2026-11-01" };
-
-  it("keeps the range, replaces the birth by the birthday and links everything", () => {
-    const events = sortCalendar(childCalendarEvents(child, timeline, range));
-    expect(events.map((e) => [e.id, e.kind, e.day])).toEqual([
-      ["c1:episode:e1", "crisis", "2026-10-01"],
-      ["c1:birthday:2026-10-03", "birthday", "2026-10-03"],
-      ["c1:report:r1", "report", "2026-10-12"],
+describe("birthdayEvents", () => {
+  it("links each birthday to the child", () => {
+    expect(birthdayEvents({ id: "c1", birthDate: "2019-10-03" }, { from: "2026-09-28", to: "2026-11-01" })).toEqual([
+      { id: "c1:birthday:2026-10-03", kind: "birthday", childId: "c1", day: "2026-10-03", time: null, href: "/children/c1", age: 7 },
     ]);
-    expect(events.every((e) => e.childId === "c1" && e.href)).toBe(true);
-    expect(events.find((e) => e.kind === "birthday")).toMatchObject({ age: 7, href: "/children/c1/timeline" });
   });
+});
 
-  it("links milestones without a page to the child's timeline", () => {
-    const events = childCalendarEvents(child, timeline, { from: "2024-10-01", to: "2024-10-31" });
-    expect(events.find((e) => e.kind === "followUp")).toMatchObject({ id: "c1:followUp", href: "/children/c1/timeline" });
-    expect(typeOf("followUp")).toBe("milestone");
-    expect(typeOf("fileCreated")).toBe("milestone");
-    expect(typeOf("crisis")).toBe("crisis");
+describe("childEventEntries", () => {
+  const base = { details: null, report: null, done: false, urgency: "none" as const, time: null };
+  const events = [
+    { ...base, id: "e1", childId: "c1", kind: "intake" as const, date: "2026-10-05", time: "09:30" },
+    { ...base, id: "e2", childId: "c1", kind: "report_due" as const, date: "2026-10-12", report: { id: "r1", docType: "follow_up", sessionDate: "2026-09-30" }, urgency: "soon" as const },
+    { ...base, id: "e3", childId: "c2", kind: "other" as const, date: "2026-12-01", details: "Réunion d'équipe" },
+  ];
+
+  it("keeps the range; a report due date leads to the report, others to the child's event", () => {
+    const entries = childEventEntries(events, { from: "2026-09-28", to: "2026-11-01" });
+    expect(entries.map((e) => [e.id, e.kind, e.day, e.time, e.href])).toEqual([
+      ["c1:event:e1", "intake", "2026-10-05", "09:30", "/children/c1?event=e1"],
+      ["c1:event:e2", "report_due", "2026-10-12", null, "/reports/r1"],
+    ]);
+    expect(entries[1]).toMatchObject({ eventId: "e2", urgency: "soon", report: { docType: "follow_up", sessionDate: "2026-09-30" } });
   });
 });
 
@@ -104,24 +91,24 @@ describe("deadlineEvents", () => {
 
 describe("sortCalendar / filterCalendar / groupByDay", () => {
   const ev = (over: Partial<CalendarEvent> & Pick<CalendarEvent, "id" | "kind" | "day" | "childId">): CalendarEvent =>
-    ({ date: over.day, precision: "day", href: "/x", ...over }) as CalendarEvent;
+    ({ time: null, href: "/x", ...over }) as CalendarEvent;
   const events = [
-    ev({ id: "a", kind: "crisis", day: "2026-10-05", childId: "c1", precision: "datetime", date: "2026-10-05T12:00:00.000Z" }),
-    ev({ id: "b", kind: "crisis", day: "2026-10-05", childId: "c2", precision: "datetime", date: "2026-10-05T08:00:00.000Z" }),
-    ev({ id: "c", kind: "report", day: "2026-10-05", childId: "c2" }),
+    ev({ id: "a", kind: "intake", day: "2026-10-05", childId: "c1", time: "14:00" }),
+    ev({ id: "b", kind: "parent_guidance", day: "2026-10-05", childId: "c2", time: "08:00" }),
+    ev({ id: "c", kind: "report_due", day: "2026-10-05", childId: "c2" }),
     ev({ id: "d", kind: "birthday", day: "2026-10-05", childId: "c1" }),
     ev({ id: "e", kind: "deadline", day: "2026-10-01", childId: "c3" }),
   ];
 
-  it("orders by day, then birthdays and deadlines, dated events, timed events by time", () => {
+  it("orders by day, then birthdays, to-dos, untimed events, timed events by time", () => {
     expect(sortCalendar(events).map((e) => e.id)).toEqual(["e", "d", "c", "b", "a"]);
   });
 
   it("filters by children and types; empty lists mean all", () => {
     expect(filterCalendar(events, { children: [], types: [] })).toHaveLength(5);
     expect(filterCalendar(events, { children: ["c2"], types: [] }).map((e) => e.id)).toEqual(["b", "c"]);
-    expect(filterCalendar(events, { children: [], types: ["crisis", "deadline"] }).map((e) => e.id)).toEqual(["a", "b", "e"]);
-    expect(filterCalendar(events, { children: ["c1", "c3"], types: ["crisis"] }).map((e) => e.id)).toEqual(["a"]);
+    expect(filterCalendar(events, { children: [], types: ["intake", "deadline"] }).map((e) => e.id)).toEqual(["a", "e"]);
+    expect(filterCalendar(events, { children: ["c1", "c3"], types: ["parent_guidance"] }).map((e) => e.id)).toEqual([]);
   });
 
   it("groups by day", () => {
@@ -134,6 +121,6 @@ describe("sortCalendar / filterCalendar / groupByDay", () => {
     expect(parseList("a, b,,a")).toEqual(["a", "b"]);
     expect(parseList(["a", "c"])).toEqual(["a", "c"]);
     expect(parseList(undefined)).toEqual([]);
-    expect(parseTypes("crisis,nope,birthday")).toEqual(["crisis", "birthday"]);
+    expect(parseTypes("intake,crisis,birthday")).toEqual(["intake", "birthday"]);
   });
 });

@@ -1,41 +1,51 @@
 /**
- * The cabinet's calendar (pure, tested): every child's timeline events within a range
- * (built by `buildTimeline`, never re-extracted here), plus what only a calendar needs:
- * a birthday every year instead of the single birth event, and the due dates of forms
- * still to fill in (the future, with their orange/red urgency). Keys and user content
- * only; labels are translated at display.
+ * The cabinet's calendar (pure, tested): what is planned, not what was logged. Events added
+ * on a child's file (intakes, parent guidance, report due dates, other), the due dates of
+ * forms still to fill in (with their orange/red urgency), and each child's birthday every
+ * year. Crises, reports written, forms filled in… stay in the child's timeline. Keys and
+ * user content only; labels are translated at display.
  */
+import { CHILD_EVENT_KINDS, type ChildEventKind } from "@/db/schema";
 import { inYear, urgency, type Urgency } from "@/lib/forms/deadlines";
-import { isIsoDate, type TimelineEvent } from "@/lib/timeline/events";
+import { isIsoDate } from "@/lib/timeline/events";
 
-/** Legend entries and type filters, in display order. The child's milestones share one. */
-export const CALENDAR_TYPES = ["crisis", "difficulty", "report", "form", "formDate", "assessment", "deadline", "birthday", "milestone"] as const;
+/** Legend entries and type filters, in display order. */
+export const CALENDAR_TYPES = [...CHILD_EVENT_KINDS, "deadline", "birthday"] as const;
 export type CalendarType = (typeof CALENDAR_TYPES)[number];
 
-type DayBase = { id: string; childId: string; date: string; day: string; precision: "day"; href: string };
-
-type Milestone = "birth" | "followUp" | "fileCreated";
-/** Timeline events but the birth (a calendar shows birthdays instead). */
-type TimelineButBirth =
-  | Exclude<TimelineEvent, { kind: Milestone }>
-  | (Omit<Extract<TimelineEvent, { kind: Milestone }>, "kind"> & { kind: Exclude<Milestone, "birth"> });
+type DayBase = {
+  id: string;
+  childId: string;
+  /** The local day (YYYY-MM-DD). */
+  day: string;
+  /** Local time ("HH:MM") of a meeting, if set. */
+  time: string | null;
+  href: string;
+};
 
 export type CalendarEvent =
-  | (TimelineButBirth & { childId: string })
   | (DayBase & { kind: "birthday"; age: number })
-  | (DayBase & { kind: "deadline"; title: string; urgency: Urgency });
+  | (DayBase & { kind: "deadline"; title: string; urgency: Urgency })
+  | (DayBase & {
+      kind: ChildEventKind;
+      eventId: string;
+      details: string | null;
+      report: { docType: string; sessionDate: string } | null;
+      done: boolean;
+      urgency: Urgency;
+    });
 export type CalendarKind = CalendarEvent["kind"];
 
 export function typeOf(kind: CalendarKind): CalendarType {
-  return kind === "followUp" || kind === "fileCreated" ? "milestone" : kind;
+  return kind;
 }
 
 export type DayRange = { from: string; to: string };
 
 const inRange = (day: string, { from, to }: DayRange) => day >= from && day <= to;
 
-/** Where an event without a page of its own leads: the child's timeline. */
-export const childTimelineHref = (childId: string) => `/children/${childId}/timeline`;
+/** Where an event without a page of its own leads: the child's overview, the event open for editing. */
+export const childEventHref = (childId: string, eventId: string) => `/children/${childId}?event=${eventId}`;
 
 /**
  * Every birthday of a child within the range, the birth itself included (age 0).
@@ -52,18 +62,47 @@ export function birthdaysInRange(birthDate: string | null, range: DayRange): { d
   return result;
 }
 
-/** One child's events within the range: its timeline (birth replaced by birthdays), ids made unique across children. */
-export function childCalendarEvents(child: { id: string; birthDate: string | null }, timeline: TimelineEvent[], range: DayRange): CalendarEvent[] {
-  const fallback = childTimelineHref(child.id);
-  const events: CalendarEvent[] = [];
-  for (const event of timeline) {
-    if (event.kind === "birth" || !inRange(event.day, range)) continue;
-    events.push({ ...event, kind: event.kind, id: `${child.id}:${event.id}`, childId: child.id, href: event.href ?? fallback } as CalendarEvent); // TS cannot narrow the milestone member's kind through the spread.
-  }
-  for (const { day, age } of birthdaysInRange(child.birthDate, range)) {
-    events.push({ id: `${child.id}:birthday:${day}`, kind: "birthday", childId: child.id, date: day, day, precision: "day", href: fallback, age });
-  }
-  return events;
+export function birthdayEvents(child: { id: string; birthDate: string | null }, range: DayRange): CalendarEvent[] {
+  return birthdaysInRange(child.birthDate, range).map(({ day, age }) => ({
+    id: `${child.id}:birthday:${day}`,
+    kind: "birthday" as const,
+    childId: child.id,
+    day,
+    time: null,
+    href: `/children/${child.id}`,
+    age,
+  }));
+}
+
+export type EventInput = {
+  id: string;
+  childId: string;
+  kind: ChildEventKind;
+  date: string;
+  time: string | null;
+  details: string | null;
+  report: { id: string; docType: string; sessionDate: string } | null;
+  done: boolean;
+  urgency: Urgency;
+};
+
+/** Events added on the children's files, within the range. A report due date leads to the report. */
+export function childEventEntries(events: EventInput[], range: DayRange): CalendarEvent[] {
+  return events
+    .filter((e) => isIsoDate(e.date) && inRange(e.date, range))
+    .map((e) => ({
+      id: `${e.childId}:event:${e.id}`,
+      kind: e.kind,
+      eventId: e.id,
+      childId: e.childId,
+      day: e.date,
+      time: e.time,
+      href: e.kind === "report_due" && e.report ? `/reports/${e.report.id}` : childEventHref(e.childId, e.id),
+      details: e.details,
+      report: e.report && { docType: e.report.docType, sessionDate: e.report.sessionDate },
+      done: e.done,
+      urgency: e.urgency,
+    }));
 }
 
 export type DeadlineInput = { id: string; childId: string; title: string; dueDate: string | null; submitted: boolean };
@@ -76,34 +115,28 @@ export function deadlineEvents(forms: DeadlineInput[], range: DayRange, today: s
       id: `${form.childId}:deadline:${form.id}`,
       kind: "deadline" as const,
       childId: form.childId,
-      date: form.dueDate,
       day: form.dueDate,
-      precision: "day" as const,
+      time: null,
       href: `/children/${form.childId}/forms/${form.id}`,
       title: form.title,
       urgency: urgency(form.dueDate, today, warnDays),
     }));
 }
 
-/** Order within a day: birthdays and deadlines first, then dated-only events, then timed ones by time. */
+/** Order within a day: birthdays, to-dos, then meetings without a time, then by time. */
 const RANK: Record<CalendarKind, number> = {
   birthday: 0,
   deadline: 1,
-  followUp: 2,
-  fileCreated: 2,
-  formDate: 3,
-  assessment: 4,
-  report: 5,
-  form: 6,
-  crisis: 7,
-  difficulty: 7,
+  report_due: 2,
+  intake: 3,
+  parent_guidance: 3,
+  other: 3,
 };
 
 export function sortCalendar(events: CalendarEvent[]): CalendarEvent[] {
   return [...events].sort((x, y) => {
     if (x.day !== y.day) return x.day < y.day ? -1 : 1;
-    if (x.precision !== y.precision) return x.precision === "day" ? -1 : 1;
-    if (x.precision === "datetime" && x.date !== y.date) return x.date < y.date ? -1 : 1;
+    if ((x.time ?? "") !== (y.time ?? "")) return (x.time ?? "") < (y.time ?? "") ? -1 : 1;
     if (RANK[x.kind] !== RANK[y.kind]) return RANK[x.kind] - RANK[y.kind];
     return x.id < y.id ? -1 : x.id > y.id ? 1 : 0;
   });

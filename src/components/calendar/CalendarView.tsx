@@ -1,12 +1,12 @@
 "use client";
 
 import clsx from "clsx";
-import { CalendarDays, ChevronLeft, ChevronRight, List, X } from "lucide-react";
+import { CalendarDays, Check, ChevronLeft, ChevronRight, List, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition, type ReactNode } from "react";
-import { deadlineStyle, KIND_STYLES } from "@/components/timeline/kind-styles";
-import { describeEvent } from "@/components/timeline/TimelineView";
+import { childEventNote, childEventTitle } from "@/components/child-events/describe";
+import { deadlineStyle, DONE_STYLE, KIND_STYLES } from "@/components/timeline/kind-styles";
 import { isolate, type I18n } from "@/i18n";
 import { useI18n } from "@/i18n/client";
 import { CALENDAR_TYPES, filterCalendar, groupByDay, parseList, parseTypes, typeOf, type CalendarEvent, type CalendarType } from "@/lib/calendar/events";
@@ -229,7 +229,7 @@ function Legend({ types, counts, onToggle, onAll }: { types: CalendarType[]; cou
         {c.allTypes}
       </button>
       {CALENDAR_TYPES.map((type) => {
-        const style = KIND_STYLES[type === "milestone" ? "followUp" : type];
+        const style = KIND_STYLES[type];
         const Icon = style.icon;
         const n = counts.get(type) ?? 0;
         return (
@@ -250,31 +250,21 @@ type ChildOf = (id: string) => PickerChild | undefined;
 
 function styleOf(event: CalendarEvent) {
   const base = KIND_STYLES[event.kind];
-  return event.kind === "deadline" ? { ...base, ...deadlineStyle(event.urgency) } : base;
+  if (event.kind === "deadline") return { ...base, ...deadlineStyle(event.urgency) };
+  if (event.kind === "report_due") return event.done ? { ...base, ...DONE_STYLE, icon: Check } : { ...base, ...deadlineStyle(event.urgency) };
+  return base;
 }
 
-/** The short label of a chip (the agenda shows the full description). */
+/** The short label of a chip (the agenda adds the details). */
 function chipTitle(event: CalendarEvent, i18n: I18n): string {
   const { t } = i18n;
   switch (event.kind) {
-    case "crisis":
-    case "difficulty":
-      return t.episodes.kind[event.kind];
-    case "report":
-      return t.reports.docType[event.docType] ?? event.docType;
-    case "form":
-      return event.title;
-    case "formDate":
-      return event.label;
-    case "assessment":
-      return event.name;
-    case "followUp":
-    case "fileCreated":
-      return t.timeline[event.kind];
     case "birthday":
       return event.age === 0 ? t.timeline.birth : t.calendar.birthday(t.age.years(event.age));
     case "deadline":
       return event.title;
+    default:
+      return childEventTitle(event, i18n);
   }
 }
 
@@ -380,12 +370,13 @@ function EventChip({ event, showBadge, child, i18n }: { event: CalendarEvent; sh
   const style = styleOf(event);
   const Icon = style.icon;
   const label = chipTitle(event, i18n);
-  const time = event.precision === "datetime" ? i18n.time(new Date(event.date)) : null;
+  const time = event.time;
   const full = [child?.name, label, time].filter(Boolean).join(" · ");
   return (
     <Link href={event.href!} title={full} className={clsx("flex min-w-0 items-center gap-1 rounded-md border px-1 py-0.5 text-[11.5px] leading-tight transition-[filter] hover:brightness-95", style.chip)}>
       {showBadge && child && <ChildBadge childId={child.id} initials={child.initials} size="xs" />}
       <Icon aria-hidden className="size-3 shrink-0" strokeWidth={2} />
+      {time && <span className="shrink-0 tabular-nums opacity-80">{time}</span>}
       <bdi className="min-w-0 truncate">{label}</bdi>
       <span className="sr-only">{child?.name}</span>
     </Link>
@@ -431,18 +422,27 @@ function AgendaItem({ event, showBadge, childName, child, i18n }: { event: Calen
   const { t } = i18n;
   const style = styleOf(event);
   const Icon = style.icon;
-  const time = event.precision === "datetime" ? i18n.time(new Date(event.date)) : null;
+  const time = event.time;
 
-  let title: ReactNode;
-  let meta: ReactNode;
-  if (event.kind === "birthday") {
-    title = chipTitle(event, i18n);
-    meta = null;
-  } else if (event.kind === "deadline") {
+  let title: ReactNode = chipTitle(event, i18n);
+  let meta: ReactNode = null;
+  if (event.kind === "deadline") {
     title = t.calendar.deadline(isolate(event.title));
     meta = <span className={clsx(event.urgency === "overdue" && "font-medium text-danger", event.urgency === "soon" && "font-medium text-warn-ink")}>{t.calendar.deadlineMeta[event.urgency]}</span>;
-  } else {
-    ({ title, meta } = describeEvent(event, i18n));
+  } else if (event.kind !== "birthday") {
+    const note = childEventNote(event);
+    const state = event.kind === "report_due" ? (event.done ? t.calendar.reportDone : t.childEvents.state[event.urgency]) : "";
+    meta = (state || note) && (
+      <>
+        {state && <span className={clsx("font-medium", event.kind === "report_due" && event.done ? "text-ok-ink" : event.urgency === "overdue" ? "text-danger" : "text-warn-ink")}>{state}</span>}
+        {state && note && " · "}
+        {note && (
+          <bdi dir="auto" className="whitespace-pre-line">
+            {note}
+          </bdi>
+        )}
+      </>
+    );
   }
 
   return (
@@ -455,7 +455,7 @@ function AgendaItem({ event, showBadge, childName, child, i18n }: { event: Calen
           <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-ink-muted">
             {showBadge && child && <ChildBadge childId={child.id} initials={child.initials} size="xs" />}
             <bdi className="truncate font-medium text-ink-soft">{childName}</bdi>
-            {time && <time dateTime={event.date}>· {time}</time>}
+            {time && <time>· {time}</time>}
           </span>
           <span className="mt-0.5 block text-[14px] leading-snug font-medium text-ink">{title}</span>
           {meta && <span className="mt-0.5 block text-[12.5px] text-ink-soft">{meta}</span>}

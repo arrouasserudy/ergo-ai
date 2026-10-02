@@ -552,3 +552,37 @@ export const assessments = sqliteTable(
 );
 
 export type Assessment = typeof assessments.$inferSelect;
+
+export const CHILD_EVENT_KINDS = ["intake", "parent_guidance", "report_due", "other"] as const;
+export type ChildEventKind = (typeof CHILD_EVENT_KINDS)[number];
+
+/**
+ * Something planned for a child, added by hand (meetings and to-dos): an intake, a parent
+ * guidance session, a report to hand in by a date, or anything else. Shown on the child's
+ * overview and in the calendar. Dates and times are local (the practice's time zone).
+ */
+export const childEvents = sqliteTable(
+  "child_events",
+  {
+    id: id(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    childId: text("child_id")
+      .notNull()
+      .references(() => children.id, { onDelete: "cascade" }),
+    createdBy: text("created_by").references(() => therapists.id, { onDelete: "set null" }),
+    kind: text("kind", { enum: CHILD_EVENT_KINDS }).notNull(),
+    date: text("date").notNull(), // ISO date
+    /** Local time ("HH:MM"), optional; never set on a report due date. */
+    time: text("time"),
+    /** The report to hand in (kind `report_due` only); the event goes with it. */
+    reportId: text("report_id").references(() => reports.id, { onDelete: "cascade" }),
+    /** Free text: required for `other`, an optional note otherwise. */
+    details: text("details"),
+    ...timestamps(),
+  },
+  (table) => [index("child_events_account_date_idx").on(table.accountId, table.date), index("child_events_child_idx").on(table.childId, table.date)],
+);
+
+export type ChildEvent = typeof childEvents.$inferSelect;

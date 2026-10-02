@@ -85,6 +85,13 @@
       "when": 1790883623699,
       "tag": "0011_builtin_forms",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1790947777434,
+      "tag": "0012_child_events",
+      "breakpoints": true
     }
   ]
 }

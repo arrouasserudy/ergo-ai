@@ -1,11 +1,11 @@
-import { Baby, Cake, CalendarClock, CalendarDays, ClipboardList, FileText, Flag, FolderPlus, Gauge, Hand, Zap, type LucideIcon } from "lucide-react";
+import { Baby, Cake, CalendarClock, CalendarDays, ClipboardList, FileClock, FileText, Flag, FolderPlus, Gauge, Hand, StickyNote, UserPlus, Users, Zap, type LucideIcon } from "lucide-react";
 import type { Urgency } from "@/lib/forms/deadlines";
 import type { CalendarKind } from "@/lib/calendar/events";
 import type { TimelineKind } from "@/lib/timeline/events";
 
 /**
- * One color and one icon per event type, shared by the child's timeline and the cabinet's
- * calendar, so a type always looks the same. Colors are app tokens (globals.css), each a
+ * One color and one icon per event type, shared by the child's timeline, the cabinet's
+ * calendar and the child's upcoming events, so a type always looks the same. Colors are app tokens (globals.css), each a
  * distinct hue; the icon is the second channel, so color is never the only cue.
  * - `dot`: the timeline's round marker.
  * - `chip`: an event chip in the calendar (soft background, ink text).
@@ -34,6 +34,21 @@ export const KIND_STYLES: Record<TimelineKind | CalendarKind, KindStyle> = {
   },
   assessment: { icon: Gauge, dot: "bg-info text-info-ink border-info-ink/25", chip: "bg-info text-info-ink border-info-ink/20", mark: "bg-info-ink" },
   birthday: { icon: Cake, dot: "bg-rose text-rose-ink border-rose-ink/25", chip: "bg-rose text-rose-ink border-rose-ink/20", mark: "bg-rose-ink" },
+  intake: { icon: UserPlus, dot: "bg-info text-info-ink border-info-ink/25", chip: "bg-info text-info-ink border-info-ink/20", mark: "bg-info-ink" },
+  parent_guidance: { icon: Users, dot: "bg-tint text-tint-ink border-tint-ink/25", chip: "bg-tint text-tint-ink border-tint-ink/20", mark: "bg-tint-ink" },
+  other: {
+    icon: StickyNote,
+    dot: "bg-muted-badge text-muted-badge-ink border-muted-badge-ink/25",
+    chip: "bg-muted-badge text-muted-badge-ink border-muted-badge-ink/20",
+    mark: "bg-muted-badge-ink",
+  },
+  // Report due dates: a to-do, drawn as form deadlines (dashed, ink = due state); done = green.
+  report_due: {
+    icon: FileClock,
+    dot: "bg-surface text-ink-soft border-dashed border-ink-muted",
+    chip: "bg-surface text-ink-soft border-dashed border-ink-muted",
+    mark: "bg-surface ring-[1.5px] ring-inset ring-ink-muted",
+  },
   // Deadlines: a dashed outline whose ink is the due state (see `deadlineStyle`).
   deadline: {
     icon: CalendarClock,
@@ -49,3 +64,6 @@ export function deadlineStyle(urgency: Urgency): Pick<KindStyle, "chip" | "mark"
   if (urgency === "soon") return { chip: "bg-surface text-warn-ink border-dashed border-warn-ink", mark: "bg-surface ring-[1.5px] ring-inset ring-warn-ink" };
   return KIND_STYLES.deadline;
 }
+
+/** A report due date once handed in. */
+export const DONE_STYLE: Pick<KindStyle, "chip" | "mark"> = { chip: "bg-ok text-ok-ink border-ok-ink/20", mark: "bg-ok-ink" };
