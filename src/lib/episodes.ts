@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, type SQL } from "drizzle-orm";
+import { and, desc, eq, gte, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { children, episodes, type EpisodeStatus } from "@/db/schema";
 
@@ -25,14 +25,24 @@ export function listChildEpisodes(accountId: string, childId: string, { status, 
     .all();
 }
 
-/** Recent episodes across the account, with the child's name, open ones first. */
-export function listAccountEpisodes(accountId: string, limit = 50) {
+/** Finished episodes across the account started since `since`, with the child's name (crises page). */
+export function listClosedEpisodesSince(accountId: string, since: Date) {
   return db
-    .select({ episode: episodes, child: { id: children.id, name: children.name, birthDate: children.birthDate } })
+    .select({ episode: episodes, child: { id: children.id, name: children.name } })
     .from(episodes)
     .innerJoin(children, eq(children.id, episodes.childId))
-    .where(eq(episodes.accountId, accountId))
-    .orderBy(desc(episodes.status), desc(episodes.startedAt)) // descending puts "open" before "closed"
-    .limit(limit)
+    .where(and(eq(episodes.accountId, accountId), eq(episodes.status, "closed"), gte(episodes.startedAt, since)))
+    .orderBy(desc(episodes.startedAt))
+    .all();
+}
+
+/** Entries still in progress across the account, with their child, most recent first. */
+export function listOpenEpisodes(accountId: string) {
+  return db
+    .select({ episode: episodes, child: { id: children.id, name: children.name } })
+    .from(episodes)
+    .innerJoin(children, eq(children.id, episodes.childId))
+    .where(and(eq(episodes.accountId, accountId), eq(episodes.status, "open")))
+    .orderBy(desc(episodes.startedAt))
     .all();
 }

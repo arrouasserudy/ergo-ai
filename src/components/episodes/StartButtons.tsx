@@ -7,11 +7,9 @@ import { getI18n } from "@/i18n/server";
 /** "Crise en cours" / "Noter une difficulté": plain forms, so they work before hydration. */
 export async function StartButtons({
   childId,
-  size = "md",
   kinds = ["crisis", "difficulty"],
 }: {
   childId: string;
-  size?: "sm" | "md";
   kinds?: EpisodeKind[];
 }) {
   const { t } = await getI18n();
@@ -19,7 +17,7 @@ export async function StartButtons({
     <div className="flex flex-wrap gap-2">
       {kinds.includes("crisis") && (
         <form action={startEpisode.bind(null, childId, "crisis")}>
-          <Button type="submit" size={size} className="bg-warn-ink hover:bg-warn-ink/90">
+          <Button type="submit" className="bg-warn-ink hover:bg-warn-ink/90">
             <Siren className="size-4" />
             {t.episodes.startCrisis}
           </Button>
@@ -27,7 +25,7 @@ export async function StartButtons({
       )}
       {kinds.includes("difficulty") && (
         <form action={startEpisode.bind(null, childId, "difficulty")}>
-          <Button type="submit" size={size} variant="secondary">
+          <Button type="submit" variant="secondary">
             <ClipboardList className="size-4" />
             {t.episodes.startDifficulty}
           </Button>

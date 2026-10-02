@@ -120,10 +120,10 @@ export const en: Dictionary = {
     startDifficulty: "Log a difficulty",
     inProgress: { crisis: "Crisis in progress", difficulty: "Difficulty in progress" } as Record<string, string>,
     minutes: (n: number) => `${n} min`,
+    hours: (n: number) => `${n} h`,
     since: (time: string) => `since ${time}`,
     resume: "Resume",
     askAmit: "Ask Amit for help",
-    openBanner: (kind: string, minutes: number) => `${kind} in progress for ${minutes} min`,
 
     liveHint: "Checklist based on the intake interview and the child's history",
     checklistTitle: "Check, in this order",
@@ -197,10 +197,16 @@ export const en: Dictionary = {
     historyPageTitle: "Crises and difficulties",
     allEpisodes: "All episodes",
 
-    startTitle: "Start for a child",
-    startHint: "Open the child's file to start the checklist.",
+    startTitle: "Start a crisis / difficulty",
+    pickChild: "Child",
+    pickChildPlaceholder: "Choose a child…",
     openNow: "In progress",
-    recentAll: "Recent episodes",
+    openSummary: (crises: number, difficulties: number) =>
+      `${[crises && (crises === 1 ? "1 crisis" : `${crises} crises`), difficulties && (difficulties === 1 ? "1 difficulty" : `${difficulties} difficulties`)].filter(Boolean).join(" and ")} in progress`,
+    openCount: (n: number) => `${n} in progress`,
+    recentTitle: "Latest episodes",
+    recentHint: "Each child's latest, over the last 30 days.",
+    recentEmpty: "No episode finished in the last 30 days.",
     noChildren: "Add a child first.",
   },
   expert: {
@@ -830,8 +836,6 @@ export const en: Dictionary = {
     pickChild: "Child",
     addToChildPlaceholder: "Add to a child…",
     addToChild: (name: string) => `Add test to ${name}`,
-    recentTitle: "Latest tests",
-    recentNone: "No tests yet. Start one from a child's page.",
     items: (n: number) => (n === 1 ? "1 item" : `${n} items`),
     age: (months: number) => {
       if (months < 24) return `${months} months`;

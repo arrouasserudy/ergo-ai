@@ -1,7 +1,7 @@
 import "server-only";
 import { and, desc, eq, inArray, lt, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { accounts, assessments, children } from "@/db/schema";
+import { accounts, assessments } from "@/db/schema";
 import { hashToken } from "@/lib/forms/queries";
 
 // Every query here is scoped by `accountId`, except the lookup by share token (the token is the credential).
@@ -17,18 +17,6 @@ export function listChildAssessments(accountId: string, childId: string) {
 
 export function getAssessment(accountId: string, id: string) {
   return db.select().from(assessments).where(and(eq(assessments.id, id), eq(assessments.accountId, accountId))).get() ?? null;
-}
-
-/** The latest administrations across the cabinet, with the child. */
-export function recentAssessments(accountId: string, limit = 30) {
-  return db
-    .select({ assessment: assessments, child: { id: children.id, name: children.name } })
-    .from(assessments)
-    .innerJoin(children, eq(children.id, assessments.childId))
-    .where(eq(assessments.accountId, accountId))
-    .orderBy(desc(assessments.updatedAt))
-    .limit(limit)
-    .all();
 }
 
 /** The completed administration of the same test just before this one (before / after treatment). */

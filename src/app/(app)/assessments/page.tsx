@@ -1,11 +1,9 @@
 import { ChevronRight, Gauge } from "lucide-react";
 import Link from "next/link";
-import { AssessmentStatusBadge } from "@/components/assessments/AssessmentStatusBadge";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { getI18n } from "@/i18n/server";
-import { recentAssessments } from "@/lib/assessments/queries";
-import { ASSESSMENTS, getDefinition } from "@/lib/assessments/registry";
+import { ASSESSMENTS } from "@/lib/assessments/registry";
 import { requireTherapist } from "@/lib/session";
 
 export async function generateMetadata() {
@@ -16,8 +14,7 @@ export async function generateMetadata() {
 export default async function AssessmentsPage() {
   const i18n = await getI18n();
   const a = i18n.t.assessments;
-  const { accountId } = await requireTherapist();
-  const recent = recentAssessments(accountId);
+  await requireTherapist();
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
@@ -53,32 +50,6 @@ export default async function AssessmentsPage() {
             </li>
           ))}
         </ul>
-      </Card>
-
-      <Card>
-        <CardHeader title={a.recentTitle} />
-        {recent.length === 0 ? (
-          <p className="px-5 pb-5 text-[13px] text-ink-muted">{a.recentNone}</p>
-        ) : (
-          <ul className="divide-y divide-line border-t border-line">
-            {recent.map(({ assessment, child }) => (
-              <li key={assessment.id}>
-                <Link
-                  href={`/children/${child.id}/assessments/${assessment.id}`}
-                  className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-surface-muted"
-                >
-                  <span className="min-w-0 flex-1">
-                    <bdi className="block truncate text-[14px] font-medium">{i18n.childName(child)}</bdi>
-                    <span className="block text-[12px] text-ink-muted">
-                      <bdi>{getDefinition(assessment.definitionId)?.shortName ?? assessment.definitionId}</bdi> · {i18n.date(assessment.testDate)}
-                    </span>
-                  </span>
-                  <AssessmentStatusBadge status={assessment.status} />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
       </Card>
     </div>
   );

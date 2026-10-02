@@ -3,7 +3,7 @@ import { Activity, CalendarClock, CircleCheck, ClipboardList, FileText, Inbox, P
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { StatTile } from "@/components/dashboard/StatTile";
-import { OpenEpisodes } from "@/components/episodes/OpenEpisodes";
+import { OpenEpisodesStrip } from "@/components/episodes/OpenEpisodesStrip";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { LinkButton } from "@/components/ui/Button";
@@ -11,7 +11,8 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { isolate } from "@/i18n";
 import { getI18n } from "@/i18n/server";
 import { take, type ActivityItem, type TodoItem } from "@/lib/dashboard/feed";
-import { countActiveChildren, countRecentCrises, openEpisodes, recentActivity, todoList } from "@/lib/dashboard/queries";
+import { countActiveChildren, countRecentCrises, recentActivity, todoList } from "@/lib/dashboard/queries";
+import { listOpenEpisodes } from "@/lib/episodes";
 import { pendingForms } from "@/lib/forms/queries";
 import { requireTherapist } from "@/lib/session";
 import { localToday } from "@/lib/time";
@@ -49,7 +50,7 @@ export default async function DashboardPage() {
         </LinkButton>
       </header>
 
-      <OpenEpisodes items={openEpisodes(accountId)} />
+      <OpenEpisodesStrip items={listOpenEpisodes(accountId)} />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatTile href="/children" label={d.stats.children} value={countActiveChildren(accountId)} hint={d.stats.childrenHint} icon={UserRound} />

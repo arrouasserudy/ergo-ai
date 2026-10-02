@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computePatterns, interviewCauses, rankCauses, rankHelped, timeOfDay } from "./episode-insights";
+import { computePatterns, interviewCauses, latestPerChild, rankCauses, rankHelped, timeOfDay } from "./episode-insights";
 
 const profile = { hyperSensitivities: [], hypoReactivities: [], backgroundFactors: [], seeksDeepPressure: false };
 const at = (iso: string) => new Date(iso);
@@ -105,5 +105,53 @@ describe("timeOfDay", () => {
     const d = at("2026-09-10T16:30:00Z");
     expect(timeOfDay(d, "UTC")).toBe("afternoon");
     expect(timeOfDay(d, "Asia/Jerusalem")).toBe("evening"); // 19:30
+  });
+});
+
+const TZ = "Asia/Jerusalem"; // UTC+3 in October (summer time)
+const now = new Date("2026-10-02T09:00:00Z"); // 12:00 local, 2 October
+const item = (id: string, childId: string, startedAt: string, status = "closed") => ({
+  episode: { id, status, startedAt: new Date(startedAt) },
+  child: { id: childId },
+});
+const ids = (items: { episode: { id: string } }[]) => items.map((i) => i.episode.id);
+
+describe("latestPerChild", () => {
+  it("keeps only each child's last episode, most recent first", () => {
+    const items = [
+      item("a1", "a", "2026-09-20T10:00:00Z"),
+      item("a2", "a", "2026-09-28T10:00:00Z"),
+      item("b1", "b", "2026-10-01T10:00:00Z"),
+      item("c1", "c", "2026-09-10T10:00:00Z"),
+    ];
+    expect(ids(latestPerChild(items, { now, timeZone: TZ }))).toEqual(["b1", "a2", "c1"]);
+  });
+
+  it("includes the day 30 days ago in local time and excludes the day before", () => {
+    const items = [
+      // 2 September 00:30 local (still 1 September in UTC): inside the window.
+      item("in", "a", "2026-09-01T21:30:00Z"),
+      // 1 September 23:30 local: outside.
+      item("out", "b", "2026-09-01T20:30:00Z"),
+    ];
+    expect(ids(latestPerChild(items, { now, timeZone: TZ }))).toEqual(["in"]);
+  });
+
+  it("drops a child whose last episode is too old, even if older ones exist", () => {
+    const items = [item("old", "a", "2026-08-01T10:00:00Z"), item("older", "a", "2026-07-01T10:00:00Z")];
+    expect(latestPerChild(items, { now, timeZone: TZ })).toEqual([]);
+  });
+
+  it("excludes open episodes and falls back to the child's last finished one", () => {
+    const items = [item("open", "a", "2026-10-02T08:00:00Z", "open"), item("done", "a", "2026-09-25T08:00:00Z"), item("open-b", "b", "2026-10-02T07:00:00Z", "open")];
+    expect(ids(latestPerChild(items, { now, timeZone: TZ }))).toEqual(["done"]);
+  });
+
+  it("breaks ties on start time by id, whatever the input order", () => {
+    const same = "2026-09-30T10:00:00Z";
+    const forward = [item("x1", "a", same), item("x2", "a", same), item("y1", "b", same)];
+    const expected = ["y1", "x2"];
+    expect(ids(latestPerChild(forward, { now, timeZone: TZ }))).toEqual(expected);
+    expect(ids(latestPerChild([...forward].reverse(), { now, timeZone: TZ }))).toEqual(expected);
   });
 });

@@ -9,6 +9,8 @@
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
     "db:seed": "tsx src/db/seed.ts",
+    "demo:seed": "tsx --env-file-if-exists=.env.local src/db/demo.ts",
+    "demo:push": "scripts/demo/push.sh",
     "typecheck": "next typegen && tsc --noEmit",
     "db:studio": "drizzle-kit studio",
     "db:studio-prod": "scripts/studio-prod.sh",

@@ -124,10 +124,10 @@ export const he: Dictionary = {
     startDifficulty: "תיעוד קושי",
     inProgress: { crisis: "משבר פעיל", difficulty: "קושי פעיל" },
     minutes: (n: number) => `${n} דק׳`,
+    hours: (n: number) => `${n} שע׳`,
     since: (time: string) => `מאז ${time}`,
     resume: "המשך",
     askAmit: "בקשת עזרה מעמית",
-    openBanner: (kind: string, minutes: number) => `${kind} פעיל כבר ${minutes} דק׳`,
 
     liveHint: "רשימת בדיקה מבוססת הראיון עם ההורים וההיסטוריה של הילד/ה",
     checklistTitle: "לבדוק, לפי הסדר הזה",
@@ -200,10 +200,18 @@ export const he: Dictionary = {
     historyPageTitle: "משברים וקשיים",
     allEpisodes: "כל האירועים",
 
-    startTitle: "התחלה עבור ילד/ה",
-    startHint: "יש לבחור את הילד/ה כדי לפתוח את רשימת הבדיקה.",
+    startTitle: "התחלת משבר / קושי",
+    pickChild: "ילד/ה",
+    pickChildPlaceholder: "בחירת ילד/ה…",
     openNow: "פעיל",
-    recentAll: "אירועים אחרונים",
+    openSummary: (crises: number, difficulties: number) => {
+      const parts = [crises && (crises === 1 ? "משבר פעיל" : `${crises} משברים פעילים`), difficulties && (difficulties === 1 ? "קושי פעיל" : `${difficulties} קשיים פעילים`)].filter(Boolean) as string[];
+      return parts.length === 2 ? `${parts[0]} ו${/^\d/.test(parts[1]) ? "־" : ""}${parts[1]}` : (parts[0] ?? "");
+    },
+    openCount: (n: number) => (n === 1 ? "1 פעיל" : `${n} פעילים`),
+    recentTitle: "אירועים אחרונים",
+    recentHint: "האחרון של כל ילד/ה, ב־30 הימים האחרונים.",
+    recentEmpty: "לא הסתיימו אירועים ב־30 הימים האחרונים.",
     noChildren: "יש להוסיף קודם ילד/ה.",
   },
   expert: {
@@ -834,8 +842,6 @@ export const he: Dictionary = {
     pickChild: "ילד/ה",
     addToChildPlaceholder: "הוספה לילד/ה…",
     addToChild: (name: string) => `הוספת המבדק עבור ${name}`,
-    recentTitle: "מבדקים אחרונים",
-    recentNone: "אין עדיין מבדקים. התחילו מבדק מתוך תיק הילד/ה.",
     items: (n: number) => (n === 1 ? "פריט אחד" : `${n} פריטים`),
     age: (months: number) => {
       if (months < 24) return `${months} חודשים`;

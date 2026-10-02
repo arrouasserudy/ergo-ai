@@ -118,10 +118,10 @@ export const fr = {
     startDifficulty: "Noter une difficulté",
     inProgress: { crisis: "Crise en cours", difficulty: "Difficulté en cours" } as Record<string, string>,
     minutes: (n: number) => `${n} min`,
+    hours: (n: number) => `${n} h`,
     since: (time: string) => `depuis ${time}`,
     resume: "Reprendre",
     askAmit: "Demander de l'aide à Amit",
-    openBanner: (kind: string, minutes: number) => `${kind} en cours depuis ${minutes} min`,
 
     liveHint: "Check-list issue de l'entretien et de l'historique de l'enfant",
     checklistTitle: "À vérifier, dans cet ordre",
@@ -195,10 +195,16 @@ export const fr = {
     historyPageTitle: "Crises et difficultés",
     allEpisodes: "Tous les épisodes",
 
-    startTitle: "Démarrer pour un enfant",
-    startHint: "Ouvrez l'enfant concerné pour lancer la check-list.",
+    startTitle: "Démarrer une crise / difficulté",
+    pickChild: "Enfant",
+    pickChildPlaceholder: "Choisir un enfant…",
     openNow: "En cours",
-    recentAll: "Épisodes récents",
+    openSummary: (crises: number, difficulties: number) =>
+      `${[crises && (crises === 1 ? "1 crise" : `${crises} crises`), difficulties && (difficulties === 1 ? "1 difficulté" : `${difficulties} difficultés`)].filter(Boolean).join(" et ")} en cours`,
+    openCount: (n: number) => `${n} en cours`,
+    recentTitle: "Derniers épisodes",
+    recentHint: "Le dernier de chaque enfant, sur les 30 derniers jours.",
+    recentEmpty: "Aucun épisode terminé ces 30 derniers jours.",
     noChildren: "Ajoutez d'abord un enfant.",
   },
   expert: {
@@ -833,8 +839,6 @@ export const fr = {
     pickChild: "Enfant",
     addToChildPlaceholder: "Ajouter à un enfant…",
     addToChild: (name: string) => `Ajouter le test à ${name}`,
-    recentTitle: "Derniers tests",
-    recentNone: "Aucun test pour l'instant. Commencez-en un depuis la fiche d'un enfant.",
     items: (n: number) => (n <= 1 ? `${n} item` : `${n} items`),
     age: (months: number) => {
       if (months < 24) return `${months} mois`;

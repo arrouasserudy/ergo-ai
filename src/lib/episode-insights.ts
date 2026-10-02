@@ -186,3 +186,30 @@ export function computePatterns(history: PastEpisode[], timeZone: string): Patte
     helped: top(countBy(history.map((e) => e.helped)), total),
   };
 }
+
+type ChildEpisode = { episode: { id: string; status: string; startedAt: Date }; child: { id: string } };
+
+/** A date's calendar day (YYYY-MM-DD) in the given time zone. */
+function localDay(date: Date, timeZone: string): string {
+  return date.toLocaleDateString("en-CA", { timeZone });
+}
+
+/**
+ * The crises page's "recent" list: each child's last finished episode, kept only if it started
+ * within the last `days` calendar days in the practice's time zone (the day `days` ago included).
+ * Open episodes are left out (they have their own list). Most recent first; equal start times
+ * are broken by id so the result never depends on the input order.
+ */
+export function latestPerChild<T extends ChildEpisode>(items: T[], { now, timeZone, days = 30 }: { now: Date; timeZone: string; days?: number }): T[] {
+  const today = new Date(`${localDay(now, timeZone)}T00:00:00Z`);
+  const cutoff = new Date(today.getTime() - days * 86_400_000).toISOString().slice(0, 10);
+  const newer = (a: T, b: T) => b.episode.startedAt.getTime() - a.episode.startedAt.getTime() || (b.episode.id > a.episode.id ? 1 : b.episode.id < a.episode.id ? -1 : 0);
+
+  const last = new Map<string, T>();
+  for (const item of items) {
+    if (item.episode.status === "open" || localDay(item.episode.startedAt, timeZone) < cutoff) continue;
+    const kept = last.get(item.child.id);
+    if (!kept || newer(item, kept) < 0) last.set(item.child.id, item);
+  }
+  return [...last.values()].sort(newer);
+}

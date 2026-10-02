@@ -26,17 +26,6 @@ export function countRecentCrises(accountId: string, now = new Date()): number {
   );
 }
 
-/** Entries still in progress, with their child (the banner at the top of the page). */
-export function openEpisodes(accountId: string) {
-  return db
-    .select({ episode: episodes, child: { id: children.id, name: children.name } })
-    .from(episodes)
-    .innerJoin(children, eq(children.id, episodes.childId))
-    .where(and(eq(episodes.accountId, accountId), eq(episodes.status, "open")))
-    .orderBy(desc(episodes.startedAt))
-    .all();
-}
-
 function draftReports(accountId: string) {
   return db
     .select({ report: reports, child: { id: children.id, name: children.name } })
