@@ -666,6 +666,8 @@ export const he: Dictionary = {
     add: "הוספת אירוע",
     addTitle: "אירוע חדש",
     editTitle: "עריכת אירוע",
+    child: "ילד/ה",
+    childPlaceholder: "בחירת ילד/ה…",
     kindLabel: "סוג",
     kind: {
       intake: "פגישת אינטייק",

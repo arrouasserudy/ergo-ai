@@ -3,6 +3,7 @@ import { getI18n } from "@/i18n/server";
 import { parseList } from "@/lib/calendar/events";
 import { gridRange, monthOf, parseMonth, weekStartOf } from "@/lib/calendar/month";
 import { accountCalendar } from "@/lib/calendar/queries";
+import { reportOptionsByChild } from "@/lib/child-events/queries";
 import { initialsOf } from "@/lib/child-name";
 import { listChildren } from "@/lib/children";
 import { requireTherapist } from "@/lib/session";
@@ -47,6 +48,7 @@ export default async function CalendarPage(props: PageProps<"/calendar">) {
         events={events}
         childOptions={childOptions}
         includeArchived={archivedFlag}
+        reportsByChild={reportOptionsByChild(accountId)}
       />
     </div>
   );

@@ -660,6 +660,8 @@ export const en: Dictionary = {
     add: "Add event",
     addTitle: "New event",
     editTitle: "Edit event",
+    child: "Child",
+    childPlaceholder: "Choose a child…",
     kindLabel: "Type",
     kind: {
       intake: "Intake",

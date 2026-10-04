@@ -9,14 +9,20 @@ import { requireTherapist } from "@/lib/session";
 
 // Reachable by direct POST: each action re-checks the session and scopes by account.
 
-export type EventFormState = { ok: boolean; errors?: EventErrors & { form?: string }; values?: Record<string, string>; savedAt?: number };
+export type EventFormState = { ok: boolean; errors?: EventErrors & { form?: string; childId?: string }; values?: Record<string, string>; savedAt?: number };
 
 const FIELDS = ["kind", "date", "time", "reportId", "details"] as const;
 
-/** Creates (no `eventId`) or updates an event of one of the account's children. */
-export async function saveChildEvent(childId: string, eventId: string | null, _prev: EventFormState, formData: FormData): Promise<EventFormState> {
+/**
+ * Creates (no `eventId`) or updates an event of one of the account's children. Without a
+ * bound `childId` (calendar), the child comes from the form's `childId` field.
+ */
+export async function saveChildEvent(boundChildId: string | null, eventId: string | null, _prev: EventFormState, formData: FormData): Promise<EventFormState> {
   const { accountId, therapist } = await requireTherapist();
   const values = Object.fromEntries(FIELDS.map((f) => [f, String(formData.get(f) ?? "")]));
+  const childId = boundChildId ?? String(formData.get("childId") ?? "");
+  if (!boundChildId) values.childId = childId;
+  if (!childId) return { ok: false, errors: { childId: "required" }, values };
   const child = db
     .select({ id: children.id })
     .from(children)

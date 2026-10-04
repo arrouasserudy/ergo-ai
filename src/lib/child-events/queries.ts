@@ -51,6 +51,19 @@ export function listEvents(
 }
 
 /** The child's reports, newest session first: the choices of a report due date. */
+/** Report options of every child of the account, keyed by child (the calendar's "Add event"). */
+export function reportOptionsByChild(accountId: string) {
+  const rows = db
+    .select({ childId: reports.childId, id: reports.id, docType: reports.docType, sessionDate: reports.sessionDate, status: reports.status })
+    .from(reports)
+    .where(eq(reports.accountId, accountId))
+    .orderBy(desc(reports.sessionDate))
+    .all();
+  const byChild: Record<string, { id: string; docType: string; sessionDate: string; status: string }[]> = {};
+  for (const { childId, ...report } of rows) (byChild[childId] ??= []).push(report);
+  return byChild;
+}
+
 export function reportOptions(accountId: string, childId: string) {
   return db
     .select({ id: reports.id, docType: reports.docType, sessionDate: reports.sessionDate, status: reports.status })

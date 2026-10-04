@@ -13,21 +13,29 @@ import { CHILD_EVENT_KINDS, type ChildEventKind } from "@/db/schema";
 import { DETAILS_MAX } from "@/lib/child-events/events";
 
 export type ReportOption = { id: string; docType: string; sessionDate: string; status: string };
+export type ChildChoice = { id: string; name: string; reports: ReportOption[] };
 export type EditableEvent = { id: string; kind: ChildEventKind; date: string; time: string | null; reportId: string | null; details: string | null };
 
 const control =
   "h-11 w-full rounded-xl border bg-surface px-3 text-[15px] text-ink transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none";
 
-/** Adds (no `event`) or edits an event of a child, in a modal. Closes itself once saved. */
+/**
+ * Adds (no `event`) or edits an event of a child, in a modal. Closes itself once saved.
+ * Without `childId` (calendar), the child is picked in the form among `childChoices`.
+ */
 export function EventDialog({
   childId,
-  reports,
+  childChoices,
+  defaultChildId,
+  reports: childReports,
   event,
   defaultDate,
   onClose,
 }: {
-  childId: string;
-  reports: ReportOption[];
+  childId?: string;
+  childChoices?: ChildChoice[];
+  defaultChildId?: string;
+  reports?: ReportOption[];
   event?: EditableEvent;
   defaultDate: string;
   onClose: () => void;
@@ -36,8 +44,10 @@ export function EventDialog({
   const { t } = i18n;
   const c = t.childEvents;
   const ref = useRef<HTMLDialogElement>(null);
-  const [state, action, pending] = useActionState<EventFormState, FormData>(saveChildEvent.bind(null, childId, event?.id ?? null), { ok: false });
+  const [state, action, pending] = useActionState<EventFormState, FormData>(saveChildEvent.bind(null, childId ?? null, event?.id ?? null), { ok: false });
   const values = state.values;
+  const [pickedChild, setPickedChild] = useState(values?.childId ?? defaultChildId ?? (childChoices?.length === 1 ? childChoices[0].id : ""));
+  const reports = childReports ?? childChoices?.find((ch) => ch.id === pickedChild)?.reports ?? [];
   const [kind, setKind] = useState<ChildEventKind>((values?.kind as ChildEventKind) || event?.kind || "intake");
 
   useEffect(() => {
@@ -71,6 +81,28 @@ export function EventDialog({
       </div>
 
       <form action={action} noValidate className="max-h-[75dvh] space-y-4 overflow-y-auto px-5 py-4">
+        {!childId && childChoices && (
+          <FieldShell id="event-child" name="childId" label={c.child} error={errors.childId} required>
+            <select
+              id="event-child"
+              name="childId"
+              required
+              dir="auto"
+              value={pickedChild}
+              onChange={(e) => setPickedChild(e.target.value)}
+              aria-invalid={errors.childId ? true : undefined}
+              className={clsx(control, errors.childId ? "border-danger" : "border-line-strong")}
+            >
+              <option value="">{c.childPlaceholder}</option>
+              {childChoices.map((ch) => (
+                <option key={ch.id} value={ch.id}>
+                  {ch.name}
+                </option>
+              ))}
+            </select>
+          </FieldShell>
+        )}
+
         <fieldset>
           <legend className="mb-1.5 text-[12.5px] font-medium text-ink-soft">{c.kindLabel}</legend>
           <div className="grid grid-cols-2 gap-2">
@@ -104,6 +136,7 @@ export function EventDialog({
               name="reportId"
               required
               dir="auto"
+              key={pickedChild}
               defaultValue={value("reportId")}
               disabled={reports.length === 0}
               aria-invalid={errors.reportId ? true : undefined}

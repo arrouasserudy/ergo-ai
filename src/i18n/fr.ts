@@ -661,6 +661,8 @@ export const fr = {
     add: "Ajouter un événement",
     addTitle: "Nouvel événement",
     editTitle: "Modifier l'événement",
+    child: "Enfant",
+    childPlaceholder: "Choisir un enfant…",
     kindLabel: "Type",
     kind: {
       intake: "Rendez-vous d'accueil",

@@ -1,12 +1,14 @@
 "use client";
 
 import clsx from "clsx";
-import { CalendarDays, Check, ChevronLeft, ChevronRight, List, X } from "lucide-react";
+import { CalendarDays, CalendarPlus, Check, ChevronLeft, ChevronRight, List, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition, type ReactNode } from "react";
+import { EventDialog, type ReportOption } from "@/components/child-events/EventDialog";
 import { childEventNote, childEventTitle } from "@/components/child-events/describe";
 import { deadlineStyle, DONE_STYLE, KIND_STYLES } from "@/components/timeline/kind-styles";
+import { Button } from "@/components/ui/Button";
 import { isolate, type I18n } from "@/i18n";
 import { useI18n } from "@/i18n/client";
 import { CALENDAR_TYPES, filterCalendar, groupByDay, parseList, parseTypes, typeOf, type CalendarEvent, type CalendarType } from "@/lib/calendar/events";
@@ -22,6 +24,8 @@ type Props = {
   events: CalendarEvent[];
   childOptions: PickerChild[];
   includeArchived: boolean;
+  /** Reports of each child, for the "report due" kind of a new event. */
+  reportsByChild: Record<string, ReportOption[]>;
 };
 
 type View = "month" | "agenda";
@@ -49,7 +53,7 @@ function useIsDesktop(): boolean | null {
  * `history.replaceState` (shareable, no reload). Color = event type (legend = type filter),
  * the child = a monogram badge (see ChildBadge).
  */
-export function CalendarView({ month, today, weekStart, events, childOptions, includeArchived }: Props) {
+export function CalendarView({ month, today, weekStart, events, childOptions, includeArchived, reportsByChild }: Props) {
   const i18n = useI18n();
   const { t } = i18n;
   const c = t.calendar;
@@ -58,6 +62,7 @@ export function CalendarView({ month, today, weekStart, events, childOptions, in
   const params = useSearchParams();
   const [pending, startTransition] = useTransition();
   const [openDay, setOpenDay] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
   const isDesktop = useIsDesktop();
 
   const known = useMemo(() => new Map(childOptions.map((o) => [o.id, o])), [childOptions]);
@@ -112,6 +117,10 @@ export function CalendarView({ month, today, weekStart, events, childOptions, in
   const currentMonth = today.slice(0, 7);
   const childName = (id: string) => known.get(id)?.name ?? "";
   const title = single ? c.oneChild(isolate(single.name)) : c.title;
+  const childChoices = useMemo(
+    () => childOptions.filter((o) => !o.archived || o.id === single?.id).map((o) => ({ id: o.id, name: o.name, reports: reportsByChild[o.id] ?? [] })),
+    [childOptions, single, reportsByChild],
+  );
 
   const monthClass = view === "month" ? "block" : view === "agenda" ? "hidden" : "hidden md:block";
   const agendaClass = view === "agenda" ? "block" : view === "month" ? "hidden" : "md:hidden";
@@ -126,6 +135,10 @@ export function CalendarView({ month, today, weekStart, events, childOptions, in
           </h1>
           <p className="mt-1 max-w-2xl text-[13px] text-ink-muted">{c.subtitle}</p>
         </div>
+        <Button onClick={() => setAdding(true)} disabled={childChoices.length === 0}>
+          <CalendarPlus className="size-4" />
+          {t.childEvents.add}
+        </Button>
       </header>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -200,6 +213,15 @@ export function CalendarView({ month, today, weekStart, events, childOptions, in
           {![...days.keys()].some(inMonth) && <p className="px-4 py-10 text-center text-[13px] text-ink-muted">{counts.size ? c.noMatch : c.empty}</p>}
         </div>
       </section>
+
+      {adding && (
+        <EventDialog
+          childChoices={childChoices}
+          defaultChildId={single?.id}
+          defaultDate={month === currentMonth ? today : `${month}-01`}
+          onClose={() => setAdding(false)}
+        />
+      )}
 
       {openDay && (
         <DayDialog day={openDay} onClose={() => setOpenDay(null)} title={i18n.dayLong(openDay)} closeLabel={c.close}>
