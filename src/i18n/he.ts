@@ -7,8 +7,8 @@ import type { Dictionary } from "./fr";
  */
 export const he: Dictionary = {
   app: {
-    name: "Ergo.AI",
-    title: "Ergo.AI — עוזר לריפוי בעיסוק",
+    name: "Otio",
+    title: "Otio — עוזר לריפוי בעיסוק",
     description: "סיכומי טיפול בריפוי בעיסוק לילדים",
     privacyNote: "שם הילד/ה אף פעם לא נשלח לבינה המלאכותית.",
   },

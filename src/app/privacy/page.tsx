@@ -1,7 +1,8 @@
-import { ArrowLeft, Check, FileText } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { LocaleSwitcher } from "@/components/shell/LocaleSwitcher";
+import { OtioMark } from "@/components/brand/OtioMark";
 import { getI18n } from "@/i18n/server";
 import { embedProvider } from "@/lib/expert/embeddings";
 import { defaultProvider } from "@/lib/expert/providers";
@@ -40,9 +41,7 @@ export default async function PrivacyPage() {
 
       <header className="space-y-2">
         <div className="flex items-center gap-2.5">
-          <span className="grid size-7 place-items-center rounded-md bg-primary text-white">
-            <FileText className="size-4" strokeWidth={2} />
-          </span>
+          <OtioMark size={32} />
           <span className="text-xl font-semibold tracking-tight">{t.app.name}</span>
         </div>
         <h1 className="text-[28px] leading-tight font-semibold tracking-tight">{p.heading}</h1>

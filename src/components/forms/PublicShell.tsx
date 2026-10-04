@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { FileText } from "lucide-react";
+import { OtioMark } from "@/components/brand/OtioMark";
 import type { ReactNode } from "react";
 import { I18nProvider } from "@/i18n/client";
 import { APP_TIME_ZONE } from "@/lib/time";
@@ -10,9 +10,7 @@ export function PublicShell({ locale, appName, wide = false, children }: { local
     <I18nProvider locale={locale} timeZone={APP_TIME_ZONE} hideNames={false}>
       <div dir={locale === "he" ? "rtl" : "ltr"} lang={locale} className={clsx("mx-auto min-h-dvh px-4 py-6 sm:py-10", wide ? "max-w-4xl" : "max-w-2xl")}>
         <div className="mb-5 flex items-center gap-2 text-ink-muted">
-          <span className="grid size-6 place-items-center rounded-md bg-primary text-white">
-            <FileText className="size-3.5" strokeWidth={2} />
-          </span>
+          <OtioMark size={26} />
           <span className="text-[14px] font-semibold text-ink">{appName}</span>
         </div>
         <main className="rounded-2xl border border-line bg-surface shadow-card p-5 sm:p-7">{children}</main>

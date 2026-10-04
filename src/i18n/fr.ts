@@ -1,8 +1,8 @@
 /** French UI copy (default locale). Every other locale must match this shape: see `Dictionary`. */
 export const fr = {
   app: {
-    name: "Ergo.AI",
-    title: "Ergo.AI — Assistant ergothérapie",
+    name: "Otio",
+    title: "Otio — Assistant ergothérapie",
     description: "Comptes-rendus d'ergothérapie pédiatrique",
     privacyNote: "Le nom de l'enfant n'est jamais transmis à l'IA.",
   },

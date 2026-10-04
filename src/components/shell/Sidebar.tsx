@@ -4,7 +4,6 @@ import clsx from "clsx";
 import {
   Activity,
   CalendarDays,
-  FileText,
   FolderOpen,
   Lock,
   LayoutDashboard,
@@ -19,6 +18,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { signOut } from "@/app/actions/auth";
+import { OtioMark } from "@/components/brand/OtioMark";
 import { useI18n } from "@/i18n/client";
 import { initialsOf } from "@/lib/child-name";
 import { RESOURCE_TABS } from "@/components/shell/ResourcesTabs";
@@ -38,13 +38,8 @@ const NAV: NavItem[] = [
 
 function LogoMark({ size = "md" }: { size?: "md" | "lg" }) {
   return (
-    <span
-      className={clsx(
-        "grid shrink-0 place-items-center rounded-xl bg-primary text-white shadow-[0_1px_2px_rgb(20_48_40/0.15)]",
-        size === "md" ? "size-9" : "size-10",
-      )}
-    >
-      <FileText className={size === "md" ? "size-[18px]" : "size-5"} strokeWidth={2} />
+    <span className={clsx("grid shrink-0 place-items-center rounded-xl bg-surface ring-1 ring-sidebar-line", size === "md" ? "size-9" : "size-10")}>
+      <OtioMark size={size === "md" ? 32 : 36} />
     </span>
   );
 }

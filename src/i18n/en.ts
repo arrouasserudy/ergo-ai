@@ -3,8 +3,8 @@ import type { Dictionary } from "./fr";
 /** English UI copy. Same shape as the French dictionary (enforced by the type). */
 export const en: Dictionary = {
   app: {
-    name: "Ergo.AI",
-    title: "Ergo.AI — Occupational therapy assistant",
+    name: "Otio",
+    title: "Otio — Occupational therapy assistant",
     description: "Pediatric occupational therapy reports",
     privacyNote: "The child's name is never sent to the AI.",
   },

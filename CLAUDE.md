@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# Bilan — assistant for pediatric occupational therapists
+# Otio — assistant for pediatric occupational therapists
 
 - Code is written in English: identifiers, files, routes, DB columns, enum/tag keys, and comments.
 - UI copy lives only in the dictionaries: `src/i18n/fr.ts` (default, source of the `Dictionary` type) and `src/i18n/he.ts` (Hebrew, RTL). Every key must exist in both (the type enforces it). Never put UI strings in components.

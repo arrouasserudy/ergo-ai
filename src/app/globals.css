@@ -20,17 +20,19 @@
   /* Sidebar */
   --color-sidebar: #f7fbf9;
   --color-sidebar-line: #e2ebe7;
-  --color-sidebar-hover: #ebf3ef;
-  --color-sidebar-active: #dbebe4;
+  --color-sidebar-hover: #eaf3f2;
+  --color-sidebar-active: #d9ebe9;
   --color-sidebar-ink: #3a4743;
   --color-sidebar-muted: #7a8682;
 
-  /* Brand */
-  --color-primary: #1f7563;
-  --color-primary-hover: #196353;
+  /* Brand: Otio teal, darkened from the logo (#3a918c) so white text keeps AA contrast. */
+  --color-primary: #2b7773;
+  --color-primary-hover: #236562;
   --color-primary-ink: #ffffff;
-  --color-tint: #e2f1eb;
-  --color-tint-ink: #1b6152;
+  /* Navy of the Otio wordmark. */
+  --color-brand-ink: #1c3157;
+  --color-tint: #e1f0ee;
+  --color-tint-ink: #225f5c;
 
   /* Status */
   --color-warn: #fbeadc;
