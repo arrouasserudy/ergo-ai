@@ -23,15 +23,14 @@ export async function StartButtons({
       {kinds.includes("crisis") && (
         <form action={startEpisode.bind(null, childId, "crisis")}>
           {compact ? (
-            <Button
+            <button
               type="submit"
-              size="sm"
               title={t.episodes.startCrisis}
               aria-label={t.episodes.startCrisis}
-              className="w-9 bg-warn-ink px-0 hover:bg-warn-ink/90"
+              className="inline-flex size-9 items-center justify-center rounded-full bg-warn-ink text-primary-ink shadow-[0_1px_2px_rgb(20_48_40/0.12)] transition-colors hover:bg-warn-ink/90"
             >
-              <Siren className="size-4" />
-            </Button>
+              <Siren className="size-4.5" />
+            </button>
           ) : (
             <Button type="submit" className="bg-warn-ink hover:bg-warn-ink/90">
               <Siren className="size-4" />
