@@ -1,13 +1,12 @@
-import { MessageCircle, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { notFound } from "next/navigation";
 import { AddEventButton } from "@/components/child-events/AddEventButton";
 import { ChildTabs } from "@/components/children/ChildTabs";
 import { StatusBadge } from "@/components/children/StatusBadge";
 import { StartButtons } from "@/components/episodes/StartButtons";
-import { AskAmitButton } from "@/components/expert/AskAmitButton";
 import { DeadlineBadge } from "@/components/forms/DeadlineBadge";
 import { BackLink } from "@/components/ui/BackLink";
-import { buttonClass, LinkButton } from "@/components/ui/Button";
+import { LinkButton } from "@/components/ui/Button";
 import { getI18n } from "@/i18n/server";
 import { reportOptions } from "@/lib/child-events/queries";
 import { getChild } from "@/lib/children";
@@ -56,20 +55,17 @@ export default async function ChildLayout(props: LayoutProps<"/children/[id]">) 
               </p>
             )}
           </div>
-          <div className="flex flex-wrap gap-2">
-            {!archived && (
-              <LinkButton href={`/reports/new?child=${child.id}`}>
+          {/* Asking Amit about this child goes through the bubble, which picks the child up from the URL. */}
+          {!archived && (
+            <div className="flex flex-wrap items-center gap-2">
+              <LinkButton href={`/reports/new?child=${child.id}`} size="sm">
                 <Plus className="size-4" />
                 {t.reports.newButton}
               </LinkButton>
-            )}
-            {!archived && <AddEventButton childId={child.id} reports={reportOptions(accountId, child.id)} today={localToday()} />}
-            {!archived && <StartButtons childId={child.id} kinds={["crisis"]} />}
-            <AskAmitButton childId={child.id} className={buttonClass("secondary")}>
-              <MessageCircle className="size-4" />
-              {t.expert.askExpert}
-            </AskAmitButton>
-          </div>
+              <AddEventButton childId={child.id} reports={reportOptions(accountId, child.id)} today={localToday()} size="sm" />
+              <StartButtons childId={child.id} kinds={["crisis"]} compact />
+            </div>
+          )}
         </div>
 
         {archived && (
