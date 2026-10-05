@@ -49,3 +49,6 @@ next-env.d.ts
 
 # local copies of the production database
 prod-snapshot*.db*
+
+# hyperframes
+videos
