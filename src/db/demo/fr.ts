@@ -730,6 +730,8 @@ function lea(): ChildSpec {
         key: "year-end",
         docType: "year_end_summary",
         date: wd(-100),
+        // Written at the end of the school year, validated after the summer break.
+        validatedAfterDays: 50,
         assessments: ["sp2-1"],
         tests: [{ name: "BHK (retest)", results: "Qualité : 17 points (−0,9 DS). Vitesse : 112 caractères en 5 minutes (−0,8 DS)." }],
         notes: `bilan fin d'année
@@ -1532,7 +1534,7 @@ export const fr: DemoCabinet = {
   templates: [
     { key: "anamnesis", source: ANAMNESIS, file: "Anamnese-parents.docx", kind: "docx", createdDaysAgo: 1120, autoAssign: false, tokens: [3120, 2280] },
     { key: "teacher", source: TEACHER, file: "Questionnaire-enseignant.pdf", kind: "pdf", createdDaysAgo: 400, autoAssign: false, deadlineInDays: 9, tokens: [4810, 1650] },
-    { key: "backToSchool", source: BACK_TO_SCHOOL, file: "Questionnaire-rentree.docx", kind: "docx", createdDaysAgo: 45, autoAssign: true, deadlineInDays: -6, tokens: [2240, 1390] },
+    { key: "backToSchool", source: BACK_TO_SCHOOL, file: "Questionnaire-rentree.docx", kind: "docx", createdDaysAgo: 45, autoAssign: true, deadlineInDays: -1, tokens: [2240, 1390] },
   ],
   children: () => [noam(), lea(), ethan(), maya()],
 };

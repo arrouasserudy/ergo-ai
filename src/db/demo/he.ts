@@ -733,6 +733,8 @@ function noa(): ChildSpec {
         key: "year-end",
         docType: "year_end_summary",
         date: wd(-99),
+        // Written at the end of the school year, validated after the summer break.
+        validatedAfterDays: 50,
         assessments: ["sp2-1"],
         tests: [{ name: "BHK (מבחן חוזר)", results: "איכות: 17 נקודות (−0.9 ס\"ת). מהירות: 112 תווים ב-5 דקות (−0.8 ס\"ת)." }],
         notes: `סיכום סוף שנה
@@ -1577,7 +1579,7 @@ export const he: DemoCabinet = {
   templates: [
     { key: "anamnesis", source: ANAMNESIS, file: "שאלון-אנמנזה-הורים.docx", kind: "docx", createdDaysAgo: 1110, autoAssign: false, tokens: [2980, 2140] },
     { key: "teacher", source: TEACHER, file: "שאלון-מחנכת.pdf", kind: "pdf", createdDaysAgo: 395, autoAssign: false, deadlineInDays: 9, tokens: [4620, 1580] },
-    { key: "backToSchool", source: BACK_TO_SCHOOL, file: "שאלון-פתיחת-שנה.docx", kind: "docx", createdDaysAgo: 44, autoAssign: true, deadlineInDays: -6, tokens: [2190, 1320] },
+    { key: "backToSchool", source: BACK_TO_SCHOOL, file: "שאלון-פתיחת-שנה.docx", kind: "docx", createdDaysAgo: 44, autoAssign: true, deadlineInDays: -1, tokens: [2190, 1320] },
   ],
   children: () => [omer(), noa(), itai(), hadar()],
 };

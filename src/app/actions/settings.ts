@@ -5,7 +5,7 @@ import { APIError } from "better-auth/api";
 import { cookies, headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { sessions } from "@/db/schema";
+import { sessions, therapists } from "@/db/schema";
 import { HIDE_NAMES_COOKIE } from "@/i18n";
 import { auth } from "@/lib/auth";
 import { getSession, requireTherapist } from "@/lib/session";
@@ -52,4 +52,15 @@ export async function setHideNames(hide: boolean) {
   if (hide) jar.set(HIDE_NAMES_COOKIE, "1", { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
   else jar.delete(HIDE_NAMES_COOKIE);
   revalidatePath("/", "layout");
+}
+
+/** Home page cards, per therapist: the "up to date" week and the getting-started guide. */
+export async function setHomeCardHidden(card: "week" | "guide", hidden: boolean) {
+  const { therapist } = await requireTherapist();
+  const value = hidden === true;
+  const set = card === "week" ? { hideWeekStreak: value } : card === "guide" ? { hideSetupGuide: value } : null;
+  if (!set) throw new Error("Unknown home card");
+  db.update(therapists).set(set).where(eq(therapists.id, therapist.id)).run();
+  revalidatePath("/");
+  revalidatePath("/settings");
 }

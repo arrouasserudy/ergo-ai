@@ -13,6 +13,15 @@ export function deriveReportStatus(recipients: ReportRecipient[], variants: Vari
   return "draft";
 }
 
+/** When the report stopped being a draft (as `deriveReportStatus` sees it), or null while it is one. */
+export function closedAt(recipients: ReportRecipient[], variants: VariantState[]): Date | null {
+  const selected = variants.filter((v) => recipients.includes(v.recipient));
+  const times: number[] = selected.flatMap((v) => (v.exportedAt ? [v.exportedAt.getTime()] : []));
+  const validated = recipients.map((r) => selected.find((v) => v.recipient === r && v.validatedAt)?.validatedAt?.getTime());
+  if (recipients.length > 0 && validated.every((t) => t !== undefined)) times.push(Math.max(...(validated as number[])));
+  return times.length ? new Date(Math.min(...times)) : null;
+}
+
 const normalize = (sections: ReportSection[]) => sections.map((s) => `${s.heading.trim()}\n${s.body.trim()}`).join("\n\n");
 
 /** True when the therapist changed the generated text (whitespace aside). */

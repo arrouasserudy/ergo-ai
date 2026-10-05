@@ -831,6 +831,8 @@ function amelia(): ChildSpec {
         key: "year-end",
         docType: "year_end_summary",
         date: wd(-101),
+        // Written at the end of the school year, validated after the summer break.
+        validatedAfterDays: 50,
         assessments: ["sp2-1"],
         tests: [{ name: "ETCH (retest)", results: "Legibility: words 79%, letters 85% (above the functional threshold). Speed: 24 letters per minute when copying." }],
         notes: `end-of-year review
@@ -1620,7 +1622,7 @@ export const en: DemoCabinet = {
     { key: "evaluation", source: EVALUATION, file: "Initial-OT-assessment.docx", kind: "docx", createdDaysAgo: 1097, autoAssign: false, tokens: [3840, 2950] },
     { key: "eating_observation", source: MEALTIME, file: "Mealtime-observation.pdf", kind: "pdf", createdDaysAgo: 1090, autoAssign: false, tokens: [3460, 2580] },
     { key: "teacher", source: TEACHER, file: "Teacher-questionnaire.pdf", kind: "pdf", createdDaysAgo: 402, autoAssign: false, deadlineInDays: 9, tokens: [4730, 1610] },
-    { key: "backToSchool", source: START_OF_YEAR, file: "Start-of-year-questionnaire.docx", kind: "docx", createdDaysAgo: 46, autoAssign: true, deadlineInDays: -6, tokens: [2210, 1370] },
+    { key: "backToSchool", source: START_OF_YEAR, file: "Start-of-year-questionnaire.docx", kind: "docx", createdDaysAgo: 46, autoAssign: true, deadlineInDays: -1, tokens: [2210, 1370] },
   ],
   children: () => [oliver(), amelia(), jack(), isla()],
 };
