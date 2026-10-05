@@ -1,5 +1,8 @@
+import { CheckCircle2 } from "lucide-react";
+import { eq } from "drizzle-orm";
 import { AccountNameForm } from "@/components/account/AccountNameForm";
 import { AddTherapistForm } from "@/components/account/AddTherapistForm";
+import { LinkGoogleButton, GoogleLogo } from "@/components/auth/GoogleButton";
 import { LetterheadForm } from "@/components/account/LetterheadForm";
 import { DeadlineSettingsForm } from "@/components/settings/DeadlineSettingsForm";
 import { HideNamesToggle } from "@/components/settings/HideNamesToggle";
@@ -11,7 +14,11 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { FormError } from "@/components/ui/FormError";
+import { db } from "@/db";
+import { authCredentials } from "@/db/schema";
 import { getI18n } from "@/i18n/server";
+import { googleEnabled } from "@/lib/auth";
 import { homePreferences } from "@/lib/dashboard/queries";
 import { requireTherapist } from "@/lib/session";
 import { listTherapists } from "@/lib/therapists";
@@ -30,7 +37,7 @@ function GroupHeading({ title, hint }: { title: string; hint: string }) {
   );
 }
 
-export default async function SettingsPage() {
+export default async function SettingsPage({ searchParams }: PageProps<"/settings">) {
   const i18n = await getI18n();
   const { t } = i18n;
   const { therapist, account, accountId, role } = await requireTherapist();
@@ -38,6 +45,15 @@ export default async function SettingsPage() {
   const isOwner = role === "owner";
   const home = homePreferences(therapist.id);
   const cols = t.account.columns;
+
+  // Sign-in methods: "credential" (password) and/or "google".
+  const providers = new Set(
+    db.select({ providerId: authCredentials.providerId }).from(authCredentials).where(eq(authCredentials.userId, therapist.id)).all().map((c) => c.providerId),
+  );
+  const hasGoogle = providers.has("google");
+  // Back from linking Google: ?linked=google, or ?error=<code> (Better Auth's callback).
+  const { linked, error } = await searchParams;
+  const linkError = typeof error === "string" ? (t.settings.googleLinkErrors[error] ?? t.settings.googleLinkErrors.generic) : undefined;
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
@@ -129,10 +145,31 @@ export default async function SettingsPage() {
           </div>
         </Card>
 
+        {(googleEnabled || hasGoogle) && (
+          <Card>
+            <CardHeader title={t.settings.signInTitle} hint={t.settings.signInHint} />
+            <div className="space-y-4 px-5 pb-5">
+              <FormError message={linkError} />
+              {hasGoogle ? (
+                <p role="status" className="flex items-center gap-2 text-[14px]">
+                  <GoogleLogo className="size-[18px]" />
+                  {linked === "google" ? t.settings.googleLinkedNow : t.settings.googleLinked}
+                  <CheckCircle2 className="size-4 text-ok-ink" />
+                </p>
+              ) : (
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-[13px] text-ink-muted">{t.settings.googleNotLinked}</p>
+                  <LinkGoogleButton />
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
+
         <Card>
-          <CardHeader title={t.settings.passwordTitle} hint={t.settings.passwordHint} />
+          <CardHeader title={t.settings.passwordTitle} hint={providers.has("credential") ? t.settings.passwordHint : undefined} />
           <div className="px-5 pb-5">
-            <PasswordForm />
+            {providers.has("credential") ? <PasswordForm /> : <p className="text-[13px] text-ink-muted">{t.settings.googleOnly}</p>}
           </div>
         </Card>
 
