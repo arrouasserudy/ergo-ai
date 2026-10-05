@@ -505,6 +505,7 @@ export const he: Dictionary = {
       crises: "משברים",
       reports: "סיכומי טיפול",
       forms: "טפסים ומבדקים",
+      progress: "התקדמות",
       timeline: "ציר זמן",
     },
     overview: {
@@ -548,6 +549,34 @@ export const he: Dictionary = {
     formSent: "הטופס נשלח להורים",
     formSubmitted: { therapist: "הטופס מולא על ידי הקליניקה", parent: "הטופס מולא על ידי ההורים" } as Record<string, string>,
     formDateSource: (title: string) => `תשובה בטופס "${title}"`,
+  },
+  progress: {
+    title: "התקדמות",
+    test: "מבדק",
+    before: "לפני",
+    after: "אחרי",
+    noTests: "אין עדיין מבדק שהושלם. ההשוואה תופיע כשיושלמו שתי העברות של אותו מבדק.",
+    openTests: "למבדקים",
+    single: (date: string) => `הושלמה העברה אחת בלבד (${date}). ההשוואה תופיע כשתושלם העברה שנייה של המבדק.`,
+    bandChanges: (n: number, total: number) =>
+      n === 0 ? `אף ציון לא עבר טווח (מתוך ${total})` : n === 1 ? `ציון אחד מתוך ${total} עבר טווח` : `${n} ציונים מתוך ${total} עברו טווח`,
+    valueChanges: (n: number, total: number) =>
+      n === 0 ? `אף ציון לא השתנה (מתוך ${total})` : n === 1 ? `ציון אחד מתוך ${total} השתנה` : `${n} ציונים מתוך ${total} השתנו`,
+    gap: (months: number) => (months === 0 ? "פחות מחודש בין שתי ההעברות" : months === 1 ? "חודש אחד בין שתי ההעברות" : `${months} חודשים בין שתי ההעברות`),
+    allBandChanges: (n: number, total: number) => `${n} מתוך ${total} בסך הכול`,
+    versionNote: "שתי ההעברות חושבו לפי גרסאות שונות של המבדק.",
+    sameBand: "אותו טווח",
+    incomplete: "חלקי",
+    unit: { points: "נק'", months: "ח'" } as Record<string, string>,
+    dot: (date: string, value: string, band: string | null) => (band ? `${date}: ${value} · ${band}` : `${date}: ${value}`),
+    crisisTitle: "משברים וקשיים לפי חודש",
+    crisis: "משברים",
+    difficulty: "קשיים",
+    bar: (month: string, crises: number, difficulties: number) => `${month}: ${crises} משברים, ${difficulties} קשיים`,
+    averages: (around: string, date: string, recent: string) =>
+      `בממוצע ${around} אירועים בחודש ב-3 החודשים עד המבדק מ-${date}, ${recent} ב-3 החודשים האחרונים.`,
+    noEpisodes: "לא נרשמו משברים או קשיים בתקופה זו.",
+    source: "הציונים חושבו על ידי Otio מתוך ההעברות שהושלמו, אף פעם לא על ידי בינה מלאכותית.",
   },
   sections: {
     identity: {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, ClipboardList, FileText, History, LayoutGrid, UserRound } from "lucide-react";
+import { Activity, ClipboardList, FileText, History, LayoutGrid, TrendingUp, UserRound } from "lucide-react";
 import { Tabs } from "@/components/ui/Tabs";
 import { useI18n } from "@/i18n/client";
 
@@ -18,6 +18,7 @@ export function ChildTabs({ childId }: { childId: string }) {
         { label: tab.crises, icon: Activity, href: `${base}/episodes` },
         { label: tab.reports, icon: FileText, href: `${base}/reports` },
         { label: tab.forms, icon: ClipboardList, href: `${base}/forms`, match: [`${base}/forms`, `${base}/assessments`] },
+        { label: tab.progress, icon: TrendingUp, href: `${base}/progress` },
         { label: tab.timeline, icon: History, href: `${base}/timeline` },
       ]}
     />

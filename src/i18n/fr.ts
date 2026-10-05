@@ -500,6 +500,7 @@ export const fr = {
       crises: "Crises",
       reports: "Comptes-rendus",
       forms: "Formulaires et tests",
+      progress: "Progrès",
       timeline: "Frise",
     },
     overview: {
@@ -543,6 +544,36 @@ export const fr = {
     formSent: "Formulaire envoyé aux parents",
     formSubmitted: { therapist: "Formulaire complété par le cabinet", parent: "Formulaire complété par les parents" } as Record<string, string>,
     formDateSource: (title: string) => `Réponse au formulaire « ${title} »`,
+  },
+  progress: {
+    title: "Progrès",
+    test: "Test",
+    before: "Avant",
+    after: "Après",
+    noTests: "Aucun test terminé pour cet enfant. La comparaison apparaît dès que deux passations d'un même test sont terminées.",
+    openTests: "Voir les tests",
+    single: (date: string) =>
+      `Une seule passation terminée (${date}). La comparaison apparaîtra quand une deuxième passation de ce test sera terminée.`,
+    bandChanges: (n: number, total: number) =>
+      n === 0 ? `Aucun score n'a changé de zone (sur ${total})` : n === 1 ? `1 score sur ${total} a changé de zone` : `${n} scores sur ${total} ont changé de zone`,
+    valueChanges: (n: number, total: number) =>
+      n === 0 ? `Aucun score n'a changé (sur ${total})` : n === 1 ? `1 score sur ${total} a changé` : `${n} scores sur ${total} ont changé`,
+    gap: (months: number) => (months === 0 ? "Moins d'un mois entre les deux passations" : `${months} mois entre les deux passations`),
+    allBandChanges: (n: number, total: number) => `${n} sur ${total} au total`,
+    versionNote: "Les deux passations ont été calculées avec des versions différentes du test.",
+    sameBand: "même zone",
+    incomplete: "incomplet",
+    unit: { points: "pts", months: "mois" } as Record<string, string>,
+    dot: (date: string, value: string, band: string | null) => (band ? `${date} : ${value} · ${band}` : `${date} : ${value}`),
+    crisisTitle: "Crises et difficultés par mois",
+    crisis: "Crises",
+    difficulty: "Difficultés",
+    bar: (month: string, crises: number, difficulties: number) =>
+      `${month} : ${crises} crise${crises > 1 ? "s" : ""}, ${difficulties} difficulté${difficulties > 1 ? "s" : ""}`,
+    averages: (around: string, date: string, recent: string) =>
+      `En moyenne ${around} épisodes par mois sur les 3 mois jusqu'au test du ${date}, ${recent} sur les 3 derniers mois.`,
+    noEpisodes: "Aucune crise ni difficulté enregistrée sur la période.",
+    source: "Scores calculés par Otio à partir des passations terminées, jamais par l'IA.",
   },
   sections: {
     identity: {

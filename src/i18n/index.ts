@@ -92,6 +92,10 @@ export function createI18n(locale: Locale, timeZone: string, hideNames = false) 
     /** A month "YYYY-MM" as a title, e.g. "octobre 2026". */
     monthTitle: (month: string) =>
       new Date(`${month}-01T00:00:00Z`).toLocaleDateString(intl, { timeZone: "UTC", month: "long", year: "numeric" }),
+    /** A month "YYYY-MM" as a short axis label, e.g. "oct.". */
+    monthShort: (month: string) => new Date(`${month}-01T00:00:00Z`).toLocaleDateString(intl, { timeZone: "UTC", month: "short" }),
+    /** Decimal number with at most `digits` decimals, e.g. "2,5". */
+    number: (value: number, digits = 1) => value.toLocaleString(intl, { minimumFractionDigits: 0, maximumFractionDigits: digits }),
     /** A weekday name, 0 = Sunday (1 January 2023 was a Sunday), e.g. "lun." or "L". */
     weekday: (index: number, width: "short" | "narrow" | "long" = "short") =>
       new Date(Date.UTC(2023, 0, 1 + index)).toLocaleDateString(intl, { timeZone: "UTC", weekday: width }),
