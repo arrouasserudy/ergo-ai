@@ -237,7 +237,7 @@ export async function seedCabinet(cabinet: DemoCabinet, password: string): Promi
         const created = at(r.date, "17:30");
         const variantRows = r.variants.map((v, i) => {
           const generatedAt = plus(created, 12 + i);
-          const validatedAt = v.state === "draft" ? null : at(addDays(r.date, 1), "21:15");
+          const validatedAt = v.state === "draft" ? null : at(addDays(r.date, r.validatedAfterDays ?? 1), "21:15");
           const exportedAt = v.state === "exported" ? plus(validatedAt!, 4) : null;
           const generated = fill(v.generated);
           const sections = v.edited ? fill(v.edited) : generated;

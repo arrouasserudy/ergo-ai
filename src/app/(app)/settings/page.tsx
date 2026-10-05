@@ -3,6 +3,7 @@ import { AddTherapistForm } from "@/components/account/AddTherapistForm";
 import { LetterheadForm } from "@/components/account/LetterheadForm";
 import { DeadlineSettingsForm } from "@/components/settings/DeadlineSettingsForm";
 import { HideNamesToggle } from "@/components/settings/HideNamesToggle";
+import { HomeCardsToggles } from "@/components/settings/HomeCardsToggles";
 import { LocaleSwitcher } from "@/components/shell/LocaleSwitcher";
 import { PasswordForm } from "@/components/settings/PasswordForm";
 import { ProfileForm } from "@/components/settings/ProfileForm";
@@ -11,6 +12,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { getI18n } from "@/i18n/server";
+import { homePreferences } from "@/lib/dashboard/queries";
 import { requireTherapist } from "@/lib/session";
 import { listTherapists } from "@/lib/therapists";
 
@@ -34,6 +36,7 @@ export default async function SettingsPage() {
   const { therapist, account, accountId, role } = await requireTherapist();
   const team = listTherapists(accountId);
   const isOwner = role === "owner";
+  const home = homePreferences(therapist.id);
   const cols = t.account.columns;
 
   return (
@@ -92,7 +95,7 @@ export default async function SettingsPage() {
           </Card>
         )}
 
-        <Card>
+        <Card className="scroll-mt-4" id="letterhead">
           <CardHeader title={t.account.letterheadTitle} hint={isOwner ? t.account.letterheadHint : t.account.ownerOnly} />
           <div className="px-5 pb-5">
             {isOwner ? (
@@ -130,6 +133,13 @@ export default async function SettingsPage() {
           <CardHeader title={t.settings.passwordTitle} hint={t.settings.passwordHint} />
           <div className="px-5 pb-5">
             <PasswordForm />
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader title={t.settings.homeTitle} hint={t.settings.homeHint} />
+          <div className="px-5 pb-5">
+            <HomeCardsToggles week={!home.hideWeekStreak} guide={!home.hideSetupGuide} />
           </div>
         </Card>
 

@@ -216,6 +216,8 @@ export type ReportSpec = {
   assessments?: string[];
   recipients?: ReportRecipient[];
   variants: VariantSpec[];
+  /** Days between the session and the validation (default 1); a late one gives the home page's streak a start. */
+  validatedAfterDays?: number;
 };
 
 export type FormSpec = {

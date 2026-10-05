@@ -1,10 +1,15 @@
 import "server-only";
-import { and, count, desc, eq, gte, isNotNull } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, isNotNull, ne, or, sql, type SQL } from "drizzle-orm";
+import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 import { db } from "@/db";
-import { assessments, childForms, children, episodes, reports } from "@/db/schema";
+import { type Account, assessments, childForms, children, conversations, episodes, formTemplates, reports, reportVariants, therapists } from "@/db/schema";
 import { getDefinition } from "@/lib/assessments/registry";
 import type { PendingForm } from "@/lib/forms/queries";
+import { closedAt } from "@/lib/reports/status";
+import { localToday } from "@/lib/time";
 import { sortActivity, sortTodo, type ActivityItem, type TodoItem } from "./feed";
+import type { SetupStep } from "./setup";
+import type { DueForm, ReportSpan } from "./streak";
 
 // Every query here is scoped by `accountId`.
 
@@ -105,4 +110,73 @@ export function recentActivity(accountId: string): ActivityItem[] {
       testName: getDefinition(assessment.definitionId)?.shortName ?? assessment.definitionId,
     })),
   ]);
+}
+
+/**
+ * The paperwork history behind the "up to date" week (see streak.ts): forms with a due date
+ * and reports, of active children only, like the to-do list.
+ */
+export function weekHistory(accountId: string): { forms: DueForm[]; reports: ReportSpan[] } {
+  const active = and(eq(children.id, childForms.childId), eq(children.status, "active"));
+  const forms = db
+    .select({ dueDate: childForms.dueDate, submittedAt: childForms.submittedAt })
+    .from(childForms)
+    .innerJoin(children, active)
+    .where(and(eq(childForms.accountId, accountId), isNotNull(childForms.dueDate)))
+    .all()
+    .map((f): DueForm => ({ dueDate: f.dueDate!, submittedOn: f.submittedAt ? localToday(f.submittedAt) : null }));
+
+  const rows = db
+    .select({ id: reports.id, createdAt: reports.createdAt, recipients: reports.recipients, status: reports.status })
+    .from(reports)
+    .innerJoin(children, and(eq(children.id, reports.childId), eq(children.status, "active")))
+    .where(eq(reports.accountId, accountId))
+    .all();
+  const closed = rows.filter((r) => r.status !== "draft").map((r) => r.id);
+  const variants = closed.length
+    ? db
+        .select({ reportId: reportVariants.reportId, recipient: reportVariants.recipient, validatedAt: reportVariants.validatedAt, exportedAt: reportVariants.exportedAt })
+        .from(reportVariants)
+        .where(and(eq(reportVariants.accountId, accountId), inArray(reportVariants.reportId, closed)))
+        .all()
+    : [];
+  const spans = rows.map((r): ReportSpan => {
+    const createdOn = localToday(r.createdAt);
+    if (r.status === "draft") return { createdOn, closedOn: null };
+    // A report closed without a known date (should not happen) counts as closed when written.
+    const end = closedAt(r.recipients, variants.filter((v) => v.reportId === r.id));
+    return { createdOn, closedOn: end ? localToday(end) : createdOn };
+  });
+  return { forms, reports: spans };
+}
+
+const exists = (table: SQLiteTable, where: SQL | undefined) => !!db.select({ one: sql`1` }).from(table).where(where).limit(1).get();
+
+/** The getting-started steps already done: by anyone in the cabinet, except asking Amit (personal). */
+export function setupDone(account: Account, therapistId: string): Set<SetupStep> {
+  const accountId = account.id;
+  const checks: Record<SetupStep, () => boolean> = {
+    child: () => exists(children, eq(children.accountId, accountId)),
+    letterhead: () => !!account.letterhead?.trim(),
+    autoForm: () =>
+      exists(formTemplates, and(eq(formTemplates.accountId, accountId), eq(formTemplates.autoAssign, true), eq(formTemplates.status, "published"))),
+    parentLink: () =>
+      exists(childForms, and(eq(childForms.accountId, accountId), or(isNotNull(childForms.shareTokenHash), eq(childForms.submittedBy, "parent")))) ||
+      exists(assessments, and(eq(assessments.accountId, accountId), or(isNotNull(assessments.shareTokenHash), eq(assessments.completedBy, "parent")))),
+    assessment: () => exists(assessments, and(eq(assessments.accountId, accountId), eq(assessments.status, "completed"))),
+    report: () => exists(reports, and(eq(reports.accountId, accountId), ne(reports.status, "draft"))),
+    export: () => exists(reports, and(eq(reports.accountId, accountId), eq(reports.status, "exported"))),
+    amit: () => exists(conversations, and(eq(conversations.accountId, accountId), eq(conversations.therapistId, therapistId))),
+  };
+  return new Set((Object.keys(checks) as SetupStep[]).filter((step) => checks[step]()));
+}
+
+/** Which optional home page cards the therapist hid (Settings → My account). */
+export function homePreferences(therapistId: string): { hideWeekStreak: boolean; hideSetupGuide: boolean } {
+  return (
+    db.select({ hideWeekStreak: therapists.hideWeekStreak, hideSetupGuide: therapists.hideSetupGuide }).from(therapists).where(eq(therapists.id, therapistId)).get() ?? {
+      hideWeekStreak: false,
+      hideSetupGuide: false,
+    }
+  );
 }

@@ -1,8 +1,12 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 
-export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <section className={clsx("rounded-2xl border border-line bg-surface shadow-card", className)}>{children}</section>;
+export function Card({ className, id, children }: { className?: string; id?: string; children: ReactNode }) {
+  return (
+    <section id={id} className={clsx("rounded-2xl border border-line bg-surface shadow-card", className)}>
+      {children}
+    </section>
+  );
 }
 
 export function CardHeader({

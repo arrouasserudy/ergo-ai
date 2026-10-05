@@ -48,6 +48,9 @@ export const therapists = sqliteTable(
       .notNull()
       .references(() => accounts.id, { onDelete: "cascade" }),
     role: text("role", { enum: THERAPIST_ROLES }).notNull().default("member"),
+    /** Home page preferences (Settings → My account): the "up to date" week and the getting-started guide. */
+    hideWeekStreak: integer("hide_week_streak", { mode: "boolean" }).notNull().default(false),
+    hideSetupGuide: integer("hide_setup_guide", { mode: "boolean" }).notNull().default(false),
     ...timestamps(),
   },
   (table) => [index("therapists_account_id_idx").on(table.accountId)],

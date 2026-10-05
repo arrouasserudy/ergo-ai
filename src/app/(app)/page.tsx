@@ -2,7 +2,9 @@ import clsx from "clsx";
 import { Activity, CalendarClock, CircleCheck, ClipboardList, FileText, Inbox, Plus, UserRound } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { SetupGuideCard } from "@/components/dashboard/SetupGuideCard";
 import { StatTile } from "@/components/dashboard/StatTile";
+import { WeekCard } from "@/components/dashboard/WeekCard";
 import { OpenEpisodesStrip } from "@/components/episodes/OpenEpisodesStrip";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
@@ -11,7 +13,10 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { isolate } from "@/i18n";
 import { getI18n } from "@/i18n/server";
 import { take, type ActivityItem, type TodoItem } from "@/lib/dashboard/feed";
-import { countActiveChildren, countRecentCrises, recentActivity, todoList } from "@/lib/dashboard/queries";
+import { weekStartOf } from "@/lib/calendar/month";
+import { countActiveChildren, countRecentCrises, homePreferences, recentActivity, setupDone, todoList, weekHistory } from "@/lib/dashboard/queries";
+import { setupGuide } from "@/lib/dashboard/setup";
+import { weekState } from "@/lib/dashboard/streak";
 import { listOpenEpisodes } from "@/lib/episodes";
 import { pendingForms } from "@/lib/forms/queries";
 import { requireTherapist } from "@/lib/session";
@@ -28,14 +33,27 @@ export default async function DashboardPage() {
   const i18n = await getI18n();
   const { t } = i18n;
   const d = t.dashboard;
-  const { therapist, account, accountId } = await requireTherapist();
+  const { therapist, account, accountId, role } = await requireTherapist();
 
-  const pending = pendingForms(accountId, localToday(), account.deadlineWarnDays);
+  const today = localToday();
+  const pending = pendingForms(accountId, today, account.deadlineWarnDays);
   const overdue = pending.filter((f) => f.level === "overdue").length;
   const todo = todoList(accountId, pending);
   const todoShown = take(todo.items, LIST_LIMIT);
   const activity = take(recentActivity(accountId), LIST_LIMIT);
   const firstName = therapist.name.trim().split(/\s+/)[0] ?? "";
+  const prefs = homePreferences(therapist.id);
+  const week = prefs.hideWeekStreak
+    ? null
+    : weekState({
+        ...weekHistory(accountId),
+        today,
+        since: localToday(account.createdAt),
+        weekStart: weekStartOf(i18n.locale),
+        warnDays: account.deadlineWarnDays,
+        remaining: todo.items.length,
+      });
+  const guide = prefs.hideSetupGuide ? null : setupGuide(setupDone(account, therapist.id), role === "owner");
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -67,31 +85,37 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
-        <Card>
-          <CardHeader title={d.todoTitle} hint={d.todoHint} />
-          {todoShown.items.length === 0 ? (
-            <Empty icon={CircleCheck}>{d.todoEmpty}</Empty>
-          ) : (
-            <Rows more={todoShown.more}>
-              {todoShown.items.map((item) => (
-                <TodoRow key={`${item.kind}-${item.id}`} item={item} />
-              ))}
-            </Rows>
-          )}
-        </Card>
+        <div className="space-y-5">
+          {week && <WeekCard week={week} />}
+          <Card>
+            <CardHeader title={d.todoTitle} hint={d.todoHint} />
+            {todoShown.items.length === 0 ? (
+              <Empty icon={CircleCheck}>{d.todoEmpty}</Empty>
+            ) : (
+              <Rows more={todoShown.more}>
+                {todoShown.items.map((item) => (
+                  <TodoRow key={`${item.kind}-${item.id}`} item={item} />
+                ))}
+              </Rows>
+            )}
+          </Card>
+        </div>
 
-        <Card>
-          <CardHeader title={d.activityTitle} hint={d.activityHint} />
-          {activity.items.length === 0 ? (
-            <Empty icon={Inbox}>{d.activityEmpty}</Empty>
-          ) : (
-            <Rows more={0}>
-              {activity.items.map((item) => (
-                <ActivityRow key={`${item.kind}-${item.id}`} item={item} />
-              ))}
-            </Rows>
-          )}
-        </Card>
+        <div className="space-y-5">
+          {guide && <SetupGuideCard guide={guide} />}
+          <Card>
+            <CardHeader title={d.activityTitle} hint={d.activityHint} />
+            {activity.items.length === 0 ? (
+              <Empty icon={Inbox}>{d.activityEmpty}</Empty>
+            ) : (
+              <Rows more={0}>
+                {activity.items.map((item) => (
+                  <ActivityRow key={`${item.kind}-${item.id}`} item={item} />
+                ))}
+              </Rows>
+            )}
+          </Card>
+        </div>
       </div>
     </div>
   );
