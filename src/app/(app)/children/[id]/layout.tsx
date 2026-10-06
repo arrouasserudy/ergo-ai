@@ -5,11 +5,13 @@ import { ChildTabs } from "@/components/children/ChildTabs";
 import { StatusBadge } from "@/components/children/StatusBadge";
 import { StartButtons } from "@/components/episodes/StartButtons";
 import { DeadlineBadge } from "@/components/forms/DeadlineBadge";
+import { GroupBadge } from "@/components/groups/GroupBadge";
 import { BackLink } from "@/components/ui/BackLink";
 import { LinkButton } from "@/components/ui/Button";
 import { getI18n } from "@/i18n/server";
 import { reportOptions } from "@/lib/child-events/queries";
 import { getChild } from "@/lib/children";
+import { getGroup } from "@/lib/groups/queries";
 import { pendingForms, urgencyByChild } from "@/lib/forms/queries";
 import { requireTherapist } from "@/lib/session";
 import { localToday } from "@/lib/time";
@@ -27,6 +29,7 @@ export default async function ChildLayout(props: LayoutProps<"/children/[id]">) 
   const child = getChild(accountId, id);
   if (!child) notFound();
 
+  const group = child.groupId ? getGroup(accountId, child.groupId) : null;
   const archived = child.status === "archived";
   const meta = [i18n.age(child.birthDate), child.schoolLevel].filter(Boolean).join(" · ");
   const urgency = urgencyByChild(pendingForms(accountId, localToday(), account.deadlineWarnDays)).get(child.id);
@@ -46,6 +49,7 @@ export default async function ChildLayout(props: LayoutProps<"/children/[id]">) 
                   {meta}
                 </span>
               )}
+              {group && <GroupBadge group={group} href={`/groups/${group.id}`} />}
               <StatusBadge status={child.status} />
               <DeadlineBadge urgency={urgency} />
             </div>

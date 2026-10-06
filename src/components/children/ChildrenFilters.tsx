@@ -9,7 +9,8 @@ import type { StatusFilter } from "@/lib/children";
 
 const FILTERS: StatusFilter[] = ["active", "archived", "all"];
 
-export function ChildrenFilters({ search, status }: { search: string; status: StatusFilter }) {
+/** `group`: the selected group id, "none", or "" for all; the group picker only shows when the cabinet has groups. */
+export function ChildrenFilters({ search, status, group = "", groups = [] }: { search: string; status: StatusFilter; group?: string; groups?: { id: string; name: string }[] }) {
   const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
@@ -17,7 +18,7 @@ export function ChildrenFilters({ search, status }: { search: string; status: St
   const [query, setQuery] = useState(search);
   const [pending, startTransition] = useTransition();
 
-  const navigate = (next: { q?: string; status?: StatusFilter }) => {
+  const navigate = (next: { q?: string; status?: StatusFilter; group?: string }) => {
     const sp = new URLSearchParams(params);
     if (next.q !== undefined) {
       if (next.q) sp.set("q", next.q);
@@ -26,6 +27,10 @@ export function ChildrenFilters({ search, status }: { search: string; status: St
     if (next.status !== undefined) {
       if (next.status === "active") sp.delete("status");
       else sp.set("status", next.status);
+    }
+    if (next.group !== undefined) {
+      if (next.group) sp.set("group", next.group);
+      else sp.delete("group");
     }
     const qs = sp.toString();
     startTransition(() => router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false }));
@@ -55,6 +60,24 @@ export function ChildrenFilters({ search, status }: { search: string; status: St
           )}
         />
       </label>
+      {groups.length > 0 && (
+        <label className="relative">
+          <span className="sr-only">{t.children.groupFilter.label}</span>
+          <select
+            value={group}
+            onChange={(e) => navigate({ group: e.target.value })}
+            className="h-11 w-full rounded-xl border border-line-strong bg-surface px-3 text-[14px] text-ink focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none sm:w-52"
+          >
+            <option value="">{t.children.groupFilter.all}</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+            <option value="none">{t.children.groupFilter.none}</option>
+          </select>
+        </label>
+      )}
       <div role="group" className="flex rounded-xl border border-line-strong bg-surface-muted p-0.5">
         {FILTERS.map((f) => (
           <button

@@ -13,7 +13,7 @@ import { sanitizeAnswers } from "../../lib/forms/answers";
 import { OTHER, type Answers, type FormSchema, type LlmForm } from "../../lib/forms/schema";
 import { APP_TIME_ZONE, localToday } from "../../lib/time";
 import type { Locale } from "../../i18n";
-import type { ChildEventKind, NewChild, ReportDocType, ReportRecipient, ReportSection, ReportTest } from "../schema";
+import type { ChildEventKind, GroupColor, NewChild, ReportDocType, ReportRecipient, ReportSection, ReportTest } from "../schema";
 
 /** A stable UUID for a demo row ("child:noam", "noam:episode:3"…), the same on every run and in production. */
 export function demoId(accountId: string, key: string): string {
@@ -293,6 +293,8 @@ export type DemoCabinet = {
   /** The forms shipped with the app (in Hebrew): used, or archived when the cabinet works in another language. */
   builtinForms: "use" | "archive";
   templates: CabinetTemplate[];
+  /** Classrooms / places of work, with the keys of their children (a child is in one group at most). */
+  groups: { key: string; name: string; place: string | null; color: GroupColor; children: string[] }[];
   children: () => ChildSpec[];
 };
 

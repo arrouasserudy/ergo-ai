@@ -1671,5 +1671,10 @@ export const en: DemoCabinet = {
     { key: "teacher", source: TEACHER, file: "Teacher-questionnaire.pdf", kind: "pdf", createdDaysAgo: 402, autoAssign: false, deadlineInDays: 9, tokens: [4730, 1610] },
     { key: "backToSchool", source: START_OF_YEAR, file: "Start-of-year-questionnaire.docx", kind: "docx", createdDaysAgo: 46, autoAssign: true, deadlineInDays: -1, tokens: [2210, 1370] },
   ],
+  groups: [
+    { key: "highbury-infants", name: "Highbury Infants", place: "Highbury Infant School, London N5", color: "amber", children: ["oliver", "isla"] },
+    { key: "st-marys", name: "St Mary's Juniors", place: "St Mary's C of E Primary, Islington", color: "blue", children: ["amelia"] },
+    { key: "clinic", name: "Clinic — 1:1 sessions", place: "27 Highbury Grove, London N5", color: "teal", children: ["jack"] },
+  ],
   children: () => [oliver(), amelia(), jack(), isla()],
 };

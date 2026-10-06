@@ -1,6 +1,6 @@
 "use client";
 
-import { InputField, TextareaField } from "@/components/ui/Field";
+import { FieldShell, InputField, TextareaField } from "@/components/ui/Field";
 import { TagPicker } from "@/components/ui/TagPicker";
 import type { Child } from "@/db/schema";
 import { useI18n } from "@/i18n/client";
@@ -17,9 +17,10 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 /** Saved record, optionally overlaid with raw values from a failed submit. */
 type FieldValues = Partial<Omit<Child, "siblingsCount">> & { siblingsCount?: number | string | null };
-type FieldsProps = { child?: FieldValues; errors?: FieldErrors };
+export type GroupOption = { id: string; name: string };
+type FieldsProps = { child?: FieldValues; errors?: FieldErrors; groups?: GroupOption[] };
 
-export function IdentityFields({ child, errors = {} }: FieldsProps) {
+export function IdentityFields({ child, errors = {}, groups = [] }: FieldsProps) {
   const f = useI18n().t.fields;
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -46,6 +47,23 @@ export function IdentityFields({ child, errors = {} }: FieldsProps) {
       />
       <InputField name="schoolLevel" label={f.schoolLevel} placeholder={f.schoolLevelPlaceholder} defaultValue={child?.schoolLevel ?? ""} error={errors.schoolLevel} maxLength={80} />
       <InputField name="followUpStart" type="date" label={f.followUpStart} max={today()} defaultValue={child?.followUpStart ?? ""} error={errors.followUpStart} />
+      {groups.length > 0 && (
+        <FieldShell name="groupId" label={f.group} help={f.groupHelp} error={errors.groupId} className="sm:col-span-2">
+          <select
+            id="groupId"
+            name="groupId"
+            defaultValue={child?.groupId ?? ""}
+            className="h-11 w-full rounded-xl border border-line-strong bg-surface px-3 text-[15px] text-ink focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+          >
+            <option value="">{f.noGroup}</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+        </FieldShell>
+      )}
     </div>
   );
 }

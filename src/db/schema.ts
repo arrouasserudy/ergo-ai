@@ -113,6 +113,31 @@ export type Therapist = typeof therapists.$inferSelect;
 export const CHILD_STATUSES = ["active", "archived"] as const;
 export type ChildStatus = (typeof CHILD_STATUSES)[number];
 
+export const GROUP_COLORS = ["teal", "blue", "violet", "rose", "amber", "green", "slate"] as const;
+export type GroupColor = (typeof GROUP_COLORS)[number];
+
+/**
+ * A group of children of one cabinet: a classroom, a school, a place where the therapist
+ * works. A child belongs to at most one group (`children.group_id`).
+ */
+export const childGroups = sqliteTable(
+  "child_groups",
+  {
+    id: id(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    /** Where the group meets (school, kindergarten, clinic…), optional. */
+    place: text("place"),
+    color: text("color", { enum: GROUP_COLORS }).notNull().default("teal"),
+    ...timestamps(),
+  },
+  (table) => [index("child_groups_account_idx").on(table.accountId)],
+);
+
+export type ChildGroup = typeof childGroups.$inferSelect;
+
 /**
  * A child followed by the therapist. `name` is whatever the therapist types (full
  * name or initials); it is never sent to an AI model.
@@ -133,6 +158,8 @@ export const children = sqliteTable(
     schoolLevel: text("school_level"),
     followUpStart: text("follow_up_start"), // ISO date
     status: text("status", { enum: CHILD_STATUSES }).notNull().default("active"),
+    /** Classroom / place (see `childGroups`); emptied when the group is deleted. */
+    groupId: text("group_id").references(() => childGroups.id, { onDelete: "set null" }),
 
     // Medical and family history
     medicalHistory: text("medical_history"),
@@ -157,7 +184,7 @@ export const children = sqliteTable(
     createdAt: text("created_at").notNull().default(sql`(CURRENT_TIMESTAMP)`),
     updatedAt: text("updated_at").notNull().default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (table) => [index("children_account_id_idx").on(table.accountId)],
+  (table) => [index("children_account_id_idx").on(table.accountId), index("children_group_idx").on(table.groupId)],
 );
 
 export type Child = typeof children.$inferSelect;

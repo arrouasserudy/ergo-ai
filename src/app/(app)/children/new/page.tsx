@@ -4,15 +4,21 @@ import { NewChildForm } from "@/components/children/NewChildForm";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { getI18n } from "@/i18n/server";
+import { listGroups } from "@/lib/groups/queries";
+import { requireTherapist } from "@/lib/session";
 
 export async function generateMetadata() {
   const { t } = await getI18n();
   return { title: `${t.children.newTitle} · ${t.app.name}` };
 }
 
-export default async function NewChildPage() {
+export default async function NewChildPage(props: PageProps<"/children/new">) {
   const i18n = await getI18n();
   const { t } = i18n;
+  const { accountId } = await requireTherapist();
+  const groups = listGroups(accountId).map(({ id, name }) => ({ id, name }));
+  const sp = await props.searchParams;
+  const groupId = typeof sp.group === "string" && groups.some((g) => g.id === sp.group) ? sp.group : undefined;
   return (
     <div className="mx-auto max-w-2xl space-y-5">
       <Link href="/children" className="-my-2 inline-flex min-h-11 items-center gap-1 text-[13.5px] text-ink-muted hover:text-ink">
@@ -26,7 +32,7 @@ export default async function NewChildPage() {
       </header>
       <Card>
         <CardHeader title={t.sections.identity.title} hint={t.sections.identity.hint} />
-        <NewChildForm />
+        <NewChildForm groups={groups} groupId={groupId} />
       </Card>
     </div>
   );

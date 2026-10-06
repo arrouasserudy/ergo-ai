@@ -1633,5 +1633,10 @@ export const he: DemoCabinet = {
     { key: "teacher", source: TEACHER, file: "שאלון-מחנכת.pdf", kind: "pdf", createdDaysAgo: 395, autoAssign: false, deadlineInDays: 9, tokens: [4620, 1580] },
     { key: "backToSchool", source: BACK_TO_SCHOOL, file: "שאלון-פתיחת-שנה.docx", kind: "docx", createdDaysAgo: 44, autoAssign: true, deadlineInDays: -1, tokens: [2190, 1320] },
   ],
+  groups: [
+    { key: "gan-rimon", name: "גן רימון", place: "גני ילדים, רחוב עמק החולה, מודיעין", color: "amber", children: ["omer", "hadar"] },
+    { key: "bialik", name: "בית ספר ביאליק", place: "בית ספר יסודי, מודיעין", color: "blue", children: ["noa"] },
+    { key: "clinic", name: "קליניקה — טיפולים פרטניים", place: "רחוב עמק החולה 12, מודיעין", color: "teal", children: ["itai"] },
+  ],
   children: () => [omer(), noa(), itai(), hadar()],
 };

@@ -8,7 +8,7 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import type { Child } from "@/db/schema";
 import { useI18n } from "@/i18n/client";
 import type { Section } from "@/lib/validation";
-import { HistoryFields, IdentityFields, SensoryFields } from "./SectionFields";
+import { HistoryFields, IdentityFields, SensoryFields, type GroupOption } from "./SectionFields";
 
 const FIELDS = { identity: IdentityFields, history: HistoryFields, sensory: SensoryFields };
 
@@ -20,10 +20,12 @@ type EditableSectionProps = {
   /** Shown instead of `children` when the section has no data yet. */
   empty?: { title: string; body: string };
   children: ReactNode;
+  /** The cabinet's groups (identity section). */
+  groups?: GroupOption[];
 };
 
 /** A card that shows a read-only view and switches in place to its edit form. */
-export function EditableSection({ child, section, title, hint, empty, children }: EditableSectionProps) {
+export function EditableSection({ child, section, title, hint, empty, children, groups }: EditableSectionProps) {
   const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [state, action, pending] = useActionState<FormState, FormData>(async (prev, formData) => {
@@ -51,7 +53,7 @@ export function EditableSection({ child, section, title, hint, empty, children }
       <div className="px-5 pb-5">
         {editing ? (
           <form action={action} noValidate className="space-y-5">
-            <Fields child={{ ...child, ...state.values }} errors={state.errors} />
+            <Fields child={{ ...child, ...state.values }} errors={state.errors} groups={groups} />
             <div className="flex justify-end gap-2 border-t border-line pt-4">
               <Button variant="secondary" onClick={() => setEditing(false)} disabled={pending}>
                 {t.common.cancel}

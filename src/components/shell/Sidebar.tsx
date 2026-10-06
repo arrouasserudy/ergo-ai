@@ -29,7 +29,7 @@ type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href: string;
 
 const NAV: NavItem[] = [
   { label: "dashboard", icon: LayoutDashboard, href: "/" },
-  { label: "children", icon: UserRound, href: "/children", match: ["/children", "/reports"] },
+  { label: "children", icon: UserRound, href: "/children", match: ["/children", "/groups", "/reports"] },
   { label: "calendar", icon: CalendarDays, href: "/calendar" },
   { label: "crises", icon: Activity, href: "/crises" },
   { label: "resources", icon: FolderOpen, href: "/forms", match: RESOURCE_TABS.map((tab) => tab.href) },
