@@ -18,6 +18,7 @@ import {
   authCredentials,
   childEvents,
   childForms,
+  childGroups,
   children,
   episodes,
   formTemplates,
@@ -119,12 +120,21 @@ export async function seedCabinet(cabinet: DemoCabinet, password: string): Promi
       templates.set(t.key, { id: templateId, schema });
     }
 
+    const groupOf = new Map<string, string>();
+    for (const g of cabinet.groups) {
+      const groupId = id(`group:${g.key}`);
+      tx.insert(childGroups)
+        .values({ id: groupId, accountId, name: g.name, place: g.place, color: g.color, createdAt: accountCreated, updatedAt: accountCreated })
+        .run();
+      for (const key of g.children) groupOf.set(key, groupId);
+    }
+
     for (const spec of specs) {
       const childId = id(`child:${spec.key}`);
       const name = spec.child.name;
       const first = name.split(" ")[0];
       tx.insert(children)
-        .values({ ...spec.child, id: childId, accountId, createdBy: therapistId, status: "active", updatedAt: sqlTimestamp(at(day(-2), "18:00")) })
+        .values({ ...spec.child, id: childId, accountId, createdBy: therapistId, status: "active", groupId: groupOf.get(spec.key) ?? null, updatedAt: sqlTimestamp(at(day(-2), "18:00")) })
         .run();
 
       spec.episodes.forEach((e, i) => {

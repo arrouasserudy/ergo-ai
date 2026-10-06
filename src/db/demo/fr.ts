@@ -1569,5 +1569,10 @@ export const fr: DemoCabinet = {
     { key: "teacher", source: TEACHER, file: "Questionnaire-enseignant.pdf", kind: "pdf", createdDaysAgo: 400, autoAssign: false, deadlineInDays: 9, tokens: [4810, 1650] },
     { key: "backToSchool", source: BACK_TO_SCHOOL, file: "Questionnaire-rentree.docx", kind: "docx", createdDaysAgo: 45, autoAssign: true, deadlineInDays: -1, tokens: [2240, 1390] },
   ],
+  groups: [
+    { key: "gan-rimon", name: "Gan Rimon", place: "Jardins d'enfants, rehov Herzl, Netanya", color: "amber", children: ["noam", "maya"] },
+    { key: "bialik", name: "École Bialik", place: "École primaire, Netanya", color: "blue", children: ["lea"] },
+    { key: "cabinet", name: "Cabinet — séances individuelles", place: "14, rehov Smilansky, Netanya", color: "teal", children: ["ethan"] },
+  ],
   children: () => [noam(), lea(), ethan(), maya()],
 };

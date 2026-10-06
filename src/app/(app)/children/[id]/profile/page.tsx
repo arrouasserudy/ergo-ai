@@ -3,12 +3,14 @@ import { notFound } from "next/navigation";
 import { setChildStatus } from "@/app/actions/children";
 import { EditableSection } from "@/components/children/EditableSection";
 import { InfoList } from "@/components/children/InfoList";
+import { GroupBadge } from "@/components/groups/GroupBadge";
 import { Button } from "@/components/ui/Button";
 import { TagList } from "@/components/ui/TagList";
 import type { Child } from "@/db/schema";
 import { isolate } from "@/i18n";
 import { getI18n } from "@/i18n/server";
 import { getChild } from "@/lib/children";
+import { listGroups } from "@/lib/groups/queries";
 import { requireTherapist } from "@/lib/session";
 
 export async function generateMetadata(props: PageProps<"/children/[id]/profile">) {
@@ -40,6 +42,8 @@ export default async function ChildProfilePage(props: PageProps<"/children/[id]/
   const child = getChild(accountId, id);
   if (!child) notFound();
 
+  const groups = listGroups(accountId);
+  const group = groups.find((g) => g.id === child.groupId);
   const age = i18n.age(child.birthDate);
   const archived = child.status === "archived";
   const toggleStatus = setChildStatus.bind(null, child.id, archived ? "active" : "archived");
@@ -48,7 +52,13 @@ export default async function ChildProfilePage(props: PageProps<"/children/[id]/
     <div className="space-y-5">
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
         <div className="min-w-0 space-y-5">
-          <EditableSection child={child} section="identity" title={t.sections.identity.title} hint={t.sections.identity.hint}>
+          <EditableSection
+            child={child}
+            section="identity"
+            title={t.sections.identity.title}
+            hint={t.sections.identity.hint}
+            groups={groups.map(({ id, name }) => ({ id, name }))}
+          >
             <InfoList
               items={[
                 { label: f.name, value: <bdi>{i18n.childName(child)}</bdi> },
@@ -56,6 +66,7 @@ export default async function ChildProfilePage(props: PageProps<"/children/[id]/
                 { label: f.referralReason, value: child.referralReason, wide: true },
                 { label: f.schoolLevel, value: child.schoolLevel },
                 { label: f.followUpStart, value: i18n.date(child.followUpStart) },
+                ...(groups.length ? [{ label: f.group, value: group ? <GroupBadge group={group} href={`/groups/${group.id}`} /> : null }] : []),
               ]}
             />
           </EditableSection>

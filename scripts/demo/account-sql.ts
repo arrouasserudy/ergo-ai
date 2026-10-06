@@ -10,6 +10,7 @@ export const COPIED_TABLES: { table: string; where: string }[] = [
   { table: "therapists", where: "account_id = :account" },
   { table: "auth_credentials", where: "user_id IN (SELECT id FROM therapists WHERE account_id = :account)" },
   { table: "form_templates", where: "account_id = :account" },
+  { table: "child_groups", where: "account_id = :account" },
   { table: "children", where: "account_id = :account" },
   { table: "episodes", where: "account_id = :account" },
   { table: "reports", where: "account_id = :account" },

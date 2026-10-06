@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { REPORT_DOC_TYPES, REPORT_LANGUAGES, REPORT_RECIPIENTS } from "@/db/schema";
+import { GROUP_COLORS, REPORT_DOC_TYPES, REPORT_LANGUAGES, REPORT_RECIPIENTS } from "@/db/schema";
 
 /**
  * Error messages are codes ("required", "tooLong:200"…), translated where they are
@@ -48,6 +48,21 @@ export const identitySchema = z.object({
   referralReason: requiredText(200),
   schoolLevel: optionalText(80),
   followUpStart: pastDate,
+  /** Checked against the account by the action (an unknown id is refused). */
+  groupId: z
+    .string()
+    .trim()
+    .max(64)
+    .transform((v) => (v === "" ? null : v))
+    .nullable()
+    .default(null),
+});
+
+/** A group of children (classroom, school, place of work). */
+export const groupSchema = z.object({
+  name: requiredText(80).transform((v) => v.replace(/\s+/g, " ")),
+  place: optionalText(120),
+  color: z.enum(GROUP_COLORS).catch("teal"),
 });
 
 export const historySchema = z.object({

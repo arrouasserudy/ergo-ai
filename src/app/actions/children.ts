@@ -4,7 +4,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { children, type ChildStatus } from "@/db/schema";
+import { childGroups, children, type ChildStatus } from "@/db/schema";
 import { syncAutoForms } from "@/lib/forms/auto-assign";
 import { requireTherapist } from "@/lib/session";
 import { formDataToInput, identitySchema, sectionSchemas, SECTIONS, toFieldErrors, type FieldErrors, type Section } from "@/lib/validation";
@@ -23,11 +23,18 @@ export type FormState = {
   addedName?: string;
 };
 
+/** A group id typed into a form must be one of the account's groups. */
+function groupBelongs(accountId: string, groupId: string | null | undefined): boolean {
+  if (!groupId) return true;
+  return Boolean(db.select({ id: childGroups.id }).from(childGroups).where(and(eq(childGroups.id, groupId), eq(childGroups.accountId, accountId))).get());
+}
+
 export async function createChild(_prev: FormState, formData: FormData): Promise<FormState> {
   const { accountId, therapist } = await requireTherapist();
   const input = formDataToInput("identity", formData);
   const parsed = identitySchema.safeParse(input);
   if (!parsed.success) return { ok: false, errors: toFieldErrors(parsed.error), values: input };
+  if (!groupBelongs(accountId, parsed.data.groupId)) return { ok: false, errors: { groupId: "generic" }, values: input };
 
   const created = db
     .insert(children)
@@ -51,6 +58,7 @@ export async function updateChildSection(
   const input = formDataToInput(section, formData);
   const parsed = sectionSchemas[section].safeParse(input);
   if (!parsed.success) return { ok: false, errors: toFieldErrors(parsed.error), values: input };
+  if ("groupId" in parsed.data && !groupBelongs(accountId, parsed.data.groupId)) return { ok: false, errors: { groupId: "generic" }, values: input };
 
   const result = db
     .update(children)
@@ -60,6 +68,7 @@ export async function updateChildSection(
   if (result.changes === 0) return { ok: false, errors: { form: "generic" } };
 
   revalidatePath("/children");
+  revalidatePath("/groups", "layout");
   revalidatePath(`/children/${id}`, "layout");
   return { ok: true, savedAt: Date.now() };
 }
