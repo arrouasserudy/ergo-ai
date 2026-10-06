@@ -1162,6 +1162,7 @@ export const fr = {
         search: { name: "Recherche documentaire", sent: "Les recherches d'Amit (sans nom) et le texte des documents que vous ajoutez à la bibliothèque." },
       } as Record<string, { name: string; sent: string }>,
       providers: {
+        "claude-code": "Anthropic (Claude, abonnement Claude.ai), États-Unis",
         anthropic: "Anthropic (Claude), États-Unis",
         openai: "OpenAI, États-Unis",
         voyage: "Voyage AI, États-Unis",

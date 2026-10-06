@@ -7,7 +7,7 @@ import { expertSystemPrompt } from "../system-prompt";
 import { ProviderUnavailableError, type RunArgs, type RunResult, type StoredMessage } from "./types";
 
 /** Chosen for cost; see the module plan. */
-export const ANTHROPIC_MODEL = process.env.EXPERT_MODEL ?? "claude-sonnet-5";
+export const ANTHROPIC_MODEL = process.env.EXPERT_MODEL ?? "claude-opus-5-5";
 
 let client: Anthropic | null = null;
 

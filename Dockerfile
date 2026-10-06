@@ -31,6 +31,8 @@ COPY --from=build /app/public ./public
 # sqlite-vec imports its platform binary package by a computed name, which tracing
 # can't follow through pnpm's symlinks; Node finds it here by walking up.
 COPY --from=build /app/node_modules/.pnpm/sqlite-vec-linux-x64@*/node_modules/sqlite-vec-linux-x64 ./node_modules/sqlite-vec-linux-x64
+# Same for the Claude Agent SDK's CLI binary (Claude subscription provider).
+COPY --from=build /app/node_modules/.pnpm/@anthropic-ai+claude-agent-sdk-linux-x64@*/node_modules/@anthropic-ai/claude-agent-sdk-linux-x64 ./node_modules/@anthropic-ai/claude-agent-sdk-linux-x64
 # Migrations are applied automatically on startup (src/db/index.ts).
 COPY --from=build /app/drizzle ./drizzle
 EXPOSE 3000

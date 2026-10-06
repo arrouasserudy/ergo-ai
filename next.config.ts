@@ -5,7 +5,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // sqlite-vec loads a platform-specific native extension at runtime; keep it out of
   // the bundle and make sure the binary is copied into the standalone output.
-  serverExternalPackages: ["better-sqlite3", "sqlite-vec"],
+  // The Claude Agent SDK spawns its CLI from a platform binary package (copied by the Dockerfile).
+  serverExternalPackages: ["better-sqlite3", "sqlite-vec", "@anthropic-ai/claude-agent-sdk"],
   experimental: {
     // PDF uploads to the expert's library (max 20 MB, see lib/expert/uploads.ts),
     // plus multipart overhead. The proxy would otherwise truncate bodies over 10 MB.

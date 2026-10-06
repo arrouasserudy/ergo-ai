@@ -1,23 +1,32 @@
 import "server-only";
 import { runAnthropic } from "./anthropic";
+import { runClaudeCode } from "./claude-code";
 import { runOpenAI } from "./openai";
-import type { ChatProvider, RunArgs, RunResult } from "./types";
+import { CHAT_PROVIDERS, type ChatProvider, type RunArgs, type RunResult } from "./types";
 
-const KEYS: Record<ChatProvider, string> = { anthropic: "ANTHROPIC_API_KEY", openai: "OPENAI_API_KEY" };
+/** Credential each provider needs; "claude-code" is a Claude.ai subscription token. */
+const KEYS: Record<ChatProvider, string> = {
+  "claude-code": "CLAUDE_CODE_OAUTH_TOKEN",
+  anthropic: "ANTHROPIC_API_KEY",
+  openai: "OPENAI_API_KEY",
+};
 
 export function providerAvailable(provider: ChatProvider): boolean {
-  return Boolean(process.env[KEYS[provider]]);
+  return Boolean(process.env[KEYS[provider]]?.trim());
 }
 
-/** Provider for new conversations: EXPERT_PROVIDER, else the first one with a key (Claude preferred). */
+/**
+ * Provider for every AI feature (Amit's new conversations, reports, forms): AI_PROVIDER
+ * (or the older EXPERT_PROVIDER), else the first one with a credential, in CHAT_PROVIDERS order.
+ */
 export function defaultProvider(): ChatProvider | null {
-  const forced = process.env.EXPERT_PROVIDER as ChatProvider | undefined;
-  if (forced) return forced in KEYS && providerAvailable(forced) ? forced : null;
-  if (providerAvailable("anthropic")) return "anthropic";
-  if (providerAvailable("openai")) return "openai";
-  return null;
+  const forced = (process.env.AI_PROVIDER || process.env.EXPERT_PROVIDER) as ChatProvider | undefined;
+  if (forced) return CHAT_PROVIDERS.includes(forced) && providerAvailable(forced) ? forced : null;
+  return CHAT_PROVIDERS.find(providerAvailable) ?? null;
 }
 
 export function runProvider(provider: ChatProvider, args: RunArgs): Promise<RunResult> {
-  return provider === "openai" ? runOpenAI(args) : runAnthropic(args);
+  if (provider === "openai") return runOpenAI(args);
+  if (provider === "claude-code") return runClaudeCode(args);
+  return runAnthropic(args);
 }

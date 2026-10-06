@@ -31,7 +31,7 @@ import {
 } from "../schema";
 import { addDays, at, DAY_MS, day, demoId, fillForm, plus, sqlTimestamp, TODAY, workdayOf, type DemoCabinet } from "./kit";
 
-const MODEL = "claude-sonnet-5";
+const MODEL = "claude-opus-5-5";
 const SHARE_DAYS = 30;
 
 export type SeedResult = { names: string[]; counts: Record<string, number>; scores: string[] };

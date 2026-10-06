@@ -1,7 +1,7 @@
 import type { Locale } from "@/i18n";
 import type { ChatEvent } from "../events";
 
-export const CHAT_PROVIDERS = ["anthropic", "openai"] as const;
+export const CHAT_PROVIDERS = ["claude-code", "anthropic", "openai"] as const;
 export type ChatProvider = (typeof CHAT_PROVIDERS)[number];
 
 /** One stored turn, in the provider's own message format (see chat_messages.content). */

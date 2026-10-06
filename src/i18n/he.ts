@@ -1162,6 +1162,7 @@ export const he: Dictionary = {
         search: { name: "חיפוש בספרות", sent: "החיפושים של עמית (ללא שמות) והטקסט של המסמכים שנוספו לספרייה." },
       } as Record<string, { name: string; sent: string }>,
       providers: {
+        "claude-code": "Anthropic (Claude, מנוי Claude.ai), ארצות הברית",
         anthropic: "Anthropic (Claude), ארצות הברית",
         openai: "OpenAI, ארצות הברית",
         voyage: "Voyage AI, ארצות הברית",

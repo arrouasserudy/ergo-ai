@@ -1159,6 +1159,7 @@ export const en: Dictionary = {
         search: { name: "Literature search", sent: "Amit's searches (no names) and the text of the documents you add to the library." },
       } as Record<string, { name: string; sent: string }>,
       providers: {
+        "claude-code": "Anthropic (Claude, Claude.ai subscription), United States",
         anthropic: "Anthropic (Claude), United States",
         openai: "OpenAI, United States",
         voyage: "Voyage AI, United States",

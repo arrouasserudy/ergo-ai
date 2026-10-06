@@ -1,7 +1,8 @@
 /**
- * Turns stored messages (Anthropic or OpenAI format) into what the chat shows, and
- * answer parts into markdown + numbered sources + the "limits" box.
+ * Turns stored messages (Anthropic format, or the marker format of OpenAI and the
+ * Claude subscription) into what the chat shows, and answer parts into markdown + numbered sources + the "limits" box.
  */
+import type { ChatProvider } from "./providers/types";
 import { partsFromAnthropic, partsFromMarkers, type AnswerPart, type CitablePassage } from "./answer";
 import { LIMITS_MARKER } from "./system-prompt";
 
@@ -31,16 +32,16 @@ function pushAnswer(turns: DisplayTurn[], parts: AnswerPart[]) {
  * One bubble per question and per answer: tool turns are hidden, and the assistant
  * turns of one answer (before/after searches) are merged.
  */
-export function toDisplayTurns(rows: Row[], provider: "anthropic" | "openai" = "anthropic"): DisplayTurn[] {
+export function toDisplayTurns(rows: Row[], provider: ChatProvider = "anthropic"): DisplayTurn[] {
   const turns: DisplayTurn[] = [];
-  // OpenAI: passages returned by searches, to resolve citation markers.
+  // Marker providers: passages returned by searches, to resolve citation markers.
   const passages = new Map<string, CitablePassage>();
   for (const row of rows) {
     if (row.isPrompt) {
       turns.push({ role: "user", text: promptText(row.content) });
       continue;
     }
-    if (provider === "openai") {
+    if (provider !== "anthropic") {
       const msg = row.content as { role?: string; content?: unknown; passages?: CitablePassage[] };
       if (row.role === "tool") for (const p of msg.passages ?? []) passages.set(p.id, p);
       if (row.role === "assistant" && typeof msg.content === "string") pushAnswer(turns, partsFromMarkers(msg.content, passages));

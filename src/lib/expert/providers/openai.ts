@@ -6,9 +6,9 @@ import type {
   ChatCompletionMessageParam,
 } from "openai/resources/chat/completions";
 import { partsFromMarkers, type CitablePassage } from "../answer";
-import type { Passage } from "../retrieval";
+import { formatPassages, toCitable } from "../passages";
 import { SEARCH_BUDGET_SPENT, searchBudget } from "../search-budget";
-import { citationTitle, runSearch, SEARCH_QUERY_DESCRIPTION, SEARCH_TOOL_DESCRIPTION, SEARCH_UNAVAILABLE } from "../search-tool";
+import { runSearch, SEARCH_QUERY_DESCRIPTION, SEARCH_TOOL_DESCRIPTION, SEARCH_UNAVAILABLE } from "../search-tool";
 import { expertSystemPrompt } from "../system-prompt";
 import { ProviderUnavailableError, type RunArgs, type RunResult, type StoredMessage } from "./types";
 
@@ -37,16 +37,6 @@ const searchTool: ChatCompletionFunctionTool = {
  * later); that extra field must not be sent back to the API.
  */
 type StoredToolMessage = { role: "tool"; tool_call_id: string; content: string; passages: CitablePassage[] };
-
-function toCitable(p: Passage): CitablePassage {
-  return { id: p.id, source: `${p.url}#${p.id}`, title: citationTitle(p), text: p.text };
-}
-
-/** Tool output for the model: each passage starts with the id it must cite. */
-function formatPassages(passages: Passage[]): string {
-  if (passages.length === 0) return "No relevant passages found in the library for this query.";
-  return passages.map((p) => `[${p.id}] ${citationTitle(p)}\n${p.text}`).join("\n\n---\n\n");
-}
 
 function toApiMessage(m: StoredMessage): ChatCompletionMessageParam {
   const msg = m.content as ChatCompletionMessageParam & { passages?: unknown };

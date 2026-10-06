@@ -253,7 +253,7 @@ export const conversations = sqliteTable(
     childId: text("child_id").references(() => children.id, { onDelete: "set null" }),
     title: text("title").notNull(),
     /** Chat provider; history is stored in that provider's message format, so it can't change. */
-    provider: text("provider", { enum: ["anthropic", "openai"] }).notNull().default("anthropic"),
+    provider: text("provider", { enum: ["claude-code", "anthropic", "openai"] }).notNull().default("anthropic"),
     ...timestamps(),
   },
   (table) => [index("conversations_therapist_updated_idx").on(table.therapistId, table.updatedAt)],
