@@ -309,6 +309,7 @@ export function AmitBubble() {
         ref={toggle}
         type="button"
         onClick={() => (open ? hide() : show())}
+        data-track={open ? undefined : "amit.opened"}
         aria-expanded={open}
         aria-label={open ? e.close : e.askExpert}
         title={open ? e.close : e.askExpert}

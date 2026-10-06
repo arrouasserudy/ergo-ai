@@ -16,6 +16,7 @@ import { formSchema, type FormSchema } from "@/lib/forms/schema";
 import { GenerationError } from "@/lib/reports/generate";
 import { requireTherapist } from "@/lib/session";
 import type { FormState } from "./children";
+import { track } from "@/lib/analytics/track";
 
 // Each action re-checks the session and scopes by account (actions are reachable by direct POST).
 
@@ -64,6 +65,7 @@ export async function uploadFormTemplate(_prev: FormState, formData: FormData): 
     console.error("[forms] conversion failed", err);
     return { ok: false, errors: { form: "generic" } };
   }
+  track({ accountId, therapist }, "form.uploaded", { kind });
   revalidateTemplate();
   redirect(`/forms/${id}`);
 }
@@ -92,7 +94,7 @@ export type StatusResult = { ok: true } | { ok: false; error: string; issues?: s
 
 /** Publish, back to draft, archive or restore. Publishing an invalid form returns its issues. Built-in forms stay published. */
 export async function setFormTemplateStatus(id: string, status: FormTemplateStatus): Promise<StatusResult> {
-  const { accountId } = await requireTherapist();
+  const { accountId, therapist } = await requireTherapist();
   if (!FORM_TEMPLATE_STATUSES.includes(status)) return { ok: false, error: "generic" };
   const template = getTemplate(accountId, id);
   if (!template || template.builtinKey) return { ok: false, error: "generic" };
@@ -101,7 +103,10 @@ export async function setFormTemplateStatus(id: string, status: FormTemplateStat
     if (!parsed.success) return { ok: false, error: "invalid", issues: parsed.error.issues.map((i) => i.path.join(".")) };
   }
   db.update(formTemplates).set({ status }).where(eq(formTemplates.id, id)).run();
-  if (status === "published") syncAutoForms(accountId);
+  if (status === "published") {
+    syncAutoForms(accountId);
+    if (template.status !== "published") track({ accountId, therapist }, "form.published");
+  }
   revalidateTemplate(id);
   revalidatePath("/", "layout");
   return { ok: true };
@@ -111,7 +116,7 @@ export type AutomationInput = { autoAssign: boolean; deadline: string | null };
 
 /** Auto-assignment to every child and the yearly deadline; applies at once when published. */
 export async function setFormTemplateAutomation(id: string, input: AutomationInput): Promise<{ ok: boolean }> {
-  const { accountId } = await requireTherapist();
+  const { accountId, therapist } = await requireTherapist();
   if (typeof input?.autoAssign !== "boolean" || (input.deadline !== null && !isDayMonth(input.deadline))) return { ok: false };
   const updated = db
     .update(formTemplates)
@@ -119,6 +124,7 @@ export async function setFormTemplateAutomation(id: string, input: AutomationInp
     .where(and(eq(formTemplates.id, id), eq(formTemplates.accountId, accountId)))
     .run();
   if (updated.changes === 0) return { ok: false };
+  track({ accountId, therapist }, "form.automated", { auto: input.autoAssign, deadline: input.deadline !== null });
   syncAutoForms(accountId);
   revalidateTemplate(id);
   revalidatePath("/", "layout");

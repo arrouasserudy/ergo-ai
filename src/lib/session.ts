@@ -1,6 +1,6 @@
 import "server-only";
 import { eq } from "drizzle-orm";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { cache } from "react";
 import { db } from "@/db";
@@ -33,5 +33,18 @@ export const requireTherapist = cache(async () => {
 export async function requireOwner() {
   const ctx = await requireTherapist();
   if (ctx.role !== "owner") throw new Error("Forbidden: owner role required");
+  return ctx;
+}
+
+/** Admins (ADMIN_EMAILS, comma-separated) see internal pages such as /admin/usage. */
+export function isAdminEmail(email: string): boolean {
+  const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+  return admins.includes(email.toLowerCase());
+}
+
+/** For admin-only pages: anyone else gets a 404, so the page stays invisible. */
+export async function requireAdmin() {
+  const ctx = await requireTherapist();
+  if (!isAdminEmail(ctx.therapist.email)) notFound();
   return ctx;
 }

@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
+import { trackEvent } from "@/components/analytics/UsageTracker";
 import { useI18n } from "@/i18n/client";
 import type { StatusFilter } from "@/lib/children";
 
@@ -65,7 +66,10 @@ export function ChildrenFilters({ search, status, group = "", groups = [] }: { s
           <span className="sr-only">{t.children.groupFilter.label}</span>
           <select
             value={group}
-            onChange={(e) => navigate({ group: e.target.value })}
+            onChange={(e) => {
+              trackEvent("child.group_filter");
+              navigate({ group: e.target.value });
+            }}
             className="h-11 w-full rounded-xl border border-line-strong bg-surface px-3 text-[14px] text-ink focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none sm:w-52"
           >
             <option value="">{t.children.groupFilter.all}</option>

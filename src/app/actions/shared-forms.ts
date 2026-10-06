@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { childForms } from "@/db/schema";
 import { missingRequired, sanitizeAnswers } from "@/lib/forms/answers";
 import { findSharedForm } from "@/lib/forms/queries";
+import { track } from "@/lib/analytics/track";
 
 // Public actions for parents: no session, the link's token is the only credential.
 // Answers are sanitized against the form's own schema; nothing else can be written.
@@ -45,6 +46,7 @@ export async function submitSharedForm(token: string, answers: unknown): Promise
     .set({ answers: clean, status: "submitted", submittedAt: new Date(), submittedBy: "parent" })
     .where(eq(childForms.id, form.id))
     .run();
+  track({ accountId: form.accountId, therapistId: null }, "child_form.parent_submitted");
   // The whole app: the form leaves the bell (layout).
   revalidatePath("/", "layout");
   return { ok: true, savedAt: Date.now() };

@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { childEvents, children, reports } from "@/db/schema";
 import { parseEventInput, type EventErrors } from "@/lib/child-events/events";
 import { requireTherapist } from "@/lib/session";
+import { track } from "@/lib/analytics/track";
 
 // Reachable by direct POST: each action re-checks the session and scopes by account.
 
@@ -45,6 +46,7 @@ export async function saveChildEvent(childId: string, eventId: string | null, _p
       .values({ ...parsed.data, accountId, childId, createdBy: therapist.id })
       .run();
   }
+  track({ accountId, therapist }, "child_event.saved", { kind: parsed.data.kind, edit: Boolean(eventId) });
   revalidatePath(`/children/${childId}`, "layout");
   revalidatePath("/calendar");
   return { ok: true, savedAt: Date.now() };

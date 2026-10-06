@@ -14,6 +14,7 @@ import { hashToken, SHARE_LINK_DAYS } from "@/lib/forms/queries";
 import { requireTherapist } from "@/lib/session";
 import { localToday } from "@/lib/time";
 import type { ShareLinkResult } from "./child-forms";
+import { track } from "@/lib/analytics/track";
 
 // Each action re-checks the session and scopes by account (actions are reachable by direct POST).
 
@@ -47,6 +48,7 @@ export async function startAssessment(childId: string, formData: FormData) {
     })
     .returning({ id: assessments.id })
     .get();
+  track({ accountId, therapist }, "assessment.started", { test: definition.id });
   revalidateAssessment({ id, childId });
   redirect(`/children/${childId}/assessments/${id}`);
 }
@@ -72,7 +74,7 @@ export async function saveAssessmentAnswers(id: string, answers: unknown): Promi
 
 /** Saves, computes and stores the scores. Unanswered items are allowed: their totals stay unclassified. */
 export async function completeAssessment(id: string, answers: unknown): Promise<AssessmentResult> {
-  const { accountId } = await requireTherapist();
+  const { accountId, therapist } = await requireTherapist();
   const found = editable(accountId, id);
   const child = found && getChild(accountId, found.assessment.childId);
   if (!found || !child) return { ok: false, error: "generic" };
@@ -82,6 +84,7 @@ export async function completeAssessment(id: string, answers: unknown): Promise<
     .set({ answers: clean, scores, status: "completed", completedAt: new Date(), completedBy: "therapist", definitionVersion: found.definition.version })
     .where(eq(assessments.id, id))
     .run();
+  track({ accountId, therapist }, "assessment.completed", { test: found.definition.id });
   revalidateAssessment(found.assessment);
   return { ok: true, savedAt: Date.now() };
 }
@@ -112,7 +115,7 @@ export async function deleteAssessment(id: string) {
 
 /** A new parent link (replaces any previous one), for tests parents can fill in. Only its hash is stored. */
 export async function createAssessmentLink(id: string): Promise<ShareLinkResult> {
-  const { accountId } = await requireTherapist();
+  const { accountId, therapist } = await requireTherapist();
   const assessment = getAssessment(accountId, id);
   const definition = assessment && getDefinition(assessment.definitionId);
   if (!assessment || !definition?.respondents.includes("parent")) return { ok: false, error: "generic" };
@@ -122,6 +125,7 @@ export async function createAssessmentLink(id: string): Promise<ShareLinkResult>
     .set({ shareTokenHash: hashToken(token), shareExpiresAt: expiresAt, status: assessment.status === "completed" ? "completed" : "sent" })
     .where(eq(assessments.id, id))
     .run();
+  track({ accountId, therapist }, "assessment.link_created", { test: definition.id });
   revalidateAssessment(assessment);
   return { ok: true, token, expiresAt: expiresAt.getTime() };
 }

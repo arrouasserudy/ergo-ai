@@ -8,6 +8,7 @@ import { deleteUpload, indexUpload, MAX_UPLOAD_BYTES, pdfParagraphs } from "@/li
 import { activeEmbedder } from "@/lib/expert/embeddings";
 import { requireTherapist } from "@/lib/session";
 import type { FormState } from "./children";
+import { track } from "@/lib/analytics/track";
 
 export async function listDocuments() {
   const { accountId } = await requireTherapist();
@@ -47,6 +48,7 @@ export async function uploadDocument(_prev: FormState, formData: FormData): Prom
     return { ok: false, errors: { form: noText ? "noText" : "generic" }, values };
   }
 
+  track({ accountId, therapist }, "library.uploaded");
   revalidatePath("/expert/library");
   return { ok: true, savedAt: Date.now(), addedName: title };
 }

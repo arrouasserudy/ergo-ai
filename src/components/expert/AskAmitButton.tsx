@@ -16,7 +16,7 @@ export function AskAmitButton({
   children: ReactNode;
 }) {
   return (
-    <button type="button" onClick={() => openAmit({ kind: "new", childId, episodeId })} className={className}>
+    <button type="button" data-track={episodeId ? "amit.asked_from_episode" : "amit.asked_about_child"} onClick={() => openAmit({ kind: "new", childId, episodeId })} className={className}>
       {children}
     </button>
   );

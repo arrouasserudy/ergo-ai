@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { UsageTracker } from "@/components/analytics/UsageTracker";
 import { AmitBubble } from "@/components/expert/AmitBubble";
 import { NotificationBell, type BellItem } from "@/components/shell/NotificationBell";
 import { Sidebar } from "@/components/shell/Sidebar";
@@ -35,6 +36,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       </main>
       {/* Amit, the expert colleague, on every page; the bottom padding above keeps content clear of its button. */}
       <AmitBubble />
+      <UsageTracker />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { sanitizeAnswers, unanswered } from "@/lib/assessments/answers";
 import { findSharedAssessment } from "@/lib/assessments/queries";
 import { ageAtTest, getDefinition } from "@/lib/assessments/registry";
 import type { AssessmentResult } from "./assessments";
+import { track } from "@/lib/analytics/track";
 
 // Public actions for parents: no session, the link's token is the only credential.
 // Answers are sanitized against the test's definition; scores are never returned.
@@ -47,6 +48,7 @@ export async function submitSharedAssessment(token: string, answers: unknown): P
     .set({ answers: clean, scores, status: "completed", completedAt: new Date(), completedBy: "parent", definitionVersion: definition.version })
     .where(eq(assessments.id, assessment.id))
     .run();
+  track({ accountId: assessment.accountId, therapistId: null }, "assessment.parent_submitted", { test: definition.id });
   revalidatePath("/assessments");
   revalidatePath(`/children/${assessment.childId}`, "layout");
   return { ok: true, savedAt: Date.now() };

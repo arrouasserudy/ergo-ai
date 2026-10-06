@@ -11,6 +11,7 @@ import type { ChatEvent } from "@/lib/expert/events";
 import { defaultProvider, providerAvailable, runProvider } from "@/lib/expert/providers";
 import { ProviderUnavailableError } from "@/lib/expert/providers/types";
 import { getSession } from "@/lib/session";
+import { track } from "@/lib/analytics/track";
 
 const bodySchema = z.object({
   conversationId: z.string().uuid().nullable(),
@@ -97,6 +98,7 @@ export async function POST(request: Request) {
           });
           tx.update(conversations).set({ updatedAt: new Date() }).where(eq(conversations.id, conversationId)).run();
         });
+        track({ accountId, therapistId }, "amit.question", { provider, child: Boolean(child), episode: Boolean(episodeId), followUp: history.length > 0 });
         send({ type: "done" });
       } catch (err) {
         console.error("[expert] chat failed", err);

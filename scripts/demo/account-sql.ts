@@ -29,6 +29,7 @@ export const EXCLUDED_TABLES: Record<string, string> = {
   chat_messages: "Amit chats are private and not copied",
   documents: "uploads need sqlite-vec vectors (refused when present)",
   document_chunks: "uploads need sqlite-vec vectors (refused when present)",
+  usage_events: "analytics stay in the database they were recorded in",
   __drizzle_migrations: "compared, never copied",
 };
 /** Virtual tables of the uploads' search indexes and their shadow tables. */

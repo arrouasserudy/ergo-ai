@@ -8,6 +8,7 @@ import { childGroups, children, type ChildStatus } from "@/db/schema";
 import { syncAutoForms } from "@/lib/forms/auto-assign";
 import { requireTherapist } from "@/lib/session";
 import { formDataToInput, identitySchema, sectionSchemas, SECTIONS, toFieldErrors, type FieldErrors, type Section } from "@/lib/validation";
+import { track } from "@/lib/analytics/track";
 
 // Server actions are reachable by direct POST: each one re-checks the session
 // and scopes its query to the therapist's account.
@@ -42,6 +43,7 @@ export async function createChild(_prev: FormState, formData: FormData): Promise
     .returning({ id: children.id })
     .get();
   syncAutoForms(accountId);
+  track({ accountId, therapist }, "child.created");
   revalidatePath("/children");
   redirect(`/children/${created.id}`);
 }
@@ -74,12 +76,14 @@ export async function updateChildSection(
 }
 
 export async function setChildStatus(id: string, status: ChildStatus) {
-  const { accountId } = await requireTherapist();
+  const { accountId, therapist } = await requireTherapist();
   if (status !== "active" && status !== "archived") return;
-  db.update(children)
+  const result = db
+    .update(children)
     .set({ status, updatedAt: sql`(CURRENT_TIMESTAMP)` })
     .where(and(eq(children.id, id), eq(children.accountId, accountId)))
     .run();
+  if (result.changes && status === "archived") track({ accountId, therapist }, "child.archived");
   if (status === "active") syncAutoForms(accountId);
   // The bell (in the layout) lists active children's forms only.
   revalidatePath("/", "layout");

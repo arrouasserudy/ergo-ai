@@ -11,6 +11,7 @@ import { auth } from "@/lib/auth";
 import { getSession, requireTherapist } from "@/lib/session";
 import { formDataToStrings, passwordChangeSchema, profileSchema, toFieldErrors } from "@/lib/validation";
 import type { FormState } from "./children";
+import { track } from "@/lib/analytics/track";
 
 // Personal settings of the signed-in therapist: Better Auth acts on the session's own user.
 
@@ -47,7 +48,8 @@ export async function changePassword(_prev: FormState, formData: FormData): Prom
 
 /** Hidden mode: per device, like the locale, so it can be turned on before sharing a screen. */
 export async function setHideNames(hide: boolean) {
-  await requireTherapist();
+  const ctx = await requireTherapist();
+  track(ctx, "hide_names.toggled", { hide: hide === true });
   const jar = await cookies();
   if (hide) jar.set(HIDE_NAMES_COOKIE, "1", { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
   else jar.delete(HIDE_NAMES_COOKIE);

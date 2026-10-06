@@ -10,6 +10,7 @@ import { requireOwner, requireTherapist } from "@/lib/session";
 import { createTherapist, EmailTakenError } from "@/lib/therapists";
 import { accountNameSchema, formDataToStrings, letterheadSchema, newTherapistSchema, toFieldErrors } from "@/lib/validation";
 import type { FormState } from "./children";
+import { track } from "@/lib/analytics/track";
 
 export async function renameAccount(_prev: FormState, formData: FormData): Promise<FormState> {
   const { accountId } = await requireOwner();
@@ -24,18 +25,19 @@ export async function renameAccount(_prev: FormState, formData: FormData): Promi
 
 /** Letterhead printed on exported reports. */
 export async function saveLetterhead(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { accountId } = await requireOwner();
+  const { accountId, therapist } = await requireOwner();
   const input = formDataToStrings(formData, ["letterhead"]);
   const parsed = letterheadSchema.safeParse(input);
   if (!parsed.success) return { ok: false, errors: toFieldErrors(parsed.error), values: input };
 
   db.update(accounts).set({ letterhead: parsed.data.letterhead }).where(eq(accounts.id, accountId)).run();
+  track({ accountId, therapist }, "letterhead.saved");
   revalidatePath("/settings");
   return { ok: true, savedAt: Date.now() };
 }
 
 export async function addTherapist(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { accountId } = await requireOwner();
+  const { accountId, therapist } = await requireOwner();
   const input = formDataToStrings(formData, ["name", "email", "password"]);
   const values = { name: input.name, email: input.email }; // never echo the password back
   const parsed = newTherapistSchema.safeParse(input);
@@ -47,6 +49,7 @@ export async function addTherapist(_prev: FormState, formData: FormData): Promis
     if (error instanceof EmailTakenError) return { ok: false, errors: { email: "emailTaken" }, values };
     throw error;
   }
+  track({ accountId, therapist }, "therapist.added");
   revalidatePath("/settings");
   return { ok: true, savedAt: Date.now(), addedName: parsed.data.name };
 }

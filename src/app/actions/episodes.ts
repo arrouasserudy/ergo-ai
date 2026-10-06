@@ -8,6 +8,7 @@ import { episodes, type EpisodeKind } from "@/db/schema";
 import { getChild } from "@/lib/children";
 import { requireTherapist } from "@/lib/session";
 import { episodeSchema, toFieldErrors, type EpisodeInput, type FieldErrors } from "@/lib/validation";
+import { track } from "@/lib/analytics/track";
 
 // Each action re-checks the session and scopes by account (actions are reachable by direct POST).
 
@@ -37,6 +38,7 @@ export async function startEpisode(childId: string, kind: EpisodeKind) {
       .values({ accountId, childId, kind, recordedBy: therapist.id, startedAt: new Date() })
       .returning({ id: episodes.id })
       .get().id;
+  if (!open) track({ accountId, therapist }, "episode.started", { kind });
 
   revalidateEpisode(childId);
   redirect(`/children/${childId}/episodes/${id}`);
@@ -67,14 +69,15 @@ export async function finishEpisode(id: string, data: EpisodeInput): Promise<Sav
   const saved = await saveEpisode(id, data);
   if (!saved.ok) return saved;
 
-  const { accountId } = await requireTherapist();
+  const { accountId, therapist } = await requireTherapist();
   const now = new Date();
   const episode = db
     .update(episodes)
     .set({ status: "closed" })
     .where(and(eq(episodes.id, id), eq(episodes.accountId, accountId)))
-    .returning({ childId: episodes.childId })
+    .returning({ childId: episodes.childId, kind: episodes.kind })
     .get();
+  if (episode) track({ accountId, therapist }, "episode.finished", { kind: episode.kind });
   // Keep the original end time if the entry is re-finished after an edit.
   db.update(episodes)
     .set({ endedAt: now })

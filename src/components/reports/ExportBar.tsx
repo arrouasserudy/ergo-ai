@@ -92,15 +92,15 @@ export function ExportBar({
       />
       <FormError message={error ?? undefined} />
       <div className="flex flex-wrap gap-2">
-        <Button variant="secondary" onClick={() => run("pdf")} disabled={disabled || busy !== null}>
+        <Button variant="secondary" data-track="report.export_pdf" onClick={() => run("pdf")} disabled={disabled || busy !== null}>
           {busy === "pdf" ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
           {r.exportPdf}
         </Button>
-        <Button variant="secondary" onClick={() => run("word")} disabled={disabled || busy !== null}>
+        <Button variant="secondary" data-track="report.export_word" onClick={() => run("word")} disabled={disabled || busy !== null}>
           {busy === "word" ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
           {r.exportWord}
         </Button>
-        <Button variant="secondary" onClick={() => run("copy")} disabled={disabled || busy !== null}>
+        <Button variant="secondary" data-track="report.export_copy" onClick={() => run("copy")} disabled={disabled || busy !== null}>
           {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
           {copied ? r.copied : r.copy}
         </Button>

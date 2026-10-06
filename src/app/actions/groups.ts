@@ -8,6 +8,7 @@ import { childGroups, children } from "@/db/schema";
 import { requireTherapist } from "@/lib/session";
 import { groupSchema, toFieldErrors } from "@/lib/validation";
 import type { FormState } from "./children";
+import { track } from "@/lib/analytics/track";
 
 // Groups are cabinet data, like children: any therapist of the account manages them.
 // Each action re-checks the session and scopes its queries to the account.
@@ -24,7 +25,7 @@ function revalidateGroups() {
 }
 
 export async function createGroup(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { accountId } = await requireTherapist();
+  const { accountId, therapist } = await requireTherapist();
   const input = groupInput(formData);
   const parsed = groupSchema.safeParse(input);
   if (!parsed.success) return { ok: false, errors: toFieldErrors(parsed.error), values: input };
@@ -33,6 +34,7 @@ export async function createGroup(_prev: FormState, formData: FormData): Promise
     .values({ ...parsed.data, accountId })
     .returning({ id: childGroups.id })
     .get();
+  track({ accountId, therapist }, "group.created");
   revalidateGroups();
   redirect(`/groups/${created.id}?members=1`);
 }
@@ -70,7 +72,7 @@ export async function deleteGroup(id: string) {
 
 /** Sets the children of a group: the ticked ones join it (leaving their previous group), the others leave it. */
 export async function setGroupMembers(id: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  const { accountId } = await requireTherapist();
+  const { accountId, therapist } = await requireTherapist();
   const group = db.select({ id: childGroups.id }).from(childGroups).where(and(eq(childGroups.id, id), eq(childGroups.accountId, accountId))).get();
   if (!group) return { ok: false, errors: { form: "generic" } };
   const ids = [...new Set(formData.getAll("childId").map(String))].slice(0, 500);
@@ -87,6 +89,7 @@ export async function setGroupMembers(id: string, _prev: FormState, formData: Fo
         .run();
     }
   });
+  track({ accountId, therapist }, "group.members_set", { count: ids.length });
   revalidateGroups();
   return { ok: true, savedAt: Date.now() };
 }

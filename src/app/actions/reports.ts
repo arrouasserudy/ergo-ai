@@ -41,6 +41,7 @@ import { requireTherapist } from "@/lib/session";
 import { localToday } from "@/lib/time";
 import { replaceChildName } from "@/lib/reports/text";
 import { insightEditsSchema, reportSchema, reportSectionsSchema, toFieldErrors, type FieldErrors, type ReportInput } from "@/lib/validation";
+import { track } from "@/lib/analytics/track";
 
 // Each action re-checks the session and scopes by account (actions are reachable by direct POST).
 
@@ -74,6 +75,7 @@ export async function createReport(formData: FormData) {
     .values({ accountId, childId, authorId: therapist.id, docType, sessionDate: localToday(), language: await getLocale() })
     .returning({ id: reports.id })
     .get();
+  track({ accountId, therapist }, "report.created", { docType });
   revalidateReport(id, childId);
   redirect(`/reports/${id}`);
 }
@@ -187,6 +189,9 @@ export async function generateReport(id: string, recipients: ReportRecipient[]):
   });
   refreshStatus(id);
   revalidateReport(id, report.childId);
+  for (const result of results) {
+    if (result.status === "fulfilled") track({ accountId, therapist }, "report.generated", { recipient: result.value.recipient, provider, forms: report.formIds.length, tests: report.assessmentIds.length });
+  }
 
   const failure = results.find((r) => r.status === "rejected");
   if (failure) {
@@ -214,7 +219,7 @@ export type VariantResult = { ok: boolean; error?: string; variant?: ReportVaria
 
 /** Autosave of the ideas: edited text, validated or dismissed. The report text is unchanged. */
 export async function saveInsights(reportId: string, recipient: ReportRecipient, edits: Pick<ReportInsight, "id" | "text" | "status">[]): Promise<VariantResult> {
-  const { accountId } = await requireTherapist();
+  const { accountId, therapist } = await requireTherapist();
   const parsed = insightEditsSchema.safeParse(edits);
   const found = findVariant(accountId, reportId, recipient);
   if (!parsed.success || !found) return { ok: false, error: "generic" };
@@ -225,6 +230,13 @@ export async function saveInsights(reportId: string, recipient: ReportRecipient,
     .where(eq(reportVariants.id, found.variant.id))
     .returning()
     .get();
+  // Autosave runs on every change: only a decision on an idea counts as a use.
+  const before = new Map(found.variant.insights.map((i) => [i.id, i.status]));
+  for (const insight of variant.insights) {
+    if (insight.status === before.get(insight.id)) continue;
+    if (insight.status === "validated") track({ accountId, therapist }, "report.insight_validated", { kind: insight.kind });
+    if (insight.status === "dismissed") track({ accountId, therapist }, "report.insight_dismissed", { kind: insight.kind });
+  }
   revalidateReport(reportId, found.report.childId);
   return { ok: true, variant };
 }
@@ -235,7 +247,7 @@ export async function saveInsights(reportId: string, recipient: ReportRecipient,
  * corrections still teach her style, and it must be validated again.
  */
 export async function rewriteWithInsights(reportId: string, recipient: ReportRecipient): Promise<VariantResult> {
-  const { accountId } = await requireTherapist();
+  const { accountId, therapist } = await requireTherapist();
   const found = findVariant(accountId, reportId, recipient);
   const child = found && getChild(accountId, found.report.childId);
   if (!found || !child) return { ok: false, error: "generic" };
@@ -280,6 +292,7 @@ export async function rewriteWithInsights(reportId: string, recipient: ReportRec
     .where(eq(reportVariants.id, variant.id))
     .returning()
     .get();
+  track({ accountId, therapist }, "report.rewritten", { ideas: ideas.length });
   refreshStatus(reportId);
   revalidateReport(reportId, report.childId);
   return { ok: true, variant: updated };
@@ -332,6 +345,7 @@ export async function validateVariant(reportId: string, recipient: ReportRecipie
     }
     return updated;
   });
+  track({ accountId, therapist }, "report.validated", { recipient, edited: wasEdited(variant.generated, variant.sections) });
   refreshStatus(reportId);
   revalidateReport(reportId, report.childId);
   return { ok: true, variant };

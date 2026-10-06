@@ -12,6 +12,7 @@ import { dueDateFor, schoolYearStartDate } from "@/lib/forms/deadlines";
 import { getChildForm, getTemplate, hashToken, SHARE_LINK_DAYS } from "@/lib/forms/queries";
 import { requireTherapist } from "@/lib/session";
 import { localToday } from "@/lib/time";
+import { track } from "@/lib/analytics/track";
 
 // Each action re-checks the session and scopes by account (actions are reachable by direct POST).
 
@@ -29,7 +30,7 @@ const openStatus = (form: Pick<ChildForm, "shareExpiresAt">) => (form.shareExpir
  * that one is opened instead.
  */
 export async function attachForm(childId: string, formData: FormData) {
-  const { accountId, account } = await requireTherapist();
+  const { accountId, account, therapist } = await requireTherapist();
   const child = getChild(accountId, childId);
   const template = getTemplate(accountId, String(formData.get("templateId") ?? ""));
   if (!child || !template || template.status !== "published") redirect(`/children/${childId}/forms`);
@@ -51,6 +52,7 @@ export async function attachForm(childId: string, formData: FormData) {
       .from(childForms)
       .where(and(eq(childForms.childId, childId), eq(childForms.templateId, template.id), eq(childForms.cycle, yearly.cycle!)))
       .get()!.id;
+  if (inserted) track({ accountId, therapist }, "child_form.attached", { form: template.builtinKey ?? "custom" });
   revalidateChildForm();
   redirect(`/children/${childId}/forms/${id}`);
 }
@@ -71,7 +73,7 @@ export async function saveChildFormAnswers(id: string, answers: unknown): Promis
 
 /** Saves and marks as completed by the practice; refused while required questions are empty. */
 export async function submitChildForm(id: string, answers: unknown): Promise<ChildFormResult> {
-  const { accountId } = await requireTherapist();
+  const { accountId, therapist } = await requireTherapist();
   const form = getChildForm(accountId, id);
   if (!form || form.status === "submitted") return { ok: false, error: "generic" };
   const clean = sanitizeAnswers(form.schema, answers);
@@ -84,6 +86,7 @@ export async function submitChildForm(id: string, answers: unknown): Promise<Chi
     .set({ answers: clean, status: "submitted", submittedAt: new Date(), submittedBy: "therapist" })
     .where(eq(childForms.id, id))
     .run();
+  track({ accountId, therapist }, "child_form.submitted");
   revalidateChildForm();
   return { ok: true, savedAt: Date.now() };
 }
@@ -104,7 +107,7 @@ export type ShareLinkResult = { ok: true; token: string; expiresAt: number } | {
  * is returned once, for the therapist to copy.
  */
 export async function createShareLink(id: string): Promise<ShareLinkResult> {
-  const { accountId } = await requireTherapist();
+  const { accountId, therapist } = await requireTherapist();
   const form = getChildForm(accountId, id);
   if (!form) return { ok: false, error: "generic" };
   const token = randomBytes(32).toString("base64url");
@@ -113,6 +116,7 @@ export async function createShareLink(id: string): Promise<ShareLinkResult> {
     .set({ shareTokenHash: hashToken(token), shareExpiresAt: expiresAt, status: form.status === "submitted" ? "submitted" : "sent" })
     .where(eq(childForms.id, id))
     .run();
+  track({ accountId, therapist }, "child_form.link_created");
   revalidateChildForm();
   return { ok: true, token, expiresAt: expiresAt.getTime() };
 }

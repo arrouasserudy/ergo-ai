@@ -629,3 +629,30 @@ export const childEvents = sqliteTable(
 );
 
 export type ChildEvent = typeof childEvents.$inferSelect;
+
+export const USAGE_KINDS = ["page", "event"] as const;
+export type UsageKind = (typeof USAGE_KINDS)[number];
+
+/**
+ * Internal product analytics (admin page /admin/usage): which pages are viewed and which
+ * features are used. Holds no content: a route pattern (`/children/[id]`, never a real id)
+ * or an event name from the catalog (lib/analytics/events.ts), plus a few non-identifying
+ * props. `therapistId` is null for actions done by parents through a public link.
+ */
+export const usageEvents = sqliteTable(
+  "usage_events",
+  {
+    id: id(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    therapistId: text("therapist_id").references(() => therapists.id, { onDelete: "set null" }),
+    kind: text("kind", { enum: USAGE_KINDS }).notNull(),
+    name: text("name").notNull(),
+    props: text("props", { mode: "json" }).$type<Record<string, string | number | boolean>>(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [index("usage_events_created_idx").on(table.createdAt), index("usage_events_name_created_idx").on(table.kind, table.name, table.createdAt)],
+);
