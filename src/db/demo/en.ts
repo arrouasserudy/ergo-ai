@@ -9,7 +9,7 @@ import { sensoryProfile2Child } from "../../lib/assessments/definitions/sensory-
 import { date, matrix, multi, number, scale, section, single, text, textarea, yesNo } from "../../lib/forms/defaults/build";
 import type { LlmForm } from "../../lib/forms/schema";
 import { DEMO_CABINET_IDS } from "../demo-ids";
-import { addDays, addMonths, at, day, EMPTY_TEST, s, schoolWeek, sp2Answers, sqlTimestamp, TODAY, type ChildSpec, type DemoCabinet } from "./kit";
+import { addDays, addMonths, at, day, EMPTY_TEST, idea, s, schoolWeek, sp2Answers, sqlTimestamp, TODAY, type ChildSpec, type DemoCabinet } from "./kit";
 
 const { workday, wd } = schoolWeek("sat-sun");
 
@@ -601,6 +601,10 @@ function oliver(): ChildSpec {
               s("What is still hard", "His mouth is still very sensitive: cooked vegetables, fish and egg are still refused, and he chews meat slowly."),
               s("At home this week", "- keep up food play, now with cooked vegetables\n- one screen-free family meal every day\n- keep the footrest and the plate with sections"),
             ],
+            insights: [
+              idea("home_activity", "applied", "Keep the footrest and the plate with sections for family meals too.", "seated 20 min, stable with feet supported"),
+              idea("to_check", "dismissed", "If chewing meat stays slow, discuss a swallowing assessment with the pediatrician.", "chews meat slowly"),
+            ],
           },
         ],
       },
@@ -623,6 +627,13 @@ function oliver(): ChildSpec {
               s("What is going well", "Today {{child}} played with salt dough for 5 minutes without needing to wipe his hands, which is new. He accepted the vibrating brush on his cheeks and then in his mouth, laughing. You told us that two meals a day are now screen-free and that evenings are calmer."),
               s("What is still hard", "The noise of the hand dryer in the corridor caused a short meltdown; with his ear defenders on, he calmed down within 3 minutes. He touched the hummus with his breadstick but didn't taste it."),
               s("At home this week", "- dough games (salt dough, biscuit dough)\n- hummus next to his plate, to explore at his own pace\n- keep the ear defenders in his bag"),
+            ],
+            insights: [
+              idea("hypothesis", "pending", "Accepting the vibrating brush and the salt dough suggests tactile and oral defensiveness decreases when the input is predictable and under his control; the reaction to the hand dryer points to auditory over-responsivity that is still marked.", "touched dough 5 min without wiping; vibrating brush accepted; meltdown at the hand dryer"),
+              idea("recommendation", "validated", "Add a short oral-motor warm-up before meals at home (vibrating brush, a crunchy food) to prepare his mouth before a new taste.", "vibrating brush in mouth: accepts, laughs"),
+              idea("home_activity", "pending", "Hummus play: dip, spread with a spoon, draw in it on the plate, before any request to taste (next step on the food ladder: touching it with his lips).", "touches hummus with breadstick, doesn't taste"),
+              idea("to_check", "pending", "Ask the parents which other noises trigger a reaction at home and at nursery, and whether he gives a sign before covering his ears, to plan gradual exposure to everyday noises.", "meltdown at the hand dryer, calm in 3 min with ear defenders"),
+              idea("recommendation", "dismissed", "Share the ear defenders strategy with the nursery team and agree on a quiet corner.", "ear defenders in his bag"),
             ],
           },
         ],

@@ -3,7 +3,18 @@
 import clsx from "clsx";
 import { Check, ChevronDown, CircleAlert, Info, Loader2, Plus, RotateCw, Sparkles, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { deleteReport, generateReport, markExported, previewReportPrompt, saveReport, saveVariant, validateVariant, type PromptPreview } from "@/app/actions/reports";
+import {
+  deleteReport,
+  generateReport,
+  markExported,
+  previewReportPrompt,
+  rewriteWithInsights,
+  saveInsights,
+  saveReport,
+  saveVariant,
+  validateVariant,
+  type PromptPreview,
+} from "@/app/actions/reports";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
@@ -15,17 +26,19 @@ import {
   REPORT_DOC_TYPES,
   REPORT_LANGUAGES,
   type Report,
+  type ReportInsight,
   type ReportRecipient,
   type ReportSection,
   type ReportVariant,
 } from "@/db/schema";
 import { LOCALE_NAMES } from "@/i18n";
 import { useI18n } from "@/i18n/client";
-import { TO_COMPLETE } from "@/lib/reports/prompt";
+import { TO_COMPLETE } from "@/lib/reports/text";
 import { deriveReportStatus, wasEdited } from "@/lib/reports/status";
 import type { ReportInput } from "@/lib/validation";
 import { Dictation } from "./Dictation";
 import { ExportBar } from "./ExportBar";
+import { InsightsPanel } from "./InsightsPanel";
 import { ReportStatusBadge } from "./ReportStatusBadge";
 
 type Variants = Partial<Record<ReportRecipient, ReportVariant>>;
@@ -67,9 +80,12 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
   const [confirmRegenerate, setConfirmRegenerate] = useState(false);
   const [validating, setValidating] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [rewriting, setRewriting] = useState(false);
+  const [insightError, setInsightError] = useState<string | null>(null);
 
   const dirty = useRef(false);
   const variantTimers = useRef<Partial<Record<ReportRecipient, ReturnType<typeof setTimeout>>>>({});
+  const insightTimers = useRef<Partial<Record<ReportRecipient, ReturnType<typeof setTimeout>>>>({});
 
   const update = (patch: Partial<ReportInput>) => {
     dirty.current = true;
@@ -118,7 +134,10 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
       dirty.current = false;
       if (!(await persist(data))) return;
     }
-    targets.forEach((k) => clearTimeout(variantTimers.current[k]));
+    targets.forEach((k) => {
+      clearTimeout(variantTimers.current[k]);
+      clearTimeout(insightTimers.current[k]);
+    });
     setGenerating(targets);
     try {
       const result = await generateReport(report.id, targets);
@@ -158,6 +177,44 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
         setSaveState("error");
       }
     }, AUTOSAVE_MS);
+  };
+
+  const persistInsights = async (k: ReportRecipient, insights: ReportInsight[]) => {
+    setSaveState("saving");
+    try {
+      const result = await saveInsights(report.id, k, insights.map(({ id, text, status }) => ({ id, text, status: status === "applied" ? "pending" : status })));
+      setSaveState(result.ok ? "saved" : "error");
+      return result.ok;
+    } catch {
+      setSaveState("error");
+      return false;
+    }
+  };
+
+  /** Local edit + debounced autosave of the ideas. The report text is untouched. */
+  const editInsights = (k: ReportRecipient, insights: ReportInsight[]) => {
+    setInsightError(null);
+    setVariants((vs) => ({ ...vs, [k]: { ...vs[k]!, insights } }));
+    clearTimeout(insightTimers.current[k]);
+    insightTimers.current[k] = setTimeout(() => void persistInsights(k, insights), AUTOSAVE_MS);
+  };
+
+  /** Saves the pending text and ideas, then rewrites the report with the validated ones. */
+  const rewrite = async () => {
+    if (!current || !variant) return;
+    setInsightError(null);
+    setRewriting(true);
+    clearTimeout(variantTimers.current[current]);
+    clearTimeout(insightTimers.current[current]);
+    try {
+      const saved = (await saveVariant(report.id, current, variant.sections)).ok && (await persistInsights(current, variant.insights));
+      const result = saved ? await rewriteWithInsights(report.id, current) : { ok: false, error: "generic" };
+      if (result.ok && result.variant) setVariants((vs) => ({ ...vs, [current]: result.variant }));
+      else setInsightError(r.errors[result.error ?? "generic"] ?? r.errors.generic);
+    } catch {
+      setInsightError(r.errors.generic);
+    }
+    setRewriting(false);
   };
 
   const validate = async () => {
@@ -317,137 +374,152 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
           </div>
         </Card>
 
-        {/* 2. Generated report */}
-        <Card>
-          <CardHeader
-            number={2}
-            title={r.reportTitle}
-            action={
-              missing.length > 0 ? (
-                <Button onClick={() => generate(missing)} disabled={isGenerating}>
-                  {isGenerating ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-                  {r.generateAll(missing.length)}
-                </Button>
-              ) : (
-                <Button variant="secondary" onClick={regenerate} disabled={isGenerating}>
-                  {isGenerating ? <Loader2 className="size-4 animate-spin" /> : <RotateCw className="size-4" />}
-                  {r.regenerate}
-                </Button>
-              )
-            }
-          />
-          <div className="space-y-4 px-5 pb-5">
-            {/* One generic report (for parents); older reports may still hold one version per recipient. */}
-            {recipients.length > 1 && (
-              <div role="tablist" className="flex rounded-lg bg-surface-muted p-1">
-                {recipients.map((k) => (
-                  <button
-                    key={k}
-                    type="button"
-                    role="tab"
-                    aria-selected={k === current}
-                    onClick={() => {
-                      setActive(k);
-                      setConfirmRegenerate(false);
-                    }}
-                    className={clsx(
-                      "flex h-10 flex-1 items-center justify-center gap-2 rounded-md text-[13.5px] transition-colors",
-                      k === current ? "bg-surface font-medium shadow-sm" : "text-ink-muted hover:text-ink",
-                    )}
-                  >
-                    <VariantDot variant={variants[k]} />
-                    {r.recipient[k]}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {genError && <FormError message={genError} />}
-            {confirmRegenerate && (
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-warn-ink/20 bg-warn px-3 py-2 text-[13px] text-warn-ink">
-                <span>{r.confirmRegenerate}</span>
-                <span className="flex gap-2">
-                  <Button size="sm" variant="ghost" onClick={() => setConfirmRegenerate(false)}>
-                    {t.common.cancel}
+        <div className="space-y-5">
+          {/* 2. Generated report */}
+          <Card>
+            <CardHeader
+              number={2}
+              title={r.reportTitle}
+              action={
+                missing.length > 0 ? (
+                  <Button onClick={() => generate(missing)} disabled={isGenerating}>
+                    {isGenerating ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+                    {r.generateAll(missing.length)}
                   </Button>
-                  <Button size="sm" onClick={() => current && generate([current])}>
-                    {r.confirm}
+                ) : (
+                  <Button variant="secondary" onClick={regenerate} disabled={isGenerating}>
+                    {isGenerating ? <Loader2 className="size-4 animate-spin" /> : <RotateCw className="size-4" />}
+                    {r.regenerate}
                   </Button>
-                </span>
-              </div>
-            )}
-
-            {current && generating.includes(current) ? (
-              <div className="flex min-h-64 flex-col items-center justify-center gap-2 rounded-xl border border-line bg-surface-muted text-[13px] text-ink-muted">
-                <Loader2 className="size-5 animate-spin" />
-                {r.generating}
-              </div>
-            ) : !variant ? (
-              <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-line-strong px-6 text-center">
-                <p className="text-[13px] text-ink-muted">{r.notGenerated}</p>
-                {current && (
-                  <Button variant="secondary" onClick={() => generate([current])} disabled={isGenerating}>
-                    <Sparkles className="size-4" />
-                    {recipients.length > 1 ? r.generateOne(r.recipient[current]) : r.generateAll(1)}
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <>
-                <div className="space-y-1 text-[12px] text-ink-muted">
-                  <p>{r.tone[variant.recipient]}</p>
-                  {!variant.validatedAt && (
-                    <p className="flex gap-1.5">
-                      <Info className="mt-0.5 size-3.5 shrink-0" />
-                      {r.reviewHint}
-                    </p>
-                  )}
-                  {hasToComplete && (
-                    <p className="flex gap-1.5 text-warn-ink">
-                      <CircleAlert className="mt-0.5 size-3.5 shrink-0" />
-                      {r.toComplete}
-                    </p>
-                  )}
+                )
+              }
+            />
+            <div className="space-y-4 px-5 pb-5">
+              {/* One generic report (for parents); older reports may still hold one version per recipient. */}
+              {recipients.length > 1 && (
+                <div role="tablist" className="flex rounded-lg bg-surface-muted p-1">
+                  {recipients.map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      role="tab"
+                      aria-selected={k === current}
+                      onClick={() => {
+                        setActive(k);
+                        setConfirmRegenerate(false);
+                      }}
+                      className={clsx(
+                        "flex h-10 flex-1 items-center justify-center gap-2 rounded-md text-[13.5px] transition-colors",
+                        k === current ? "bg-surface font-medium shadow-sm" : "text-ink-muted hover:text-ink",
+                      )}
+                    >
+                      <VariantDot variant={variants[k]} />
+                      {r.recipient[k]}
+                    </button>
+                  ))}
                 </div>
+              )}
 
-                <SectionsEditor sections={variant.sections} dir={data.language === "he" ? "rtl" : "ltr"} onChange={(s) => editSections(variant.recipient, s)} />
+              {genError && <FormError message={genError} />}
+              {confirmRegenerate && (
+                <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-warn-ink/20 bg-warn px-3 py-2 text-[13px] text-warn-ink">
+                  <span>{r.confirmRegenerate}</span>
+                  <span className="flex gap-2">
+                    <Button size="sm" variant="ghost" onClick={() => setConfirmRegenerate(false)}>
+                      {t.common.cancel}
+                    </Button>
+                    <Button size="sm" onClick={() => current && generate([current])}>
+                      {r.confirm}
+                    </Button>
+                  </span>
+                </div>
+              )}
 
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
-                  <p className="text-[12.5px] text-ink-muted">
-                    {variant.exportedAt
-                      ? r.exported(i18n.dateTime(new Date(variant.exportedAt)))
-                      : variant.validatedAt
-                        ? r.validated(i18n.dateTime(new Date(variant.validatedAt)))
-                        : r.validateToExport}
-                  </p>
-                  {!variant.validatedAt && (
-                    <Button onClick={validate} disabled={validating}>
-                      {validating ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-                      {r.validate}
+              {current && generating.includes(current) ? (
+                <div className="flex min-h-64 flex-col items-center justify-center gap-2 rounded-xl border border-line bg-surface-muted text-[13px] text-ink-muted">
+                  <Loader2 className="size-5 animate-spin" />
+                  {r.generating}
+                </div>
+              ) : !variant ? (
+                <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-line-strong px-6 text-center">
+                  <p className="text-[13px] text-ink-muted">{r.notGenerated}</p>
+                  {current && (
+                    <Button variant="secondary" onClick={() => generate([current])} disabled={isGenerating}>
+                      <Sparkles className="size-4" />
+                      {recipients.length > 1 ? r.generateOne(r.recipient[current]) : r.generateAll(1)}
                     </Button>
                   )}
                 </div>
+              ) : (
+                <>
+                  <div className="space-y-1 text-[12px] text-ink-muted">
+                    <p>{r.tone[variant.recipient]}</p>
+                    {!variant.validatedAt && (
+                      <p className="flex gap-1.5">
+                        <Info className="mt-0.5 size-3.5 shrink-0" />
+                        {r.reviewHint}
+                      </p>
+                    )}
+                    {hasToComplete && (
+                      <p className="flex gap-1.5 text-warn-ink">
+                        <CircleAlert className="mt-0.5 size-3.5 shrink-0" />
+                        {r.toComplete}
+                      </p>
+                    )}
+                  </div>
 
-                <ExportBar
-                  nameHint={child.displayName}
-                  disabled={!variant.validatedAt}
-                  onExported={() => exported(variant.recipient)}
-                  input={{
-                    language: data.language,
-                    timeZone: exportContext.timeZone,
-                    docType: data.docType,
-                    sessionDate: data.sessionDate,
-                    name: child.name,
-                    accountName: exportContext.accountName,
-                    letterhead: exportContext.letterhead,
-                    therapistName: exportContext.therapistName,
-                    sections: variant.sections,
-                  }}
-                />
-              </>
-            )}
-          </div>
-        </Card>
+                  <SectionsEditor sections={variant.sections} dir={data.language === "he" ? "rtl" : "ltr"} onChange={(s) => editSections(variant.recipient, s)} />
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+                    <p className="text-[12.5px] text-ink-muted">
+                      {variant.exportedAt
+                        ? r.exported(i18n.dateTime(new Date(variant.exportedAt)))
+                        : variant.validatedAt
+                          ? r.validated(i18n.dateTime(new Date(variant.validatedAt)))
+                          : r.validateToExport}
+                    </p>
+                    {!variant.validatedAt && (
+                      <Button onClick={validate} disabled={validating}>
+                        {validating ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                        {r.validate}
+                      </Button>
+                    )}
+                  </div>
+
+                  <ExportBar
+                    nameHint={child.displayName}
+                    disabled={!variant.validatedAt}
+                    onExported={() => exported(variant.recipient)}
+                    input={{
+                      language: data.language,
+                      timeZone: exportContext.timeZone,
+                      docType: data.docType,
+                      sessionDate: data.sessionDate,
+                      name: child.name,
+                      accountName: exportContext.accountName,
+                      letterhead: exportContext.letterhead,
+                      therapistName: exportContext.therapistName,
+                      sections: variant.sections,
+                    }}
+                  />
+                </>
+              )}
+            </div>
+          </Card>
+
+          {/* 3. The model's ideas, validated one by one, then written into the report */}
+          {variant && current && !generating.includes(current) && (
+            <InsightsPanel
+              insights={variant.insights}
+              dir={data.language === "he" ? "rtl" : "ltr"}
+              onChange={(insights) => editInsights(variant.recipient, insights)}
+              onRewrite={rewrite}
+              rewriting={rewriting}
+              busy={isGenerating || validating}
+              error={insightError}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -9,7 +9,7 @@ import { sensoryProfile2Child } from "../../lib/assessments/definitions/sensory-
 import { date, matrix, multi, number, scale, section, single, text, textarea, yesNo } from "../../lib/forms/defaults/build";
 import type { LlmForm } from "../../lib/forms/schema";
 import { DEMO_CABINET_IDS } from "../demo-ids";
-import { addDays, addMonths, at, day, EMPTY_TEST, knoxAnswers, s, schoolWeek, sp2Answers, sqlTimestamp, TODAY, type ChildSpec, type DemoCabinet } from "./kit";
+import { addDays, addMonths, at, day, EMPTY_TEST, idea, knoxAnswers, s, schoolWeek, sp2Answers, sqlTimestamp, TODAY, type ChildSpec, type DemoCabinet } from "./kit";
 
 const { workday, wd } = schoolWeek("fri-sat");
 
@@ -499,6 +499,10 @@ function noam(): ChildSpec {
               s("Ce qui reste difficile", "La bouche reste très sensible : les légumes cuits, le poisson et l'œuf sont encore refusés, et il mâche lentement la viande."),
               s("À la maison cette semaine", "- continuer la découverte en jeu, avec les légumes cuits\n- un repas en famille sans écran chaque jour\n- garder le repose-pieds et l'assiette à compartiments"),
             ],
+            insights: [
+              idea("home_activity", "applied", "Garder le repose-pieds et l'assiette à compartiments aussi pour les repas en famille.", "assis 20 min, stable avec appui sous les pieds"),
+              idea("to_check", "dismissed", "Si la mastication de la viande reste lente, évoquer avec la pédiatre un bilan de la déglutition.", "mâche lentement la viande"),
+            ],
           },
         ],
       },
@@ -521,6 +525,13 @@ function noam(): ChildSpec {
               s("Ce qui avance", "Aujourd'hui, {{child}} a joué 5 minutes avec de la pâte à sel sans avoir besoin de s'essuyer les mains, ce qui est nouveau. Il a accepté la brosse vibrante sur les joues puis dans la bouche, en riant. Vous nous dites que deux repas par jour se passent maintenant sans écran, et que les soirées sont plus calmes."),
               s("Ce qui reste difficile", "Le bruit du sèche-mains dans le couloir a provoqué une courte crise ; avec le casque, il s'est apaisé en 3 minutes. Il a touché le houmous avec sa pita, sans le goûter."),
               s("À la maison cette semaine", "- des jeux avec de la pâte (pâte à sel, pâte à gâteau)\n- le houmous à côté de son assiette, pour le découvrir à son rythme\n- garder le casque dans son sac"),
+            ],
+            insights: [
+              idea("hypothesis", "pending", "L'acceptation de la brosse vibrante et de la pâte à sel laisse penser que la défense tactile et orale diminue quand l'input est prévisible et qu'il le contrôle ; la réaction au sèche-mains montre une hyperréactivité auditive encore marquée.", "touche la pâte 5 min sans s'essuyer ; brosse vibrante acceptée ; crise au sèche-mains"),
+              idea("recommendation", "validated", "Proposer à la maison un court échauffement oro-moteur avant le repas (brosse vibrante, aliment croquant) pour préparer la bouche avant un goût nouveau.", "brosse vibrante dans la bouche : accepte, rit"),
+              idea("home_activity", "pending", "Jouer avec le houmous : tremper, étaler à la cuillère, dessiner dedans dans l'assiette, avant toute demande de goûter (étape suivante de l'échelle : toucher avec les lèvres).", "touche le houmous avec la pita, ne goûte pas"),
+              idea("to_check", "pending", "Demander aux parents quels autres bruits déclenchent une réaction à la maison et à la crèche, et s'il prévient avant de se boucher les oreilles, pour prévoir une exposition progressive aux bruits du quotidien.", "crise au sèche-mains, apaisé en 3 min avec le casque"),
+              idea("recommendation", "dismissed", "Partager la stratégie du casque avec l'équipe de la crèche et convenir d'un coin calme.", "casque à garder dans le sac"),
             ],
           },
         ],

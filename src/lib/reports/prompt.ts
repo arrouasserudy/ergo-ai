@@ -1,6 +1,10 @@
-import type { Child, ReportDocType, ReportRecipient, ReportSection, ReportTest } from "@/db/schema";
+import type { Child, ReportDocType, ReportInsight, ReportRecipient, ReportSection, ReportTest } from "@/db/schema";
 import { ageInMonths, type Locale } from "@/i18n";
-import { replaceChildName } from "./text";
+import { MAX_INSIGHTS } from "./insights";
+import { otGuidancePrompt } from "./ot";
+import { replaceChildName, TO_COMPLETE } from "./text";
+
+export { TO_COMPLETE };
 
 /**
  * The model never sees the child's name: it writes this placeholder wherever it
@@ -13,8 +17,6 @@ export const MAX_STYLE_EXAMPLES = 3;
 
 const LANGUAGE: Record<Locale, string> = { fr: "French", he: "Hebrew", en: "English" };
 
-/** Marker for information the notes do not give; the therapist fills it in. */
-export const TO_COMPLETE: Record<Locale, string> = { fr: "[à compléter]", he: "[להשלמה]", en: "[to complete]" };
 
 const DOC_TYPES: Record<ReportDocType, string> = {
   follow_up: "a follow-up report after a therapy session",
@@ -45,18 +47,61 @@ const RECIPIENTS: Record<ReportRecipient, { reader: string; tone: string; sectio
   },
 };
 
-/** Fixed per language, so identical across requests. */
-export function reportSystemPrompt(language: Locale): string {
-  return `You write reports for a pediatric occupational therapist, from her raw session notes. The notes are often terse: abbreviations, fragments, test scores, observations jotted down during the session. You turn them into a clear, well-structured professional text that she will review, correct and validate before sending it herself.
+const INSIGHT_KINDS = `- "hypothesis": a plausible explanation of something observed (why it happened), worded as a possibility, never as a certainty or a diagnosis.
+- "recommendation": something to do in therapy, at school or with the family, that fits what was observed.
+- "home_activity": a concrete activity or adaptation the family can try at home.
+- "to_check": what to observe, ask or assess next to confirm or rule out a hypothesis.`;
 
-Rules:
-- Use only facts present in the notes, the test results, the questionnaires attached to the session and the child context, and only the context that matters to this reader. Never invent an observation, a score, a date or a recommendation she did not mention. You may rephrase, group and order her content, but never add a recommendation, an activity, an example or an explanation of your own: if it is not in the notes, it is not in the report.
+/** Rules shared by the draft and the rewrite: placeholder, language, format. */
+function sharedRules(language: Locale): string {
+  return `- Refer to the child only as ${CHILD_PLACEHOLDER}, exactly as written, each time you name the child. Never invent a first name. For pronouns and grammatical gender, follow the notes; when they do not show it, choose neutral wording.
+- Write in ${LANGUAGE[language]}, including section headings, whatever language the notes are in, in the professional register of an experienced OT.
+- Section bodies are plain text that she will edit directly: paragraphs separated by a blank line, and "- " bullet lists with one item per line (no blank line between items). Use **bold** rarely, for at most one or two key words in the whole report, or not at all. No headings inside a body, no tables, no greeting or signature (the letterhead and signature are added at export), except for the parents version, whose first section may start with one friendly sentence (not a section of its own).`;
+}
+
+/** The OT knowledge pack, when it has content for this language and document type. */
+function guidance(language: Locale, docType: ReportDocType): string {
+  const text = otGuidancePrompt(language, docType);
+  return text ? `\n\nWhat an experienced pediatric OT knows and how she writes, to draw on:\n\n${text}` : "";
+}
+
+/** Fixed per (language, document type), so identical across requests. */
+export function reportSystemPrompt(language: Locale, docType: ReportDocType): string {
+  return `You are an experienced pediatric occupational therapist working with a colleague. From her raw session notes (often terse: abbreviations, fragments, test scores, observations jotted down during the session) you produce two separate things, which she reviews before anything is sent:
+
+1. "sections": the report itself, in the polished, professional wording of an experienced OT.
+2. "insights": your own clinical reasoning, shown to her apart from the report as ideas she validates one by one. Only the ideas she validates are later written into the report.
+
+Rules for the report sections:
+- Facts only: use only what is present in the notes, the test results, the questionnaires attached to the session and the child context, and only what matters to this reader. Never invent an observation, a score, a date or a recommendation she did not mention. Rephrase, group and order her content into a clear professional text; your own ideas go into "insights", never into the sections.
 - When a section needs information that the notes do not give, write ${TO_COMPLETE[language]} instead of guessing.
 - Never diagnose, and never present a hypothesis as a certainty.
-- Refer to the child only as ${CHILD_PLACEHOLDER}, exactly as written, each time you name the child. Never invent a first name. For pronouns and grammatical gender, follow the notes; when they do not show it, choose neutral wording.
-- Write in ${LANGUAGE[language]}, including section headings, whatever language the notes are in.
 
-Output: a list of sections, each with a short heading and a body. The body is plain text that she will edit directly: paragraphs separated by a blank line, and "- " bullet lists with one item per line (no blank line between items). Use **bold** rarely, for at most one or two key words in the whole report, or not at all. No headings inside a body, no tables, no greeting or signature (the letterhead and signature are added at export), except for the parents version, whose first section may start with one friendly sentence (not a section of its own).`;
+Rules for the insights (at most ${MAX_INSIGHTS}, the most useful first; fewer is better than weak ones; none when the notes give nothing to reason on):
+- Each insight has a kind:
+${INSIGHT_KINDS}
+- Each insight rests on something actually written in the notes, tests or questionnaires: quote or summarize that observation in "basis". Never base an insight on something not given.
+- Reason like a senior OT: link what was observed to the underlying components (sensory processing, regulation, postural control, praxis, fine motor, visual perception, executive functions, feeding, participation), consider the child's age and context, and suggest what a real OT would propose next. Prefer concrete, specific ideas over generic advice.
+- Never diagnose and never label the child. When something could be medical (pain, sleep, swallowing safety, weight, medication, a regression), the insight is to check it with the doctor.
+- Never blame the family or the school; recommendations are practical and respectful.
+- "text" is written for her (a colleague), in a sentence or two, ready to be adapted into the report; "basis" is short.
+
+Shared rules:
+${sharedRules(language)}${guidance(language, docType)}`;
+}
+
+/** The submit step: the therapist's edited text and the ideas she validated, merged into one report. */
+export function rewriteSystemPrompt(language: Locale, docType: ReportDocType): string {
+  return `You are an experienced pediatric occupational therapist helping a colleague finish a report. She has reviewed and edited a draft, and validated some clinical ideas. You rewrite the report so that it includes those ideas.
+
+Rules:
+- Her text is final: keep every sentence, fact and wording of hers, in the same order. Change her text only where needed to integrate an idea smoothly (a linking word, a merged sentence). Never drop, soften or add facts.
+- Integrate every validated idea once, in the section where it fits, adapted to the reader and in the same professional register:
+  - "recommendation" and "home_activity": in the section of recommendations or of things to do at home; create such a section at the end when there is none.
+  - "hypothesis": woven into the relevant observation as a possibility ("this may be related to…"), never as a certainty or a diagnosis.
+  - "to_check": as a next step (what will be observed or assessed next).
+- Add nothing else: no other idea, recommendation, example or explanation of your own.
+${sharedRules(language)}${guidance(language, docType)}`;
 }
 
 export type StylePair = { before: ReportSection[]; after: ReportSection[] };
@@ -132,6 +177,27 @@ export function reportUserPrompt(input: ReportPromptInput): string {
     );
   }
   return parts.join("\n\n");
+}
+
+export type RewritePromptInput = {
+  docType: ReportDocType;
+  recipient: ReportRecipient;
+  /** The therapist's current text, the child's name already replaced by the placeholder. */
+  sections: ReportSection[];
+  /** The validated ideas, same. */
+  insights: Pick<ReportInsight, "kind" | "text" | "basis">[];
+};
+
+export function rewriteUserPrompt(input: RewritePromptInput): string {
+  const brief = RECIPIENTS[input.recipient];
+  return [
+    `This is ${DOC_TYPES[input.docType]} for ${brief.reader}.`,
+    `Tone: ${brief.tone}`,
+    `<report>\n${sectionsToText(input.sections)}\n</report>`,
+    `Ideas she validated, to integrate:\n<ideas>\n${input.insights
+      .map((i) => `<idea kind="${i.kind}">\n${i.text.trim()}${i.basis.trim() ? `\n(based on: ${i.basis.trim()})` : ""}\n</idea>`)
+      .join("\n")}\n</ideas>`,
+  ].join("\n\n");
 }
 
 /**

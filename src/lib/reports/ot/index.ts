@@ -1,0 +1,48 @@
+import type { ReportDocType } from "@/db/schema";
+import type { Locale } from "@/i18n";
+import { OT_DOMAINS } from "./domains";
+import { DOC_TYPE_GUIDES, REASONING_RULES } from "./reasoning";
+import { STYLE as EN } from "./style/en";
+import { STYLE as FR } from "./style/fr";
+import { STYLE as HE } from "./style/he";
+import type { StyleGuide } from "./types";
+
+export const STYLE_GUIDES: Record<Locale, StyleGuide> = { fr: FR, he: HE, en: EN };
+
+const bullets = (items: string[]) => items.map((item) => `- ${item}`).join("\n");
+
+/**
+ * The OT knowledge pack as prompt text: clinical reasoning (shared), then how reports
+ * are written in this language. Fixed per (language, docType), so it stays cacheable.
+ */
+export function otGuidancePrompt(language: Locale, docType: ReportDocType): string {
+  const style = STYLE_GUIDES[language];
+  const parts: string[] = [];
+  if (REASONING_RULES.length) parts.push(`<clinical_reasoning>\n${bullets(REASONING_RULES.map((r) => r.text))}\n</clinical_reasoning>`);
+  if (OT_DOMAINS.length) {
+    parts.push(
+      `<ot_domains>\n${OT_DOMAINS.map(
+        (d) =>
+          `<domain name="${d.title}">\nSigns in the notes:\n${bullets(d.signs)}\nPlausible explanations to consider:\n${bullets(d.hypotheses)}\nWhat to check next:\n${bullets(d.toCheck)}\nTypical recommendations:\n${bullets(d.recommendations)}\n</domain>`,
+      ).join("\n")}\n</ot_domains>`,
+    );
+  }
+  const guide = DOC_TYPE_GUIDES.find((g) => g.docType === docType);
+  if (guide) parts.push(`<document_structure>\nUsual sections: ${guide.sections.join(" / ")}.\n${guide.notes}\n</document_structure>`);
+  if (style.register.length) parts.push(`<writing_style>\n${bullets(style.register.map((r) => r.text))}\n</writing_style>`);
+  if (style.glossary.length) {
+    parts.push(
+      `<professional_vocabulary>\n${bullets(style.glossary.map((g) => `${g.term}: ${g.meaning}${g.avoid ? ` (instead of: ${g.avoid})` : ""}`))}\n</professional_vocabulary>`,
+    );
+  }
+  if (style.phrasing.length) parts.push(`<phrasing>\n${bullets(style.phrasing.map((p) => `Instead of "${p.avoid}", write "${p.prefer}"`))}\n</phrasing>`);
+  const examples = style.examples.filter((e) => e.docType === docType).concat(style.examples.filter((e) => e.docType !== docType)).slice(0, 2);
+  if (examples.length) {
+    parts.push(
+      `Model reports written by a senior OT, for register and structure only (never reuse their facts):\n${examples
+        .map((e) => `<model_report doc_type="${e.docType}">\n<notes>\n${e.notes}\n</notes>\n<report>\n${e.sections.map((s) => `## ${s.heading}\n${s.body}`).join("\n\n")}\n</report>\n</model_report>`)
+        .join("\n")}`,
+    );
+  }
+  return parts.join("\n\n");
+}

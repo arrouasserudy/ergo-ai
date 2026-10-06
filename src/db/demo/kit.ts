@@ -13,7 +13,18 @@ import { sanitizeAnswers } from "../../lib/forms/answers";
 import { OTHER, type Answers, type FormSchema, type LlmForm } from "../../lib/forms/schema";
 import { APP_TIME_ZONE, localToday } from "../../lib/time";
 import type { Locale } from "../../i18n";
-import type { ChildEventKind, GroupColor, NewChild, ReportDocType, ReportRecipient, ReportSection, ReportTest } from "../schema";
+import type {
+  ChildEventKind,
+  GroupColor,
+  NewChild,
+  ReportDocType,
+  ReportInsight,
+  ReportInsightKind,
+  ReportInsightStatus,
+  ReportRecipient,
+  ReportSection,
+  ReportTest,
+} from "../schema";
 
 /** A stable UUID for a demo row ("child:noam", "noam:episode:3"…), the same on every run and in production. */
 export function demoId(accountId: string, key: string): string {
@@ -204,6 +215,8 @@ export type VariantSpec = {
   generated: ReportSection[];
   /** The therapist's edited text, when she changed the draft ({{first}} = first name). */
   edited?: ReportSection[];
+  /** The model's clinical ideas and the therapist's choice on each ({{child}} allowed). */
+  insights?: Omit<ReportInsight, "id">[];
 };
 
 export type ReportSpec = {
@@ -299,3 +312,6 @@ export type DemoCabinet = {
 };
 
 export const s = (heading: string, body: string): ReportSection => ({ heading, body });
+
+/** One idea of the model on a report version. */
+export const idea = (kind: ReportInsightKind, status: ReportInsightStatus, text: string, basis: string): Omit<ReportInsight, "id"> => ({ kind, status, text, basis });

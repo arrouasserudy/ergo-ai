@@ -19,6 +19,7 @@
     "corpus:build": "tsx --env-file-if-exists=.env.local scripts/corpus/build.ts",
     "corpus:push": "scripts/corpus/push.sh",
     "expert:search": "tsx --env-file-if-exists=.env.local scripts/expert-search.ts",
+    "reports:eval": "tsx --conditions=react-server --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/reports-eval/run.ts",
     "corpus:candidates": "tsx scripts/corpus/candidates.ts",
     "corpus:review": "tsx scripts/corpus/review-page.ts"
   },

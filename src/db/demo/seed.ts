@@ -251,6 +251,7 @@ export async function seedCabinet(cabinet: DemoCabinet, password: string): Promi
           const exportedAt = v.state === "exported" ? plus(validatedAt!, 4) : null;
           const generated = fill(v.generated);
           const sections = v.edited ? fill(v.edited) : generated;
+          const insights = (v.insights ?? []).map((x, k) => ({ ...x, id: `demo${k + 1}`, text: x.text.split("{{child}}").join(name) }));
           const tokens = 1400 + generated.reduce((n, sec) => n + sec.body.length, 0) / 3;
           return {
             id: id(`${spec.key}:report:${r.key}:${v.recipient}`),
@@ -259,6 +260,7 @@ export async function seedCabinet(cabinet: DemoCabinet, password: string): Promi
             recipient: v.recipient,
             generated,
             sections,
+            insights,
             model: MODEL,
             inputTokens: Math.round(tokens * 2.1),
             outputTokens: Math.round(tokens / 2.4),

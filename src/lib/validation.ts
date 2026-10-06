@@ -163,6 +163,11 @@ export const reportSectionsSchema = z
   .array(z.object({ heading: z.string().max(200, e.tooLong(200)), body: z.string().max(10000, e.tooLong(10000)) }))
   .max(30);
 
+/** The therapist's edits of a version's ideas: text and choice only ("applied" is set by the rewrite). */
+export const insightEditsSchema = z
+  .array(z.object({ id: z.string().max(64), text: z.string().max(2000, e.tooLong(2000)), status: z.enum(["pending", "validated", "dismissed"]) }))
+  .max(30);
+
 const email = z.string().trim().toLowerCase().pipe(z.email(e.invalidEmail));
 const newPassword = z.string().min(8, e.passwordTooShort).max(128, e.tooLong(128));
 

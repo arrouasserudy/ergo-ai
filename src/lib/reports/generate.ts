@@ -5,20 +5,29 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
-import type { ReportSection } from "@/db/schema";
+import { REPORT_INSIGHT_KINDS, type ReportSection } from "@/db/schema";
 import { claudeCodeOptions, UNAVAILABLE_ERRORS } from "@/lib/claude-code";
 import type { ChatProvider } from "@/lib/expert/providers/types";
+import type { RawInsight } from "./insights";
 
-/** Report drafts are short and structured: a mid-size model at low effort is enough. */
+/** Drafts carry clinical reasoning and must read like a senior OT (Hebrew first): the strongest model, medium effort. */
 export const REPORT_MODEL = process.env.REPORT_MODEL ?? process.env.EXPERT_MODEL ?? "claude-opus-5-5";
 export const REPORT_OPENAI_MODEL = process.env.REPORT_OPENAI_MODEL ?? process.env.EXPERT_OPENAI_MODEL ?? "gpt-5-mini";
 
 /** Generations (one per recipient) per cabinet per day. */
 export const DAILY_GENERATION_LIMIT = Number(process.env.REPORT_DAILY_LIMIT ?? 200);
 
-const outputSchema = z.object({
-  sections: z.array(z.object({ heading: z.string(), body: z.string() })),
+const sectionsSchema = z.array(z.object({ heading: z.string(), body: z.string() }));
+
+const draftSchema = z.object({
+  sections: sectionsSchema,
+  insights: z.array(z.object({ kind: z.enum(REPORT_INSIGHT_KINDS), text: z.string(), basis: z.string() })),
 });
+
+const rewriteSchema = z.object({ sections: sectionsSchema });
+
+/** Effort of report calls (draft and rewrite). */
+const REPORT_EFFORT = "medium";
 
 export type GenerationErrorCode = "unavailable" | "refusal" | "generic";
 
@@ -29,6 +38,7 @@ export class GenerationError extends Error {
 }
 
 export type GenerationResult = { sections: ReportSection[]; model: string; usage: { input: number; output: number } };
+export type DraftResult = GenerationResult & { insights: RawInsight[] };
 
 /** A structured-output call: a system prompt, a user text and optionally a PDF the model reads. */
 export type StructuredRequest<T extends z.ZodType> = {
@@ -179,10 +189,20 @@ export function generateStructured<T extends z.ZodType>(provider: ChatProvider, 
   return withAnthropic(req);
 }
 
-/** One structured draft. Sections with an empty heading and body are dropped. */
-export async function generateSections(provider: ChatProvider, system: string, prompt: string): Promise<GenerationResult> {
-  const { output, model, usage } = await generateStructured(provider, { schema: outputSchema, name: "report", system, prompt });
-  const sections = output.sections.filter((s) => s.heading.trim() || s.body.trim());
-  if (sections.length === 0) throw new GenerationError("generic", "Empty report");
-  return { sections, model, usage };
+const nonEmpty = (sections: ReportSection[]) => {
+  const kept = sections.filter((s) => s.heading.trim() || s.body.trim());
+  if (kept.length === 0) throw new GenerationError("generic", "Empty report");
+  return kept;
+};
+
+/** One structured draft: the report sections and, apart, the model's clinical ideas. Empty sections are dropped. */
+export async function generateDraft(provider: ChatProvider, system: string, prompt: string): Promise<DraftResult> {
+  const { output, model, usage } = await generateStructured(provider, { schema: draftSchema, name: "report", system, prompt, effort: REPORT_EFFORT });
+  return { sections: nonEmpty(output.sections), insights: output.insights, model, usage };
+}
+
+/** The report rewritten with the validated ideas. */
+export async function generateRewrite(provider: ChatProvider, system: string, prompt: string): Promise<GenerationResult> {
+  const { output, model, usage } = await generateStructured(provider, { schema: rewriteSchema, name: "report", system, prompt, effort: REPORT_EFFORT });
+  return { sections: nonEmpty(output.sections), model, usage };
 }

@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { CHILD_PLACEHOLDER, fillChildPlaceholder, MAX_STYLE_EXAMPLES, pseudonymizeSections, reportSystemPrompt, reportUserPrompt, type ReportPromptInput } from "./prompt";
+import {
+  CHILD_PLACEHOLDER,
+  fillChildPlaceholder,
+  MAX_STYLE_EXAMPLES,
+  pseudonymizeSections,
+  reportSystemPrompt,
+  reportUserPrompt,
+  rewriteSystemPrompt,
+  rewriteUserPrompt,
+  type ReportPromptInput,
+} from "./prompt";
 
 const base: ReportPromptInput = {
   child: { birthDate: "2019-02-03", referralReason: "Motricité fine", schoolLevel: "CE1", followUpStart: "2026-01-15", interests: ["dinosaurs"] },
@@ -55,9 +65,36 @@ describe("reportUserPrompt", () => {
 
 describe("reportSystemPrompt", () => {
   it("asks for the placeholder and the report language", () => {
-    expect(reportSystemPrompt("fr")).toContain(CHILD_PLACEHOLDER);
-    expect(reportSystemPrompt("fr")).toContain("[à compléter]");
-    expect(reportSystemPrompt("he")).toContain("Write in Hebrew");
+    expect(reportSystemPrompt("fr", "follow_up")).toContain(CHILD_PLACEHOLDER);
+    expect(reportSystemPrompt("fr", "follow_up")).toContain("[à compléter]");
+    expect(reportSystemPrompt("he", "follow_up")).toContain("Write in Hebrew");
+  });
+
+  it("keeps facts in the sections and the model's own ideas in the insights", () => {
+    const system = reportSystemPrompt("he", "initial_assessment");
+    expect(system).toContain("your own ideas go into \"insights\", never into the sections");
+    for (const kind of ["hypothesis", "recommendation", "home_activity", "to_check"]) expect(system).toContain(`"${kind}"`);
+    expect(system).toContain("Never diagnose");
+  });
+
+  it("is identical across requests (cacheable)", () => {
+    expect(reportSystemPrompt("he", "follow_up")).toBe(reportSystemPrompt("he", "follow_up"));
+  });
+});
+
+describe("rewrite prompts", () => {
+  it("keeps the therapist's text and integrates only the validated ideas", () => {
+    expect(rewriteSystemPrompt("he", "follow_up")).toContain("Her text is final");
+    expect(rewriteSystemPrompt("he", "follow_up")).toContain("Write in Hebrew");
+    const prompt = rewriteUserPrompt({
+      docType: "follow_up",
+      recipient: "parents",
+      sections: [{ heading: "Progress", body: `${CHILD_PLACEHOLDER} buttons 3 of 5` }],
+      insights: [{ kind: "home_activity", text: "Practise buttoning on a doll", basis: "3 of 5 buttons" }],
+    });
+    expect(prompt).toContain("the child's parents");
+    expect(prompt).toContain(`## Progress\n${CHILD_PLACEHOLDER} buttons 3 of 5`);
+    expect(prompt).toContain('<idea kind="home_activity">\nPractise buttoning on a doll\n(based on: 3 of 5 buttons)\n</idea>');
   });
 });
 

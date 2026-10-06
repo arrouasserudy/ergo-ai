@@ -362,6 +362,17 @@ export type ReportSection = { heading: string; body: string };
 /** A standardized test result attached to the notes. */
 export type ReportTest = { name: string; results: string };
 
+export const REPORT_INSIGHT_KINDS = ["hypothesis", "recommendation", "home_activity", "to_check"] as const;
+export type ReportInsightKind = (typeof REPORT_INSIGHT_KINDS)[number];
+export const REPORT_INSIGHT_STATUSES = ["pending", "validated", "dismissed", "applied"] as const;
+export type ReportInsightStatus = (typeof REPORT_INSIGHT_STATUSES)[number];
+/**
+ * An idea of the model's clinical reasoning, kept apart from the report text: the
+ * therapist validates or dismisses it, and validated ones are written into the report
+ * on request (then `applied`). `basis` is the observation of the notes it rests on.
+ */
+export type ReportInsight = { id: string; kind: ReportInsightKind; text: string; basis: string; status: ReportInsightStatus };
+
 /**
  * A report written from session notes (typed or dictated). Its text for each
  * recipient lives in `report_variants`. The model writes a placeholder for the child,
@@ -410,6 +421,8 @@ export const reportVariants = sqliteTable(
     /** Exactly what the model produced; compared with `sections` to learn the therapist's style. */
     generated: text("generated", { mode: "json" }).$type<ReportSection[]>().notNull(),
     sections: text("sections", { mode: "json" }).$type<ReportSection[]>().notNull(),
+    /** The model's clinical ideas for this version, validated one by one (see ReportInsight). */
+    insights: text("insights", { mode: "json" }).$type<ReportInsight[]>().notNull().default(sql`'[]'`),
     model: text("model").notNull(),
     inputTokens: integer("input_tokens"),
     outputTokens: integer("output_tokens"),

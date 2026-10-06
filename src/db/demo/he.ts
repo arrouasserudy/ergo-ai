@@ -8,7 +8,7 @@ import { sensoryProfile2Child } from "../../lib/assessments/definitions/sensory-
 import { date, matrix, multi, number, scale, section, single, text, textarea, yesNo } from "../../lib/forms/defaults/build";
 import type { LlmForm } from "../../lib/forms/schema";
 import { DEMO_CABINET_IDS } from "../demo-ids";
-import { addDays, addMonths, at, day, EMPTY_TEST, knoxAnswers, s, schoolWeek, sp2Answers, sqlTimestamp, TODAY, type ChildSpec, type DemoCabinet } from "./kit";
+import { addDays, addMonths, at, day, EMPTY_TEST, idea, knoxAnswers, s, schoolWeek, sp2Answers, sqlTimestamp, TODAY, type ChildSpec, type DemoCabinet } from "./kit";
 
 const { workday, wd } = schoolWeek("fri-sat");
 
@@ -503,6 +503,10 @@ function omer(): ChildSpec {
               s("מה עדיין קשה", "הפה עדיין רגיש מאוד: ירקות מבושלים, דגים וביצה עדיין נדחים, והוא לועס בשר לאט."),
               s("בבית השבוע", "- להמשיך בהיכרות במשחק, עם ירקות מבושלים\n- ארוחה משפחתית אחת ביום בלי מסך\n- להשאיר את ההדום ואת הצלחת עם התאים"),
             ],
+            insights: [
+              idea("home_activity", "applied", "להשאיר את ההדום ואת הצלחת עם התאים גם בארוחות המשפחתיות.", "ישב 20 דק', יציב בכיסא עם תמיכה לרגליים"),
+              idea("to_check", "dismissed", "אם לעיסת הבשר נשארת איטית, לשקול עם רופאת הילדים הפניה להערכת בליעה.", "לועס בשר לאט"),
+            ],
           },
         ],
       },
@@ -525,6 +529,13 @@ function omer(): ChildSpec {
               s("מה מתקדם", "היום {{child}} שיחק 5 דקות עם בצק מלח בלי שהיה צריך לנגב את הידיים, וזה חדש. הוא הסכים למברשת הרוטטת על הלחיים ואחר כך בפה, וצחק. סיפרתם ששתי ארוחות ביום עוברות עכשיו בלי מסך ושהערבים רגועים יותר."),
               s("מה עדיין קשה", "הרעש של מייבש הידיים במסדרון גרם להתפרצות קצרה; עם האוזניות הוא נרגע תוך 3 דקות. הוא נגע בחומוס עם הפיתה, בלי לטעום."),
               s("בבית השבוע", "- משחקי בצק (בצק מלח, בצק עוגיות)\n- חומוס ליד הצלחת, להכיר בקצב שלו\n- להשאיר את האוזניות בתיק"),
+            ],
+            insights: [
+              idea("hypothesis", "pending", "ההיענות למברשת הרוטטת ולמשחק בבצק מרמזת על ירידה בהתגוננות הטקטילית והאוראלית כאשר הגירוי צפוי ונמצא בשליטתו; התגובה למייבש הידיים מצביעה על תגובתיות יתר שמיעתית שעדיין בולטת.", "נגע בבצק 5 דק' בלי לנגב; מסכים למברשת רוטטת; התפרצות ממייבש הידיים"),
+              idea("recommendation", "validated", "לשלב בבית חימום אוראלי-מוטורי קצר לפני הארוחה (מברשת רוטטת, מזון פריך), כדי להכין את הפה לפני טעמים חדשים.", "מברשת רוטטת בפה: מסכים, צוחק"),
+              idea("home_activity", "pending", "משחק בחומוס: לטבול, למרוח בכפית, לצייר בו על הצלחת, לפני כל בקשה לטעום (השלב הבא בסולם: מגע בשפתיים).", "נוגע בחומוס עם הפיתה, לא טועם"),
+              idea("to_check", "pending", "לברר עם ההורים אילו רעשים נוספים מעוררים תגובה בבית ובגן, והאם הוא מאותת לפני שהוא סותם את האוזניים, כדי לתכנן חשיפה הדרגתית לרעשי היום-יום.", "התפרצות ממייבש הידיים, נרגע תוך 3 דק' עם אוזניות"),
+              idea("recommendation", "dismissed", "לשתף את צוות הגן באסטרטגיית האוזניות ולתאם פינה שקטה.", "אוזניות בתיק"),
             ],
           },
         ],

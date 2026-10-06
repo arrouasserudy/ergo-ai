@@ -11,6 +11,7 @@ import {
   reportVariants,
   styleExamples,
   type ReportDocType,
+  type ReportInsight,
   type ReportRecipient,
   type ReportSection,
   type ReportVariant,
@@ -18,18 +19,28 @@ import {
 import { getLocale } from "@/i18n/server";
 import { getChild } from "@/lib/children";
 import { defaultProvider } from "@/lib/expert/providers";
-import { DAILY_GENERATION_LIMIT, GenerationError, generateSections } from "@/lib/reports/generate";
+import { DAILY_GENERATION_LIMIT, GenerationError, generateDraft, generateRewrite } from "@/lib/reports/generate";
+import { editInsights, mapInsightText, markApplied, newInsights, validatedInsights } from "@/lib/reports/insights";
 import { assessmentResultsText } from "@/lib/assessments/prompt";
 import { completedAssessments } from "@/lib/assessments/queries";
 import { getDefinition } from "@/lib/assessments/registry";
 import { formAnswersForPrompt } from "@/lib/forms/answers";
 import { submittedChildForms } from "@/lib/forms/queries";
-import { CHILD_PLACEHOLDER, fillChildPlaceholder, reportSystemPrompt, reportUserPrompt } from "@/lib/reports/prompt";
+import {
+  CHILD_PLACEHOLDER,
+  fillChildPlaceholder,
+  pseudonymizeSections,
+  reportSystemPrompt,
+  reportUserPrompt,
+  rewriteSystemPrompt,
+  rewriteUserPrompt,
+} from "@/lib/reports/prompt";
 import { generationsToday, getReport, listVariants, recentStyleExamples } from "@/lib/reports/queries";
 import { deriveReportStatus, wasEdited } from "@/lib/reports/status";
 import { requireTherapist } from "@/lib/session";
 import { localToday } from "@/lib/time";
-import { reportSchema, reportSectionsSchema, toFieldErrors, type FieldErrors, type ReportInput } from "@/lib/validation";
+import { replaceChildName } from "@/lib/reports/text";
+import { insightEditsSchema, reportSchema, reportSectionsSchema, toFieldErrors, type FieldErrors, type ReportInput } from "@/lib/validation";
 
 // Each action re-checks the session and scopes by account (actions are reachable by direct POST).
 
@@ -93,7 +104,7 @@ type ChildRow = NonNullable<ReturnType<typeof getChild>>;
 /** The exact prompts sent to the model, one per recipient. Shared by generation and its preview. */
 function buildPrompts(report: ReportRow, child: ChildRow, therapistId: string, targets: ReportRecipient[]) {
   const examples = recentStyleExamples(therapistId, targets);
-  const system = reportSystemPrompt(report.language);
+  const system = reportSystemPrompt(report.language, report.docType);
   // Identifying answers stay out; the child's name typed in other answers becomes the placeholder.
   const forms = submittedChildForms(report.accountId, child.id, report.formIds).map((form) => ({
     title: form.schema.title,
@@ -135,9 +146,12 @@ export async function previewReportPrompt(id: string, recipient: ReportRecipient
 
 export type GenerateResult = { ok: true; variants: ReportVariant[] } | { ok: false; error: string };
 
+const newInsightId = () => crypto.randomUUID().slice(0, 8);
+
 /**
- * Drafts one version per recipient, in parallel, from the saved notes. Overwrites
- * any previous version of those recipients (the client confirms first when edited).
+ * Drafts one version per recipient, in parallel, from the saved notes, with the
+ * model's clinical ideas apart. Overwrites any previous version of those recipients
+ * (the client confirms first when edited).
  */
 export async function generateReport(id: string, recipients: ReportRecipient[]): Promise<GenerateResult> {
   const { accountId, therapist } = await requireTherapist();
@@ -154,16 +168,17 @@ export async function generateReport(id: string, recipients: ReportRecipient[]):
 
   const { system, prompts } = buildPrompts(report, child, therapist.id, targets);
   const results = await Promise.allSettled(
-    prompts.map(async ({ recipient, prompt }) => ({ recipient, ...(await generateSections(provider, system, prompt)) })),
+    prompts.map(async ({ recipient, prompt }) => ({ recipient, ...(await generateDraft(provider, system, prompt)) })),
   );
 
   const now = new Date();
   db.transaction((tx) => {
     for (const result of results) {
       if (result.status !== "fulfilled") continue;
-      const { recipient, sections: raw, model, usage } = result.value;
+      const { recipient, sections: raw, insights: rawInsights, model, usage } = result.value;
       const sections = fillChildPlaceholder(raw, child.name);
-      const values = { generated: sections, sections, model, inputTokens: usage.input, outputTokens: usage.output, generatedAt: now, validatedAt: null, exportedAt: null };
+      const insights = mapInsightText(newInsights(rawInsights, newInsightId), (text) => text.split(CHILD_PLACEHOLDER).join(child.name).trim());
+      const values = { generated: sections, sections, insights, model, inputTokens: usage.input, outputTokens: usage.output, generatedAt: now, validatedAt: null, exportedAt: null };
       tx.insert(reportVariants)
         .values({ reportId: id, accountId, recipient, ...values })
         .onConflictDoUpdate({ target: [reportVariants.reportId, reportVariants.recipient], set: values })
@@ -196,6 +211,79 @@ function findVariant(accountId: string, reportId: string, recipient: ReportRecip
 }
 
 export type VariantResult = { ok: boolean; error?: string; variant?: ReportVariant };
+
+/** Autosave of the ideas: edited text, validated or dismissed. The report text is unchanged. */
+export async function saveInsights(reportId: string, recipient: ReportRecipient, edits: Pick<ReportInsight, "id" | "text" | "status">[]): Promise<VariantResult> {
+  const { accountId } = await requireTherapist();
+  const parsed = insightEditsSchema.safeParse(edits);
+  const found = findVariant(accountId, reportId, recipient);
+  if (!parsed.success || !found) return { ok: false, error: "generic" };
+
+  const variant = db
+    .update(reportVariants)
+    .set({ insights: editInsights(found.variant.insights, parsed.data) })
+    .where(eq(reportVariants.id, found.variant.id))
+    .returning()
+    .get();
+  revalidateReport(reportId, found.report.childId);
+  return { ok: true, variant };
+}
+
+/**
+ * Rewrites the current text (as edited) with the validated ideas, which become
+ * `applied`. The result is a new draft: `generated` too, so the therapist's later
+ * corrections still teach her style, and it must be validated again.
+ */
+export async function rewriteWithInsights(reportId: string, recipient: ReportRecipient): Promise<VariantResult> {
+  const { accountId } = await requireTherapist();
+  const found = findVariant(accountId, reportId, recipient);
+  const child = found && getChild(accountId, found.report.childId);
+  if (!found || !child) return { ok: false, error: "generic" };
+  const { report, variant } = found;
+  const ideas = validatedInsights(variant.insights);
+  if (ideas.length === 0) return { ok: false, error: "noValidatedInsights" };
+
+  const provider = defaultProvider();
+  if (!provider) return { ok: false, error: "unavailable" };
+  if (generationsToday(accountId) + 1 > DAILY_GENERATION_LIMIT) return { ok: false, error: "limit" };
+
+  // The name never leaves the server: the therapist's text and ideas go back to the placeholder.
+  const pseudonymize = (text: string) => replaceChildName(text, child.name, CHILD_PLACEHOLDER);
+  const prompt = rewriteUserPrompt({
+    docType: report.docType,
+    recipient,
+    sections: pseudonymizeSections(variant.sections, child.name),
+    insights: mapInsightText(ideas, pseudonymize),
+  });
+  let result;
+  try {
+    result = await generateRewrite(provider, rewriteSystemPrompt(report.language, report.docType), prompt);
+  } catch (err) {
+    if (!(err instanceof GenerationError)) console.error("Report rewrite failed", err);
+    return { ok: false, error: err instanceof GenerationError ? err.code : "generic" };
+  }
+
+  const sections = fillChildPlaceholder(result.sections, child.name);
+  const updated = db
+    .update(reportVariants)
+    .set({
+      generated: sections,
+      sections,
+      insights: markApplied(variant.insights, ideas.map((i) => i.id)),
+      model: result.model,
+      inputTokens: result.usage.input,
+      outputTokens: result.usage.output,
+      generatedAt: new Date(),
+      validatedAt: null,
+      exportedAt: null,
+    })
+    .where(eq(reportVariants.id, variant.id))
+    .returning()
+    .get();
+  refreshStatus(reportId);
+  revalidateReport(reportId, report.childId);
+  return { ok: true, variant: updated };
+}
 
 /** Autosave of an edited version. Any edit takes it back to draft: it must be validated again. */
 export async function saveVariant(reportId: string, recipient: ReportRecipient, sections: ReportSection[]): Promise<VariantResult> {

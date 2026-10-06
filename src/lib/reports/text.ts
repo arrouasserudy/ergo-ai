@@ -1,9 +1,13 @@
 import type { ReportSection } from "@/db/schema";
+import type { Locale } from "@/i18n";
 
 /**
  * Text helpers shared by the browser and the server. The first name typed at export
  * is only ever substituted in the browser, and never sent to the server.
  */
+
+/** Marker for information the notes do not give; the therapist fills it in (written by the model, flagged in the editor). */
+export const TO_COMPLETE: Record<Locale, string> = { fr: "[à compléter]", he: "[להשלמה]", en: "[to complete]" };
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 

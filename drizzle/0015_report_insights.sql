@@ -1,0 +1,1 @@
+ALTER TABLE `report_variants` ADD `insights` text DEFAULT '[]' NOT NULL;
