@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { ArrowLeft, History, Library, Loader2, Maximize2, MessageCircle, Minimize2, Plus, X } from "lucide-react";
+import { ArrowLeft, History, Library, Loader2, Maximize2, Minimize2, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { startTransition, Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -323,13 +323,7 @@ export function AmitBubble() {
         {open ? (
           <X className="size-6" />
         ) : (
-          <>
-            <AmitAvatar size={56} />
-            {/* A small chat badge, so the portrait still reads as "open the chat". */}
-            <span className="absolute -end-0.5 -top-0.5 grid size-5 place-items-center rounded-full bg-primary text-white ring-2 ring-surface">
-              <MessageCircle className="size-3" strokeWidth={2.5} />
-            </span>
-          </>
+          <AmitAvatar size={56} />
         )}
       </button>
     </div>
