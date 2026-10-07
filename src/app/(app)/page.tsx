@@ -40,7 +40,7 @@ export default async function DashboardPage() {
   const overdue = pending.filter((f) => f.level === "overdue").length;
   const todo = todoList(accountId, pending);
   const todoShown = take(todo.items, LIST_LIMIT);
-  const activity = take(recentActivity(accountId), LIST_LIMIT);
+  const activity = take(recentActivity(accountId, { episodes: account.crisesEnabled }), LIST_LIMIT);
   const firstName = therapist.name.trim().split(/\s+/)[0] ?? "";
   const prefs = homePreferences(therapist.id);
   const week = prefs.hideWeekStreak
@@ -68,9 +68,9 @@ export default async function DashboardPage() {
         </LinkButton>
       </header>
 
-      <OpenEpisodesStrip items={listOpenEpisodes(accountId)} />
+      {account.crisesEnabled && <OpenEpisodesStrip items={listOpenEpisodes(accountId)} />}
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      <div className={clsx("grid grid-cols-2 gap-3 sm:gap-4", account.crisesEnabled ? "lg:grid-cols-4" : "lg:grid-cols-3")}>
         <StatTile href="/children" label={d.stats.children} value={countActiveChildren(accountId)} hint={d.stats.childrenHint} icon={UserRound} />
         <StatTile href="/reports?status=draft" label={d.stats.drafts} value={todo.drafts} hint={d.stats.draftsHint} icon={FileText} />
         <StatTile
@@ -81,7 +81,7 @@ export default async function DashboardPage() {
           icon={CalendarClock}
           tone={overdue > 0 ? "danger" : pending.length > 0 ? "warn" : "tint"}
         />
-        <StatTile href="/crises" label={d.stats.crises} value={countRecentCrises(accountId)} hint={d.stats.crisesHint} icon={Activity} />
+        {account.crisesEnabled && <StatTile href="/crises" label={d.stats.crises} value={countRecentCrises(accountId)} hint={d.stats.crisesHint} icon={Activity} />}
       </div>
 
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
@@ -104,7 +104,7 @@ export default async function DashboardPage() {
         <div className="space-y-5">
           {guide && <SetupGuideCard guide={guide} />}
           <Card>
-            <CardHeader title={d.activityTitle} hint={d.activityHint} />
+            <CardHeader title={d.activityTitle} hint={account.crisesEnabled ? d.activityHint : d.activityHintNoCrises} />
             {activity.items.length === 0 ? (
               <Empty icon={Inbox}>{d.activityEmpty}</Empty>
             ) : (

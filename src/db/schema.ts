@@ -29,6 +29,8 @@ export const accounts = sqliteTable("accounts", {
   deadlineWarnDays: integer("deadline_warn_days").notNull().default(14),
   /** First day of the school year ("MM-DD"): yearly form deadlines restart from it. */
   schoolYearStart: text("school_year_start").notNull().default("09-01"),
+  /** The crises module (logging, `/crises`, counts and trends): off hides it everywhere for the cabinet; recorded data is kept. */
+  crisesEnabled: integer("crises_enabled", { mode: "boolean" }).notNull().default(true),
   ...timestamps(),
 });
 

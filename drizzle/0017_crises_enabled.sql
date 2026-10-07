@@ -1,0 +1,1 @@
+ALTER TABLE `accounts` ADD `crises_enabled` integer DEFAULT true NOT NULL;

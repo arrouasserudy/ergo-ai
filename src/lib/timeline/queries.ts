@@ -13,21 +13,26 @@ export function sentAtOf(shareExpiresAt: Date | null): Date | null {
   return shareExpiresAt ? new Date(shareExpiresAt.getTime() - SHARE_LINK_DAYS * DAY_MS) : null;
 }
 
-/** Everything dated about one child, as timeline events (oldest first). Every query is scoped by `accountId`. */
-export function childTimeline(accountId: string, child: Child): TimelineEvent[] {
-  const episodeRows = db
-    .select({
-      id: episodes.id,
-      kind: episodes.kind,
-      status: episodes.status,
-      situation: episodes.situation,
-      causes: episodes.causes,
-      startedAt: episodes.startedAt,
-      endedAt: episodes.endedAt,
-    })
-    .from(episodes)
-    .where(and(eq(episodes.accountId, accountId), eq(episodes.childId, child.id)))
-    .all();
+/**
+ * Everything dated about one child, as timeline events (oldest first). Every query is scoped by `accountId`.
+ * `episodes: false` (crises module off) leaves crises and difficulties out.
+ */
+export function childTimeline(accountId: string, child: Child, { episodes: withEpisodes = true }: { episodes?: boolean } = {}): TimelineEvent[] {
+  const episodeRows = !withEpisodes
+    ? []
+    : db
+        .select({
+          id: episodes.id,
+          kind: episodes.kind,
+          status: episodes.status,
+          situation: episodes.situation,
+          causes: episodes.causes,
+          startedAt: episodes.startedAt,
+          endedAt: episodes.endedAt,
+        })
+        .from(episodes)
+        .where(and(eq(episodes.accountId, accountId), eq(episodes.childId, child.id)))
+        .all();
   const reportRows = db
     .select({ id: reports.id, docType: reports.docType, sessionDate: reports.sessionDate, status: reports.status })
     .from(reports)

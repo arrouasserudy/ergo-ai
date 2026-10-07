@@ -43,7 +43,7 @@ export default async function ChildOverviewPage(props: PageProps<"/children/[id]
   if (!child) notFound();
 
   const today = localToday();
-  const openEpisodes = listChildEpisodes(accountId, child.id).filter((ep) => ep.status === "open");
+  const openEpisodes = account.crisesEnabled ? listChildEpisodes(accountId, child.id).filter((ep) => ep.status === "open") : [];
   const assessments = listChildAssessments(accountId, child.id);
   const attention = needsAttention({
     forms: listChildForms(accountId, child.id),
@@ -53,7 +53,7 @@ export default async function ChildOverviewPage(props: PageProps<"/children/[id]
     warnDays: account.deadlineWarnDays,
   });
   const answersOf = new Map(assessments.map((a) => [a.id, a.answers]));
-  const latestEvents = childTimeline(accountId, child).slice(-5).reverse();
+  const latestEvents = childTimeline(accountId, child, { episodes: account.crisesEnabled }).slice(-5).reverse();
   const events = listEvents(accountId, { childId: child.id, today, warnDays: account.deadlineWarnDays });
   const upcoming = upcomingEvents(events, today);
   const eventParam = (await props.searchParams).event;

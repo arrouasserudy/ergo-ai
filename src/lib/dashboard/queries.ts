@@ -59,16 +59,18 @@ export function todoList(accountId: string, pending: PendingForm[]): { items: To
   return { items: sortTodo(items), drafts: drafts.length };
 }
 
-/** Latest crises and difficulties, forms filled in and tests completed, newest first. */
-export function recentActivity(accountId: string): ActivityItem[] {
-  const recentEpisodes = db
-    .select({ episode: episodes, child: { id: children.id, name: children.name } })
-    .from(episodes)
-    .innerJoin(children, eq(children.id, episodes.childId))
-    .where(and(eq(episodes.accountId, accountId), eq(episodes.status, "closed")))
-    .orderBy(desc(episodes.startedAt))
-    .limit(RECENT)
-    .all();
+/** Latest crises and difficulties (unless `episodes: false`, crises module off), forms filled in and tests completed, newest first. */
+export function recentActivity(accountId: string, { episodes: withEpisodes = true }: { episodes?: boolean } = {}): ActivityItem[] {
+  const recentEpisodes = !withEpisodes
+    ? []
+    : db
+        .select({ episode: episodes, child: { id: children.id, name: children.name } })
+        .from(episodes)
+        .innerJoin(children, eq(children.id, episodes.childId))
+        .where(and(eq(episodes.accountId, accountId), eq(episodes.status, "closed")))
+        .orderBy(desc(episodes.startedAt))
+        .limit(RECENT)
+        .all();
   const submittedForms = db
     .select({ form: childForms, child: { id: children.id, name: children.name } })
     .from(childForms)

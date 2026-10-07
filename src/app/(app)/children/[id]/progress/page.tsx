@@ -31,7 +31,7 @@ const one = (value: string | string[] | undefined) => (typeof value === "string"
 export default async function ChildProgressPage(props: PageProps<"/children/[id]/progress">) {
   const i18n = await getI18n();
   const p = i18n.t.progress;
-  const { accountId } = await requireTherapist();
+  const { accountId, account } = await requireTherapist();
   const { id } = await props.params;
   const query = await props.searchParams;
   const child = getChild(accountId, id);
@@ -84,7 +84,7 @@ export default async function ChildProgressPage(props: PageProps<"/children/[id]
   const from = addMonths(first.testDate.slice(0, 7), -2);
   const now = new Date();
   const since = new Date(Date.UTC(Number(from.slice(0, 4)), Number(from.slice(5, 7)) - 1, 1) - 2 * 86_400_000);
-  const counts = monthlyCounts(episodesSince(accountId, child.id, since), { from, to: localMonth(now, APP_TIME_ZONE), timeZone: APP_TIME_ZONE });
+  const counts = monthlyCounts(account.crisesEnabled ? episodesSince(accountId, child.id, since) : [], { from, to: localMonth(now, APP_TIME_ZONE), timeZone: APP_TIME_ZONE });
   const hasEpisodes = counts.some((c) => c.crisis + c.difficulty > 0);
   const mean = averages(counts, first.testDate.slice(0, 7));
 
@@ -143,31 +143,33 @@ export default async function ChildProgressPage(props: PageProps<"/children/[id]
         </Card>
       ))}
 
-      <Card className="px-5 py-5 sm:px-6">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-          <h2 className="text-[15px] font-semibold">{p.crisisTitle}</h2>
-          {hasEpisodes && (
-            <div className="flex gap-4 text-[12.5px] text-ink-soft">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm bg-warn-ink" />
-                {p.crisis}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm bg-warn-ink/35" />
-                {p.difficulty}
-              </span>
-            </div>
+      {account.crisesEnabled && (
+        <Card className="px-5 py-5 sm:px-6">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+            <h2 className="text-[15px] font-semibold">{p.crisisTitle}</h2>
+            {hasEpisodes && (
+              <div className="flex gap-4 text-[12.5px] text-ink-soft">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="size-2.5 rounded-sm bg-warn-ink" />
+                  {p.crisis}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="size-2.5 rounded-sm bg-warn-ink/35" />
+                  {p.difficulty}
+                </span>
+              </div>
+            )}
+          </div>
+          {hasEpisodes ? (
+            <>
+              <CrisisTrend counts={counts} marks={administrations.map((r) => ({ date: r.testDate, label: `${definition.shortName} · ${i18n.date(r.testDate)}` }))} />
+              {mean && <p className="mt-2 text-[13px] text-ink-soft">{p.averages(i18n.number(mean.around), i18n.date(first.testDate), i18n.number(mean.recent))}</p>}
+            </>
+          ) : (
+            <p className="text-[13.5px] text-ink-muted">{p.noEpisodes}</p>
           )}
-        </div>
-        {hasEpisodes ? (
-          <>
-            <CrisisTrend counts={counts} marks={administrations.map((r) => ({ date: r.testDate, label: `${definition.shortName} · ${i18n.date(r.testDate)}` }))} />
-            {mean && <p className="mt-2 text-[13px] text-ink-soft">{p.averages(i18n.number(mean.around), i18n.date(first.testDate), i18n.number(mean.recent))}</p>}
-          </>
-        ) : (
-          <p className="text-[13.5px] text-ink-muted">{p.noEpisodes}</p>
-        )}
-      </Card>
+        </Card>
+      )}
 
       <p className="text-[12px] text-ink-muted">{p.source}</p>
     </div>
