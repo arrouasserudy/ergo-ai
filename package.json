@@ -14,6 +14,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "db:studio": "drizzle-kit studio",
     "db:studio-prod": "scripts/studio-prod.sh",
+    "db:snapshot-prod": "scripts/snapshot-prod.sh",
     "test": "vitest run",
     "corpus:fetch": "tsx scripts/corpus/fetch-pmc.ts",
     "corpus:build": "tsx --env-file-if-exists=.env.local scripts/corpus/build.ts",
