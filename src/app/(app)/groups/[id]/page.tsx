@@ -43,6 +43,11 @@ export default async function GroupPage(props: PageProps<"/groups/[id]">) {
     .map((c) => ({ id: c.id, name: c.name, label: i18n.childName(c), groupId: c.groupId, groupName: c.groupId ? (groupNames.get(c.groupId) ?? null) : null }))
     .sort((a, b) => Number(b.groupId === group.id) - Number(a.groupId === group.id) || a.label.localeCompare(b.label, i18n.locale));
   const formsDue = totals.formsOverdue + totals.formsSoon;
+  const crises = account.crisesEnabled;
+  // Child, [crises], forms, drafts, next event.
+  const columns = crises
+    ? "md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.6fr)_minmax(0,1.2fr)]"
+    : "md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,0.6fr)_minmax(0,1.2fr)]";
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
@@ -69,16 +74,24 @@ export default async function GroupPage(props: PageProps<"/groups/[id]">) {
         <GroupHeaderActions group={group} options={options} openMembers={sp.members === "1" && rows.length === 0} />
       </header>
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <StatTile href={`/children?group=${group.id}`} label={g.stats.children} value={totals.children} hint={g.stats.childrenHint(totals.childrenWithCrises)} icon={UserRound} />
+      <div className={clsx("grid grid-cols-2 gap-3 sm:gap-4", crises ? "lg:grid-cols-4" : "lg:grid-cols-3")}>
         <StatTile
-          href="#children"
-          label={g.stats.crises}
-          value={totals.crises}
-          hint={g.stats.crisesHint(totals.previousCrises)}
-          icon={Activity}
-          tone={totals.crises > 0 ? "warn" : "tint"}
+          href={`/children?group=${group.id}`}
+          label={g.stats.children}
+          value={totals.children}
+          hint={crises ? g.stats.childrenHint(totals.childrenWithCrises) : t.dashboard.stats.childrenHint}
+          icon={UserRound}
         />
+        {crises && (
+          <StatTile
+            href="#children"
+            label={g.stats.crises}
+            value={totals.crises}
+            hint={g.stats.crisesHint(totals.previousCrises)}
+            icon={Activity}
+            tone={totals.crises > 0 ? "warn" : "tint"}
+          />
+        )}
         <StatTile
           href="#children"
           label={g.stats.forms}
@@ -91,14 +104,14 @@ export default async function GroupPage(props: PageProps<"/groups/[id]">) {
       </div>
 
       <Card id="children">
-        <CardHeader title={g.childrenTitle} hint={g.childrenHint} />
+        <CardHeader title={g.childrenTitle} hint={crises ? g.childrenHint : g.childrenHintNoCrises} />
         {rows.length === 0 ? (
           <p className="px-5 pb-8 pt-2 text-center text-[13px] text-ink-muted">{g.noChildren}</p>
         ) : (
           <>
-            <div className="hidden grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.6fr)_minmax(0,1.2fr)] gap-4 border-y border-line bg-surface-muted px-5 py-2.5 text-[10.5px] font-medium tracking-[0.12em] text-ink-muted uppercase md:grid">
+            <div className={clsx("hidden gap-4 border-y border-line bg-surface-muted px-5 py-2.5 text-[10.5px] font-medium tracking-[0.12em] text-ink-muted uppercase md:grid", columns)}>
               <span>{g.columns.child}</span>
-              <span>{g.columns.crises}</span>
+              {crises && <span>{g.columns.crises}</span>}
               <span>{g.columns.forms}</span>
               <span>{g.columns.drafts}</span>
               <span>{g.columns.next}</span>
@@ -108,7 +121,7 @@ export default async function GroupPage(props: PageProps<"/groups/[id]">) {
                 <li key={child.id}>
                   <Link
                     href={`/children/${child.id}`}
-                    className="grid grid-cols-2 items-center gap-x-4 gap-y-2 px-5 py-3.5 transition-colors hover:bg-surface-muted md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.6fr)_minmax(0,1.2fr)]"
+                    className={clsx("grid grid-cols-2 items-center gap-x-4 gap-y-2 px-5 py-3.5 transition-colors hover:bg-surface-muted", columns)}
                   >
                     <span className="col-span-2 flex items-center gap-3 md:col-span-1">
                       <Avatar name={child.name} />
@@ -119,7 +132,7 @@ export default async function GroupPage(props: PageProps<"/groups/[id]">) {
                         </span>
                       </span>
                     </span>
-                    <Crises summary={summary} />
+                    {crises && <Crises summary={summary} />}
                     <span className="flex flex-wrap gap-1.5">
                       {summary.formsOverdue > 0 && <Badge tone="danger">{g.overdueCount(summary.formsOverdue)}</Badge>}
                       {summary.formsSoon > 0 && <Badge tone="warn">{g.soonCount(summary.formsSoon)}</Badge>}

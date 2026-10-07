@@ -23,11 +23,11 @@ export async function generateMetadata(props: PageProps<"/children/[id]/episodes
 export default async function EpisodePage(props: PageProps<"/children/[id]/episodes/[episodeId]">) {
   const i18n = await getI18n();
   const { t } = i18n;
-  const { accountId } = await requireTherapist();
+  const { accountId, account } = await requireTherapist();
   const { id, episodeId } = await props.params;
   const child = getChild(accountId, id);
   const episode = getEpisode(accountId, episodeId);
-  if (!child || !episode || episode.childId !== child.id) notFound();
+  if (!child || !episode || episode.childId !== child.id || !account.crisesEnabled) notFound();
 
   const all = listChildEpisodes(accountId, child.id);
   // Only past, finished episodes of the same kind inform the check-list.

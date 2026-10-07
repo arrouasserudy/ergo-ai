@@ -4,6 +4,7 @@ import { AccountNameForm } from "@/components/account/AccountNameForm";
 import { AddTherapistForm } from "@/components/account/AddTherapistForm";
 import { LinkGoogleButton, GoogleLogo } from "@/components/auth/GoogleButton";
 import { LetterheadForm } from "@/components/account/LetterheadForm";
+import { CrisesToggle } from "@/components/settings/CrisesToggle";
 import { DeadlineSettingsForm } from "@/components/settings/DeadlineSettingsForm";
 import { HideNamesToggle } from "@/components/settings/HideNamesToggle";
 import { HomeCardsToggles } from "@/components/settings/HomeCardsToggles";
@@ -121,6 +122,13 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
                 {account.letterhead ?? t.account.letterheadEmpty}
               </p>
             )}
+          </div>
+        </Card>
+
+        <Card className="scroll-mt-4" id="modules">
+          <CardHeader title={t.settings.modulesTitle} hint={isOwner ? t.settings.modulesHint : t.account.ownerOnly} />
+          <div className="px-5 pb-5">
+            <CrisesToggle enabled={account.crisesEnabled} canEdit={isOwner} />
           </div>
         </Card>
 

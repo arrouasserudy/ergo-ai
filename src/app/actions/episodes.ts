@@ -20,8 +20,9 @@ function revalidateEpisode(childId: string) {
 
 /** Starts a crisis or everyday-difficulty entry now, or resumes the one already open. */
 export async function startEpisode(childId: string, kind: EpisodeKind) {
-  const { accountId, therapist } = await requireTherapist();
+  const { accountId, account, therapist } = await requireTherapist();
   if (kind !== "crisis" && kind !== "difficulty") throw new Error("Invalid kind");
+  if (!account.crisesEnabled) redirect(`/children/${childId}`);
   const child = getChild(accountId, childId);
   if (!child) redirect("/crises");
 

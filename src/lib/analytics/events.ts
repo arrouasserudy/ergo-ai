@@ -55,6 +55,7 @@ export const EVENTS = {
   // Cabinet and settings
   "therapist.added": { area: "settings", source: "server" },
   "letterhead.saved": { area: "settings", source: "server" },
+  "crises_module.toggled": { area: "settings", source: "server" },
   "hide_names.toggled": { area: "settings", source: "server" },
   "locale.changed": { area: "settings", source: "server" },
 } as const satisfies Record<string, { area: string; source: "server" | "client" }>;

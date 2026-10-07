@@ -20,10 +20,10 @@ export async function generateMetadata(props: PageProps<"/children/[id]/episodes
 /** Crises tab: episodes in progress, the buttons to start one, and the history of each kind with its patterns. */
 export default async function ChildEpisodesPage(props: PageProps<"/children/[id]/episodes">) {
   const { t } = await getI18n();
-  const { accountId } = await requireTherapist();
+  const { accountId, account } = await requireTherapist();
   const { id } = await props.params;
   const child = getChild(accountId, id);
-  if (!child) notFound();
+  if (!child || !account.crisesEnabled) notFound();
 
   const episodes = listChildEpisodes(accountId, child.id);
   const open = episodes.filter((ep) => ep.status === "open");

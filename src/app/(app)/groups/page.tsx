@@ -68,6 +68,7 @@ export default async function GroupsPage() {
                   place={group.place}
                   color={group.color}
                   totals={totals.get(group.id)!}
+                  crises={account.crisesEnabled}
                   members={membersOf(group.id).map((c) => ({ id: c.id, name: c.name, label: i18n.childName(c) }))}
                 />
               </li>
@@ -80,6 +81,7 @@ export default async function GroupsPage() {
                   place={g.noGroupHint}
                   color={null}
                   totals={totals.get(null)!}
+                  crises={account.crisesEnabled}
                   members={ungrouped.map((c) => ({ id: c.id, name: c.name, label: i18n.childName(c) }))}
                 />
               </li>
@@ -97,6 +99,7 @@ async function GroupCard({
   place,
   color,
   totals,
+  crises,
   members,
 }: {
   href: string;
@@ -104,12 +107,13 @@ async function GroupCard({
   place: string | null;
   color: GroupColor | null;
   totals: GroupTotals;
+  crises: boolean;
   members: { id: string; name: string; label: string }[];
 }) {
   const { t } = await getI18n();
   const g = t.groups;
   const figures = [
-    { value: totals.crises, label: g.card.crises, tone: totals.crises > 0 ? "text-danger" : "" },
+    ...(crises ? [{ value: totals.crises, label: g.card.crises, tone: totals.crises > 0 ? "text-danger" : "" }] : []),
     { value: totals.formsOverdue, label: g.card.overdue, tone: totals.formsOverdue > 0 ? "text-danger" : "" },
     { value: totals.formsSoon, label: g.card.soon, tone: totals.formsSoon > 0 ? "text-warn-ink" : "" },
     { value: totals.drafts, label: g.card.drafts, tone: "" },
@@ -147,7 +151,7 @@ async function GroupCard({
         </span>
       </span>
 
-      <span className="mt-4 grid grid-cols-4 gap-2 border-t border-line pt-3">
+      <span className={clsx("mt-4 grid gap-2 border-t border-line pt-3", crises ? "grid-cols-4" : "grid-cols-3")}>
         {figures.map((f) => (
           <span key={f.label} className="min-w-0">
             <span className={clsx("block text-[20px] leading-none font-semibold tabular-nums", f.value === 0 ? "text-ink-muted/60" : f.tone || "text-ink")}>{f.value}</span>

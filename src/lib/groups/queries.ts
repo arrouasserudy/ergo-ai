@@ -22,7 +22,7 @@ export function getGroup(accountId: string, id: string) {
     .get() ?? null;
 }
 
-/** Active children of the account (optionally of one group) with their overview figures. */
+/** Active children of the account (optionally of one group) with their overview figures (no crises when the module is off). */
 export function childSummaries(account: Account, { groupId }: { groupId?: string } = {}, now = new Date()) {
   const accountId = account.id;
   const conditions = [eq(children.accountId, accountId), eq(children.status, "active")];
@@ -38,11 +38,13 @@ export function childSummaries(account: Account, { groupId }: { groupId?: string
   const since = new Date(now.getTime() - 2 * WINDOW_DAYS * 86_400_000);
   const summaries = summarizeChildren(kids, {
     now,
-    episodes: db
-      .select({ childId: episodes.childId, kind: episodes.kind, startedAt: episodes.startedAt })
-      .from(episodes)
-      .where(and(eq(episodes.accountId, accountId), gte(episodes.startedAt, since)))
-      .all(),
+    episodes: !account.crisesEnabled
+      ? []
+      : db
+          .select({ childId: episodes.childId, kind: episodes.kind, startedAt: episodes.startedAt })
+          .from(episodes)
+          .where(and(eq(episodes.accountId, accountId), gte(episodes.startedAt, since)))
+          .all(),
     forms: pendingForms(accountId, today, account.deadlineWarnDays),
     drafts: db
       .select({ childId: reports.childId })

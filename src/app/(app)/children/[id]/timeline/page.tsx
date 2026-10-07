@@ -20,12 +20,12 @@ export async function generateMetadata(props: PageProps<"/children/[id]/timeline
 /** Timeline tab: everything dated in the file, from birth to today. */
 export default async function ChildTimelinePage(props: PageProps<"/children/[id]/timeline">) {
   const { t } = await getI18n();
-  const { accountId } = await requireTherapist();
+  const { accountId, account } = await requireTherapist();
   const { id } = await props.params;
   const child = getChild(accountId, id);
   if (!child) notFound();
 
-  const events = childTimeline(accountId, child);
+  const events = childTimeline(accountId, child, { episodes: account.crisesEnabled });
 
   return (
     <div className="max-w-4xl space-y-3">

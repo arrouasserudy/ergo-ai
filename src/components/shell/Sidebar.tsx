@@ -24,14 +24,14 @@ import { initialsOf } from "@/lib/child-name";
 import { RESOURCE_TABS } from "@/components/shell/ResourcesTabs";
 import type { Dictionary } from "@/i18n/fr";
 
-/** `match`: other path prefixes that light up the item (defaults to `href` alone). */
-type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href: string; match?: string[] };
+/** `match`: other path prefixes that light up the item (defaults to `href` alone). `crises`: only with the crises module on. */
+type NavItem = { label: keyof Dictionary["nav"]; icon: LucideIcon; href: string; match?: string[]; crises?: true };
 
 const NAV: NavItem[] = [
   { label: "dashboard", icon: LayoutDashboard, href: "/" },
   { label: "children", icon: UserRound, href: "/children", match: ["/children", "/groups", "/reports"] },
   { label: "calendar", icon: CalendarDays, href: "/calendar" },
-  { label: "crises", icon: Activity, href: "/crises" },
+  { label: "crises", icon: Activity, href: "/crises", crises: true },
   { label: "resources", icon: FolderOpen, href: "/forms", match: RESOURCE_TABS.map((tab) => tab.href) },
   { label: "settings", icon: Settings, href: "/settings" },
 ];
@@ -61,18 +61,18 @@ function Logo({ accountName }: { accountName: string }) {
 const matches = (pathname: string, prefix: string) => (prefix === "/" ? pathname === "/" : pathname === prefix || pathname.startsWith(`${prefix}/`));
 
 /** The item with the longest matching prefix wins, so "/children/1" lights up "/children". "/" only matches itself. */
-function activeHrefOf(pathname: string) {
-  return NAV.flatMap((item) => (item.match ?? [item.href]).map((prefix) => ({ href: item.href, prefix })))
+function activeHrefOf(nav: NavItem[], pathname: string) {
+  return nav.flatMap((item) => (item.match ?? [item.href]).map((prefix) => ({ href: item.href, prefix })))
     .filter(({ prefix }) => matches(pathname, prefix))
     .sort((a, b) => b.prefix.length - a.prefix.length)[0]?.href;
 }
 
-function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function NavList({ nav, pathname, onNavigate }: { nav: NavItem[]; pathname: string; onNavigate?: () => void }) {
   const { t } = useI18n();
-  const activeHref = activeHrefOf(pathname);
+  const activeHref = activeHrefOf(nav, pathname);
   return (
     <ul className="space-y-0.5">
-      {NAV.map(({ label, icon: Icon, href }) => {
+      {nav.map(({ label, icon: Icon, href }) => {
         const active = href === activeHref;
         return (
           <li key={label}>
@@ -96,12 +96,12 @@ function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
 }
 
 /** Tablet rail: icon above a short label, always visible, one tap to any module. */
-function RailList({ pathname }: { pathname: string }) {
+function RailList({ nav, pathname }: { nav: NavItem[]; pathname: string }) {
   const { t } = useI18n();
-  const activeHref = activeHrefOf(pathname);
+  const activeHref = activeHrefOf(nav, pathname);
   return (
     <ul className="space-y-1">
-      {NAV.map(({ label, icon: Icon, href }) => {
+      {nav.map(({ label, icon: Icon, href }) => {
         const active = href === activeHref;
         return (
           <li key={label}>
@@ -126,7 +126,7 @@ function RailList({ pathname }: { pathname: string }) {
 type SidebarProps = { therapistName: string; therapistEmail: string; accountName: string };
 
 /** The phone header also holds the notification bell (on larger screens it sits above the page). */
-type ShellProps = SidebarProps & { bell?: ReactNode };
+type ShellProps = SidebarProps & { bell?: ReactNode; crisesEnabled: boolean };
 
 function UserAvatar({ name }: { name: string }) {
   return (
@@ -197,9 +197,10 @@ function RailFooter({ therapistName, therapistEmail }: SidebarProps) {
   );
 }
 
-export function Sidebar({ bell, ...props }: ShellProps) {
+export function Sidebar({ bell, crisesEnabled, ...props }: ShellProps) {
   const { t } = useI18n();
   const pathname = usePathname();
+  const nav = crisesEnabled ? NAV : NAV.filter((item) => !item.crises);
   const [open, setOpen] = useState(false);
 
   return (
@@ -235,7 +236,7 @@ export function Sidebar({ bell, ...props }: ShellProps) {
                 <X className="size-5" />
               </button>
             </div>
-            <NavList pathname={pathname} onNavigate={() => setOpen(false)} />
+            <NavList nav={nav} pathname={pathname} onNavigate={() => setOpen(false)} />
             <div className="mt-auto">
               <Footer {...props} />
             </div>
@@ -248,7 +249,7 @@ export function Sidebar({ bell, ...props }: ShellProps) {
         <Link href="/" aria-label={t.app.name} title={props.accountName} className="mx-auto">
           <LogoMark size="lg" />
         </Link>
-        <RailList pathname={pathname} />
+        <RailList nav={nav} pathname={pathname} />
         <div className="mt-auto">
           <RailFooter {...props} />
         </div>
@@ -259,7 +260,7 @@ export function Sidebar({ bell, ...props }: ShellProps) {
         <div className="px-1.5">
           <Logo accountName={props.accountName} />
         </div>
-        <NavList pathname={pathname} />
+        <NavList nav={nav} pathname={pathname} />
         <div className="mt-auto">
           <Footer {...props} />
         </div>

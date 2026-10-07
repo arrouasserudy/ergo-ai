@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { RevealButton, RevealPanel, RevealProvider } from "@/components/ui/RevealPanel";
@@ -22,7 +23,8 @@ export async function generateMetadata() {
 export default async function CrisesPage() {
   const i18n = await getI18n();
   const { t } = i18n;
-  const { accountId } = await requireTherapist();
+  const { accountId, account } = await requireTherapist();
+  if (!account.crisesEnabled) notFound();
   const now = new Date();
   const open = listOpenEpisodes(accountId);
   // Fetch a couple of extra days; the exact local-day window is applied by `latestPerChild`.

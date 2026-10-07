@@ -67,7 +67,7 @@ export default async function ChildLayout(props: LayoutProps<"/children/[id]">) 
                 {t.reports.newButton}
               </LinkButton>
               <AddEventButton childId={child.id} reports={reportOptions(accountId, child.id)} today={localToday()} size="sm" />
-              <StartButtons childId={child.id} kinds={["crisis"]} compact />
+              {account.crisesEnabled && <StartButtons childId={child.id} kinds={["crisis"]} compact />}
             </div>
           )}
         </div>
@@ -78,7 +78,7 @@ export default async function ChildLayout(props: LayoutProps<"/children/[id]">) 
           </p>
         )}
 
-        <ChildTabs childId={child.id} />
+        <ChildTabs childId={child.id} crises={account.crisesEnabled} />
       </header>
 
       {props.children}

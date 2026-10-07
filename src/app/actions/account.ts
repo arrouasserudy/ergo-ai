@@ -54,6 +54,15 @@ export async function addTherapist(_prev: FormState, formData: FormData): Promis
   return { ok: true, savedAt: Date.now(), addedName: parsed.data.name };
 }
 
+/** Turns the crises module on or off for the whole cabinet (recorded crises are kept). Owner only. */
+export async function setCrisesEnabled(enabled: boolean): Promise<void> {
+  const { accountId, therapist } = await requireOwner();
+  const value = enabled === true;
+  db.update(accounts).set({ crisesEnabled: value }).where(eq(accounts.id, accountId)).run();
+  track({ accountId, therapist }, "crises_module.toggled", { enabled: value });
+  revalidatePath("/", "layout");
+}
+
 export type DeadlineSettings = { warnDays: number; schoolYearStart: string };
 
 /** Cabinet-wide: how early forms are flagged, and when yearly deadlines restart. Any therapist of the cabinet. */
