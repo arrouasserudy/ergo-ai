@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { ReportInsight } from "@/db/schema";
-import { editInsights, mapInsightText, markApplied, MAX_INSIGHTS, newInsights, validatedInsights } from "./insights";
+import { REPORT_INSIGHT_KINDS, type ReportInsight } from "@/db/schema";
+import { editInsights, INSIGHT_GROUPS, mapInsightText, markApplied, MAX_INSIGHTS, newInsights, validatedInsights } from "./insights";
 
 const ids = () => {
   let n = 0;
@@ -57,5 +57,12 @@ describe("validatedInsights / markApplied", () => {
 describe("mapInsightText", () => {
   it("maps text and basis", () => {
     expect(mapInsightText([insight("a", "pending", "Léa covers ears")], (t) => t.replace("Léa", "{{child}}"))[0].text).toBe("{{child}} covers ears");
+  });
+});
+
+describe("INSIGHT_GROUPS", () => {
+  it("puts every kind in exactly one group", () => {
+    const grouped = INSIGHT_GROUPS.flatMap((g) => g.kinds);
+    expect([...grouped].sort()).toEqual([...REPORT_INSIGHT_KINDS].sort());
   });
 });

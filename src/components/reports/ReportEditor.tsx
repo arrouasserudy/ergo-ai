@@ -73,7 +73,7 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
     assessmentIds: report.assessmentIds,
   });
   const [variants, setVariants] = useState<Variants>(() => Object.fromEntries(initialVariants.map((v) => [v.recipient, v])));
-  const [active, setActive] = useState<ReportRecipient>(report.recipients[0] ?? "parents");
+  const [active, setActive] = useState<ReportRecipient>(report.recipients[0] ?? "clinical");
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [generating, setGenerating] = useState<ReportRecipient[]>([]);
   const [genError, setGenError] = useState<string | null>(null);
@@ -120,6 +120,12 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
   const current = recipients.includes(active) ? active : recipients[0];
   const variant = current ? variants[current] : undefined;
   const missing = recipients.filter((k) => !variants[k]);
+
+  /** The clinical note comes first; a parents version is added on request, then generated from its tab. */
+  const addParents = () => {
+    update({ recipients: [...recipients, "parents"] });
+    setActive("parents");
+  };
 
   const generate = async (targets: ReportRecipient[]) => {
     setConfirmRegenerate(false);
@@ -395,7 +401,7 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
               }
             />
             <div className="space-y-4 px-5 pb-5">
-              {/* One generic report (for parents); older reports may still hold one version per recipient. */}
+              {/* The clinical note, plus a parents version on request; older reports may hold other versions. */}
               {recipients.length > 1 && (
                 <div role="tablist" className="flex rounded-lg bg-surface-muted p-1">
                   {recipients.map((k) => (
@@ -418,6 +424,13 @@ export function ReportEditor({ report, variants: initialVariants, child, exportC
                     </button>
                   ))}
                 </div>
+              )}
+
+              {variant && !recipients.includes("parents") && (
+                <Button size="sm" variant="ghost" onClick={addParents} disabled={isGenerating}>
+                  <Plus className="size-3.5" />
+                  {r.addParents}
+                </Button>
               )}
 
               {genError && <FormError message={genError} />}

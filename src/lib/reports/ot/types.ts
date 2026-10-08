@@ -1,4 +1,4 @@
-import type { ReportDocType, ReportSection } from "@/db/schema";
+import type { ReportDocType, ReportRecipient, ReportSection } from "@/db/schema";
 
 /**
  * The OT knowledge pack: what an experienced pediatric OT knows and how she writes.
@@ -32,8 +32,8 @@ export type GlossaryEntry = { id: string; term: string; meaning: string; avoid?:
 /** A wording to replace with a more professional one. */
 export type PhrasingEntry = { id: string; avoid: string; prefer: string };
 
-/** A gold example: raw notes and the report a senior OT would write from them. */
-export type ExampleReport = { id: string; docType: ReportDocType; notes: string; sections: ReportSection[] };
+/** A gold example: raw notes and the report a senior OT would write from them, for one reader. */
+export type ExampleReport = { id: string; docType: ReportDocType; recipient: ReportRecipient; notes: string; sections: ReportSection[] };
 
 /** How reports are written in one language (register, vocabulary, a model report). */
 export type StyleGuide = {

@@ -501,7 +501,7 @@ function noam(): ChildSpec {
             ],
             insights: [
               idea("home_activity", "applied", "Garder le repose-pieds et l'assiette à compartiments aussi pour les repas en famille.", "assis 20 min, stable avec appui sous les pieds"),
-              idea("to_check", "dismissed", "Si la mastication de la viande reste lente, évoquer avec la pédiatre un bilan de la déglutition.", "mâche lentement la viande"),
+              idea("refer", "dismissed", "Si la mastication de la viande reste lente, évoquer avec la pédiatre un bilan de la déglutition.", "mâche lentement la viande"),
             ],
           },
         ],
@@ -519,12 +519,12 @@ function noam(): ChildSpec {
 - à proposer : continuer jeux de pâte, houmous sur l'échelle, casque à garder dans le sac`,
         variants: [
           {
-            recipient: "parents",
+            recipient: "clinical",
             state: "draft",
             generated: [
-              s("Ce qui avance", "Aujourd'hui, {{child}} a joué 5 minutes avec de la pâte à sel sans avoir besoin de s'essuyer les mains, ce qui est nouveau. Il a accepté la brosse vibrante sur les joues puis dans la bouche, en riant. Vous nous dites que deux repas par jour se passent maintenant sans écran, et que les soirées sont plus calmes."),
-              s("Ce qui reste difficile", "Le bruit du sèche-mains dans le couloir a provoqué une courte crise ; avec le casque, il s'est apaisé en 3 minutes. Il a touché le houmous avec sa pita, sans le goûter."),
-              s("À la maison cette semaine", "- des jeux avec de la pâte (pâte à sel, pâte à gâteau)\n- le houmous à côté de son assiette, pour le découvrir à son rythme\n- garder le casque dans son sac"),
+              s("Déroulement de la séance", "La séance a associé un jeu de cuisine avec de la pâte à sel, une stimulation orale à la brosse vibrante et une exposition alimentaire (pita et houmous)."),
+              s("Performances et observations", "- {{child}} a manipulé la pâte à sel pendant cinq minutes **sans s'essuyer les mains**\n- La stimulation à la brosse vibrante sur les joues puis en intrabuccal est acceptée avec plaisir\n- Il touche le houmous avec la pita, sans le goûter\n- Le bruit du sèche-mains du couloir a déclenché une crise brève ; avec le casque antibruit, retour au calme en trois minutes environ\n- Selon les parents, deux repas par jour se déroulent désormais sans écran et les soirées sont plus calmes"),
+              s("Suite de la prise en charge", "- Poursuite des jeux de pâte\n- Progression sur l'échelle alimentaire avec le houmous\n- Casque antibruit à garder dans le sac"),
             ],
             insights: [
               idea("hypothesis", "pending", "L'acceptation de la brosse vibrante et de la pâte à sel laisse penser que la défense tactile et orale diminue quand l'input est prévisible et qu'il le contrôle ; la réaction au sèche-mains montre une hyperréactivité auditive encore marquée.", "touche la pâte 5 min sans s'essuyer ; brosse vibrante acceptée ; crise au sèche-mains"),

@@ -351,7 +351,8 @@ export const REPORT_DOC_TYPES = [
 ] as const;
 export type ReportDocType = (typeof REPORT_DOC_TYPES)[number];
 
-export const REPORT_RECIPIENTS = ["parents", "doctor", "school"] as const;
+/** `clinical`: the session record in the OT's professional register, the default. `parents` on request; `doctor` and `school` only in older reports. */
+export const REPORT_RECIPIENTS = ["clinical", "parents", "doctor", "school"] as const;
 export type ReportRecipient = (typeof REPORT_RECIPIENTS)[number];
 
 export const REPORT_STATUSES = ["draft", "validated", "exported"] as const;
@@ -364,7 +365,7 @@ export type ReportSection = { heading: string; body: string };
 /** A standardized test result attached to the notes. */
 export type ReportTest = { name: string; results: string };
 
-export const REPORT_INSIGHT_KINDS = ["hypothesis", "recommendation", "home_activity", "to_check"] as const;
+export const REPORT_INSIGHT_KINDS = ["hypothesis", "recommendation", "home_activity", "to_check", "refer"] as const;
 export type ReportInsightKind = (typeof REPORT_INSIGHT_KINDS)[number];
 export const REPORT_INSIGHT_STATUSES = ["pending", "validated", "dismissed", "applied"] as const;
 export type ReportInsightStatus = (typeof REPORT_INSIGHT_STATUSES)[number];

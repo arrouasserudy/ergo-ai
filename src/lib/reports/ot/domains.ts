@@ -24,9 +24,11 @@ export const OT_DOMAINS: OtDomain[] = [
     toCheck: [
       "Sensory Profile 2 (parent / school) to compare settings",
       "Which senses, which contexts, time of day, what calms",
+      "Which conditions help the child reach a state ready to participate",
     ],
     recommendations: [
-      "Sensory diet: heavy-work breaks before demanding tasks",
+      "Sensory diet: a regulating activity at the start of the session and heavy-work breaks before demanding tasks",
+      "Short breaks as needed, and sensory input built into the activity itself",
       "Lower environmental load (ear defenders, quiet corner)",
       "Graded exposure to avoided sensations, child in control",
       "Explain the sensory profile to parents and staff",
@@ -55,6 +57,7 @@ export const OT_DOMAINS: OtDomain[] = [
       "Teach state awareness with a simple colour/engine scale (Zones/Alert-program style)",
       "Agreed calming toolbox: heavy work, breathing, quiet corner, fidget",
       "Co-regulation first: calm adult, fewer words, lower demands",
+      "Adjust the session's demands to the child's arousal that day; move gradually between activities",
     ],
   },
   {
@@ -74,12 +77,17 @@ export const OT_DOMAINS: OtDomain[] = [
     toCheck: [
       "Imitation of postures, sequencing, bilateral coordination",
       "Standardized motor assessment if age-appropriate (e.g. MABC-2, BOT-2)",
+      "Whether the difficulty is consistent across different motor tasks and sessions, or limited to one task",
     ],
     recommendations: [
-      "Break tasks into steps with a visual or verbal sequence; practise in context",
+      "Break tasks into simple, clear steps with a visual or verbal sequence; practise in context",
+      "Demonstrate the movement and have the child imitate it before doing it alone",
+      "Give visual, verbal or physical cues as needed, and reduce them as the child succeeds",
+      "Practise short motor sequences first, then lengthen the sequence gradually",
+      "Start from a movement the child already knows and progress towards the new one",
       "Obstacle courses the child helps design (ideation), then plans aloud",
       "Rich proprioceptive and vestibular play to build body awareness",
-      "Allow extra time and success-oriented grading so motivation stays high",
+      "Allow extra time to process and plan before moving, and success-oriented grading so motivation stays high",
     ],
   },
   {
@@ -102,6 +110,8 @@ export const OT_DOMAINS: OtDomain[] = [
     ],
     recommendations: [
       "Adapt seating: footrest, table at elbow height, cushion or wedge",
+      "Grade the difficulty to the current level and practise the skill step by step",
+      "Physical support at the start of a task, then reduced gradually",
       "Core and shoulder-girdle strengthening through play (crawling, wheelbarrow, scooter board)",
       "Graded vestibular activities with the child in control",
       "Alternate positions for work (standing, lying on tummy)",
@@ -130,6 +140,37 @@ export const OT_DOMAINS: OtDomain[] = [
       "Short crayons or chunky tools to promote a mature grasp",
       "Work on a vertical surface to support wrist position and shoulder stability",
       "Graded cutting and manipulation tasks linked to the child's interests",
+      "Adapted tools (spring scissors, thick lines, anti-slip mat) so the task succeeds while the skill develops",
+      "Hand-over-hand help at the start, faded as the child gains control",
+    ],
+  },
+  {
+    id: "vision-oculomotor",
+    title: "Visual attention, gaze and oculomotor skills",
+    signs: [
+      "Hard to keep the gaze on a task or object for long; looks away often",
+      "Loses track of a moving object (ball, bubbles), moves the whole head to follow",
+      "Rubs eyes, squints, tilts the head, covers one eye, comes very close to the page",
+      "Skips lines or loses the place when looking at a page; difficulty copying from far",
+      "Poor eye-hand coordination: misses when catching, reaching or threading",
+    ],
+    hypotheses: [
+      "Difficulty sustaining visual fixation or smooth tracking (oculomotor control)",
+      "Visual attention limited by the visual load or the type of stimulus",
+      "Fatigue or a visual acuity or eye-movement issue that needs an eye specialist (never concluded from one session)",
+    ],
+    toCheck: [
+      "How long the gaze is held, and in which conditions the difficulty appears or eases",
+      "Whether the difficulty also shows when following a moving object",
+      "Effect of distance, size and type of stimulus (contrast, colour, moving or still)",
+      "Eye-hand coordination across different activities",
+      "Date of the last eye examination; whether parents or school notice the same",
+    ],
+    recommendations: [
+      "Short, graded visual activities (fixation, then slow tracking, then faster)",
+      "Reduce visual clutter on the table and the page; give breaks as needed",
+      "Eye-hand games at the right level: catching a large soft ball, rolling, hitting a balloon",
+      "When the difficulty is consistent, marked or comes with other findings, suggest raising it with the doctor or an eye specialist (ophthalmologist, orthoptist, optometrist), as the team judges",
     ],
   },
   {

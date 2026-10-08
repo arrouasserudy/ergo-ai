@@ -51,11 +51,12 @@ export function otGuidancePrompt(language: Locale, docType: ReportDocType): stri
   const vocab = vocabulary(style);
   if (vocab) parts.push(vocab);
   if (style.phrasing.length) parts.push(`<phrasing>\n${bullets(style.phrasing.map((p) => `Instead of "${p.avoid}", write "${p.prefer}"`))}\n</phrasing>`);
+  // Same document type first; each language has a clinical note and a parents version, so both registers show.
   const examples = style.examples.filter((e) => e.docType === docType).concat(style.examples.filter((e) => e.docType !== docType)).slice(0, 2);
   if (examples.length) {
     parts.push(
-      `Model reports written by a senior OT, for register and structure only (never reuse their facts):\n${examples
-        .map((e) => `<model_report doc_type="${e.docType}">\n<notes>\n${e.notes}\n</notes>\n<report>\n${e.sections.map((s) => `## ${s.heading}\n${s.body}`).join("\n\n")}\n</report>\n</model_report>`)
+      `Model reports written by a senior OT, for register and structure only (never reuse their facts). Follow the register of the one written for the same reader as yours:\n${examples
+        .map((e) => `<model_report doc_type="${e.docType}" reader="${e.recipient === "clinical" ? "clinical record" : e.recipient}">\n<notes>\n${e.notes}\n</notes>\n<report>\n${e.sections.map((s) => `## ${s.heading}\n${s.body}`).join("\n\n")}\n</report>\n</model_report>`)
         .join("\n")}`,
     );
   }

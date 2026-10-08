@@ -243,7 +243,7 @@ export async function seedCabinet(cabinet: DemoCabinet, password: string): Promi
         const reportId = id(`${spec.key}:report:${r.key}`);
         const fill = (sections: ReportSection[]) =>
           sections.map((sec) => ({ heading: sec.heading, body: sec.body.split("{{child}}").join(name).split("{{first}}").join(first) }));
-        const recipients = r.recipients ?? (r.variants.length ? r.variants.map((v) => v.recipient) : (["parents"] as ReportRecipient[]));
+        const recipients = r.recipients ?? (r.variants.length ? r.variants.map((v) => v.recipient) : (["clinical"] as ReportRecipient[]));
         const created = at(r.date, "17:30");
         const variantRows = r.variants.map((v, i) => {
           const generatedAt = plus(created, 12 + i);

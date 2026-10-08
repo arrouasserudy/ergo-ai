@@ -32,6 +32,12 @@ export const STYLE: StyleGuide = {
     { id: "graphomotricite", term: "graphomotricité", meaning: "graphomotor skills" },
     { id: "selectivite", term: "sélectivité alimentaire", meaning: "food selectivity", avoid: "il est difficile à table" },
     { id: "avq", term: "activités de la vie quotidienne (AVQ)", meaning: "activities of daily living" },
+    { id: "etayage", term: "étayage / guidance (verbale, visuelle, physique)", meaning: "adult support during a task", avoid: "j'ai dû beaucoup l'aider" },
+    { id: "stabilisation", term: "stabilisation de la feuille par la main d'appui", meaning: "stabilizing the paper" },
+    { id: "trajectoire", term: "maintien de la trajectoire de découpage", meaning: "staying on the cutting line" },
+    { id: "fixation", term: "maintien de la fixation visuelle", meaning: "sustained visual fixation" },
+    { id: "poursuite", term: "poursuite oculaire", meaning: "visual tracking of a moving object" },
+    { id: "coordination-oeil-main", term: "coordination oculo-manuelle", meaning: "eye-hand coordination" },
   ],
   phrasing: [
     { id: "tient-pas", avoid: "il ne tient pas en place", prefer: "on observe une difficulté à maintenir la position assise" },
@@ -42,11 +48,39 @@ export const STYLE: StyleGuide = {
     { id: "faut", avoid: "il faut faire des exercices à la maison", prefer: "il est recommandé d'intégrer à la maison … deux fois par jour, environ cinq minutes" },
     { id: "ecoute-pas", avoid: "elle n'écoute pas", prefer: "plusieurs rappels verbaux ont été nécessaires pour débuter la tâche" },
     { id: "bien-progresse", avoid: "il a trop bien progressé !", prefer: "on note une progression nette de…" },
+    { id: "aide-decoupage", avoid: "il galérait à tenir la feuille et à couper sur le trait, j'ai dû beaucoup l'aider", prefer: "on observe une difficulté à stabiliser la feuille et à maintenir la trajectoire de découpage ; un étayage important a été nécessaire tout au long de la tâche" },
+    { id: "encore", avoid: "après, il a voulu recommencer", prefer: "après la réussite de la tâche, on note une hausse de la motivation et le souhait de renouveler l'expérience" },
   ],
   examples: [
     {
+      id: "fr-follow-up-clinical",
+      docType: "follow_up",
+      recipient: "clinical",
+      notes: `Séance 4, 6 ans, GS
+- parcours moteur : saute à pieds joints, perd l'équilibre sur 1 pied après 2 sec
+- découpage : tient mal la feuille, sort du trait, j'ai dû beaucoup l'aider
+- après réussite, a voulu recommencer tout seul
+- puzzle 20 p. : fini seul, 6 min
+- à poursuivre : ciseaux à ressort, épaisseur du trait`,
+      sections: [
+        {
+          heading: "Déroulement de la séance",
+          body: "La séance a associé un parcours moteur et des activités de motricité fine à table.",
+        },
+        {
+          heading: "Performances et observations",
+          body: "- En motricité globale, {{child}} réalise des sauts à pieds joints ; l'équilibre unipodal n'est maintenu que deux secondes\n- Au découpage, on observe **une difficulté à stabiliser la feuille et à maintenir la trajectoire de découpage**. Un étayage important a été nécessaire tout au long de la tâche\n- Après la réussite de la tâche, on note une hausse de la motivation et le souhait de renouveler l'expérience seul\n- Un puzzle de 20 pièces a été réalisé en autonomie, en six minutes",
+        },
+        {
+          heading: "Suite de la prise en charge",
+          body: "- Poursuite du découpage avec des ciseaux à ressort, sur un trait épais",
+        },
+      ],
+    },
+    {
       id: "fr-follow-up-parents",
       docType: "follow_up",
+      recipient: "parents",
       notes: `Séance 7, 7 ans 2 mois, CE1
 - arrivé agité, sortie de récré
 - trampoline 5 min → plus posé ensuite

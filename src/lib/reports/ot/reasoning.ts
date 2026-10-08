@@ -23,7 +23,15 @@ export const REASONING_RULES: OtRule[] = [
   { id: "no-diagnosis", text: "Never diagnose or name a disorder the notes do not give; describe functional patterns ('a pattern compatible with…' only when well grounded)." },
   {
     id: "medical-flags",
-    text: "Pain, choking, weight loss, regression, seizures, sleep or toileting problems with a possible medical cause: recommend checking with the doctor.",
+    text: "Pain, choking, weight loss, regression, seizures, vision signs (squinting, eye rubbing, head tilt, an eye turning) or neurological signs (asymmetry, a sudden change, loss of a skill), sleep or toileting problems with a possible medical cause: recommend checking with the doctor or the right specialist.",
+  },
+  {
+    id: "therapy-vs-referral",
+    text: "Keep apart what can be done within therapy and what should be followed up or raised with another professional; a finding can call for both.",
+  },
+  {
+    id: "single-session",
+    text: "One session is not enough to conclude: before suggesting a referral, check whether the difficulty is consistent across tasks, sessions and settings, unless it is a safety concern.",
   },
   { id: "multi-disciplinary", text: "When a difficulty crosses into speech, psychology, vision or medicine, suggest coordination with that professional rather than advising in their field." },
   { id: "measurable-goals", text: "Goals are observable and measurable (what the child will do, in which context, how often), in the spirit of SMART goals." },
@@ -33,7 +41,7 @@ export const REASONING_RULES: OtRule[] = [
 export const DOC_TYPE_GUIDES: DocTypeGuide[] = [
   {
     docType: "follow_up",
-    sections: ["Session focus", "Observations", "Progress", "Current difficulties", "Recommendations / next steps"],
+    sections: ["Session activities", "Observations", "Progress", "Current difficulties", "Recommendations / next steps"],
     notes: "Short. Describe what was worked on and observed today, compared with earlier sessions when the notes say so.",
   },
   {

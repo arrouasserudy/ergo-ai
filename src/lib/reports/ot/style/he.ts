@@ -64,6 +64,13 @@ export const STYLE: StyleGuide = {
     { id: "hatama-svivatit", term: "התאמות סביבתיות", meaning: "environmental adaptations" },
     { id: "hadrachat-horim", term: "הדרכת הורים", meaning: "parent guidance" },
     { id: "etgar-mutam", term: "אתגר מותאם", meaning: "just-right challenge" },
+    { id: "tivuch", term: "תיווך", meaning: "adult mediation and support during a task (verbal, visual or physical)", avoid: "הייתי צריכה לעזור לו" },
+    { id: "yitzuv-hadaf", term: "ייצוב הדף", meaning: "stabilizing the paper with the assisting hand" },
+    { id: "maslul-hagzira", term: "שמירה על מסלול הגזירה", meaning: "staying on the cutting line", avoid: "לגזור לפי הקו" },
+    { id: "hitnasut-hozeret", term: "התנסות חוזרת", meaning: "repeated practice, wanting to try again", avoid: "רצה לעשות עוד פעם" },
+    { id: "kibua-mabat", term: "שמירה על מיקוד מבט", meaning: "sustained visual fixation" },
+    { id: "maakav-hazuti", term: "מעקב חזותי", meaning: "visual tracking of a moving object" },
+    { id: "teum-ain-yad", term: "תיאום עין-יד", meaning: "eye-hand coordination" },
   ],
   phrasing: [
     { id: "lo-yoshev", avoid: "הוא לא מסוגל לשבת בשקט", prefer: "ניכר קושי לשמור על ישיבה לאורך זמן" },
@@ -82,11 +89,44 @@ export const STYLE: StyleGuide = {
     { id: "hiperaktivi", avoid: "הוא היפראקטיבי", prefer: "נצפתה תנועתיות מוגברת ומעברים תכופים בין פעילויות" },
     { id: "mefuzar", avoid: "היא מפוזרת", prefer: "ניכר קושי בארגון החומרים ובתכנון שלבי המשימה" },
     { id: "lo-normali", avoid: "האחיזה לא נורמלית", prefer: "האחיזה בעיפרון אינה בשלה ביחס לגיל" },
+    {
+      id: "gzira-tivuch",
+      avoid: "היום הוא התקשה בגזירה. היה לו קשה להחזיק את הדף ולגזור לפי הקו. הייתי צריכה לעזור לו הרבה",
+      prefer: "במהלך הפעילות נצפה קושי בביצוע מיומנויות גזירה, שכלל קושי בייצוב הדף ובשמירה על מסלול הגזירה. נדרש תיווך וסיוע משמעותי לאורך המשימה",
+    },
+    { id: "od-paam", avoid: "אחרי שהצלחנו הוא רצה לעשות עוד פעם", prefer: "לאחר הצלחה בביצוע המשימה, נצפתה עלייה במוטיבציה וברצון להתנסות חוזרת" },
+    { id: "lo-mistakel", avoid: "הוא לא מסתכל, כל הזמן מסיט את העיניים", prefer: "ניכר קושי בשמירה על מיקוד מבט לאורך זמן" },
   ],
   examples: [
     {
+      id: "he-follow-up-clinical",
+      docType: "follow_up",
+      recipient: "clinical",
+      notes: `מפגש 5, בן 5 ו-8 ח'
+- התחלנו בטרמפולינה 3 דק', אחר כך ישב טוב ליד השולחן
+- היום הוא התקשה בגזירה. היה לו קשה להחזיק את הדף ולגזור לפי הקו. הייתי צריכה לעזור לו הרבה. אחרי שהצלחנו הוא רצה לעשות עוד פעם
+- השחלת חרוזים גדולים - לבד, 8 חרוזים
+- בציור אדם: ראש, גוף ורגליים, בלי ידיים
+- להמשיך: גזירה עם מספריים קפיציים, קו עבה`,
+      sections: [
+        {
+          heading: "מהלך המפגש",
+          body: "המפגש נפתח בפעילות וסטיבולרית-פרופריוצפטיבית על טרמפולינה (כשלוש דקות), ולאחריה {{child}} שמר על ישיבה מותאמת ליד השולחן לאורך משימות המוטוריקה העדינה.",
+        },
+        {
+          heading: "תפקוד ותצפיות",
+          body: "- במהלך הפעילות נצפה **קושי בביצוע מיומנויות גזירה**, שכלל קושי בייצוב הדף ובשמירה על מסלול הגזירה. נדרש תיווך וסיוע משמעותי לאורך המשימה\n- לאחר הצלחה בביצוע המשימה, נצפתה עלייה במוטיבציה וברצון להתנסות חוזרת\n- השחלת שמונה חרוזים גדולים בוצעה באופן עצמאי\n- בציור דמות אדם צוירו ראש, גוף ורגליים, ללא ידיים",
+        },
+        {
+          heading: "המשך טיפול",
+          body: "- המשך עבודה על גזירה בעזרת מספריים קפיציים ולאורך קו עבה",
+        },
+      ],
+    },
+    {
       id: "he-follow-up-parents",
       docType: "follow_up",
+      recipient: "parents",
       notes: `מפגש 9, בן 6 ו-4 ח', כיתה א'
 - הגיע עייף, אמא: קם 5:30
 - מסלול מכשולים: טיפס יפה, בקפיצה על רגל אחת מאבד שיווי משקל אחרי 3
@@ -117,6 +157,7 @@ export const STYLE: StyleGuide = {
     {
       id: "he-initial-assessment",
       docType: "initial_assessment",
+      recipient: "clinical",
       notes: `הערכה ראשונית, בת 4 ו-9 ח', גן חובה
 הפניה: גננת - קושי בישיבה במעגל, נמנעת מיצירה, מתפרצת במעברים
 - הור': לידה במועד, התפתחות מוטורית תקינה, הליכה 13 ח'

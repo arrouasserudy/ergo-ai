@@ -63,7 +63,7 @@ export function recentStyleExamples(therapistId: string, recipients: ReportRecip
     .orderBy(desc(styleExamples.createdAt))
     .limit(MAX_STYLE_EXAMPLES * recipients.length * 4)
     .all();
-  const byRecipient = { parents: [], doctor: [], school: [] } as Record<ReportRecipient, StylePair[]>;
+  const byRecipient = { clinical: [], parents: [], doctor: [], school: [] } as Record<ReportRecipient, StylePair[]>;
   for (const row of rows) {
     if (byRecipient[row.recipient].length < MAX_STYLE_EXAMPLES) byRecipient[row.recipient].push({
         before: pseudonymizeSections(row.before, row.childName),

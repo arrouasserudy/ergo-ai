@@ -603,7 +603,7 @@ function oliver(): ChildSpec {
             ],
             insights: [
               idea("home_activity", "applied", "Keep the footrest and the plate with sections for family meals too.", "seated 20 min, stable with feet supported"),
-              idea("to_check", "dismissed", "If chewing meat stays slow, discuss a swallowing assessment with the pediatrician.", "chews meat slowly"),
+              idea("refer", "dismissed", "If chewing meat stays slow, discuss a swallowing assessment with the pediatrician.", "chews meat slowly"),
             ],
           },
         ],
@@ -621,12 +621,12 @@ function oliver(): ChildSpec {
 - plan: more dough play, hummus on the food ladder, ear defenders in his bag`,
         variants: [
           {
-            recipient: "parents",
+            recipient: "clinical",
             state: "draft",
             generated: [
-              s("What is going well", "Today {{child}} played with salt dough for 5 minutes without needing to wipe his hands, which is new. He accepted the vibrating brush on his cheeks and then in his mouth, laughing. You told us that two meals a day are now screen-free and that evenings are calmer."),
-              s("What is still hard", "The noise of the hand dryer in the corridor caused a short meltdown; with his ear defenders on, he calmed down within 3 minutes. He touched the hummus with his breadstick but didn't taste it."),
-              s("At home this week", "- dough games (salt dough, biscuit dough)\n- hummus next to his plate, to explore at his own pace\n- keep the ear defenders in his bag"),
+              s("Session activities", "The session combined kitchen play with salt dough, oral input with a vibrating brush and food exploration (breadstick and hummus)."),
+              s("Performance and observations", "- {{child}} handled the salt dough for five minutes **without wiping his hands**\n- Input with the vibrating brush on the cheeks and then inside the mouth was accepted with enjoyment\n- He touched the hummus with the breadstick but did not taste it\n- The noise of the hand dryer in the corridor triggered a brief meltdown; with ear defenders he returned to calm within about three minutes\n- The parents report two screen-free meals a day and calmer evenings"),
+              s("Next steps", "- Continue dough play\n- Move hummus up the food ladder\n- Keep ear defenders in his bag"),
             ],
             insights: [
               idea("hypothesis", "pending", "Accepting the vibrating brush and the salt dough suggests tactile and oral defensiveness decreases when the input is predictable and under his control; the reaction to the hand dryer points to auditory over-responsivity that is still marked.", "touched dough 5 min without wiping; vibrating brush accepted; meltdown at the hand dryer"),

@@ -72,7 +72,7 @@ export async function createReport(formData: FormData) {
 
   const { id } = db
     .insert(reports)
-    .values({ accountId, childId, authorId: therapist.id, docType, sessionDate: localToday(), language: await getLocale() })
+    .values({ accountId, childId, authorId: therapist.id, docType, sessionDate: localToday(), language: await getLocale(), recipients: ["clinical"] })
     .returning({ id: reports.id })
     .get();
   track({ accountId, therapist }, "report.created", { docType });

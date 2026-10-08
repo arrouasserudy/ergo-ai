@@ -127,16 +127,17 @@ function datesSection(child: Child, timeline: TimelineEvent[]): string[] {
   return lines.length ? ["Key dates (from the forms):", ...lines] : [];
 }
 
+const RECIPIENT_RANK: Record<string, number> = { clinical: 0, parents: 1 };
 const hasText = (sections: ReportSection[]) => sections.some((s) => s.body.trim());
 const reportRank = (status: string) => (status === "draft" ? 1 : 0);
 
-/** The latest report with text, validated or exported ones first; its best version (exported, validated, parents), shortened. */
+/** The latest report with text, validated or exported ones first; its best version (exported, validated, clinical note, parents), shortened. */
 function reportSection(child: Child, reports: ContextReport[]): string[] {
   const candidates = reports
     .map((report) => {
       const variant = [...report.variants]
         .filter((v) => hasText(v.sections) || hasText(v.generated))
-        .sort((a, b) => Number(!a.exportedAt) - Number(!b.exportedAt) || Number(!a.validatedAt) - Number(!b.validatedAt) || Number(a.recipient !== "parents") - Number(b.recipient !== "parents"))[0];
+        .sort((a, b) => Number(!a.exportedAt) - Number(!b.exportedAt) || Number(!a.validatedAt) - Number(!b.validatedAt) || RECIPIENT_RANK[a.recipient] - RECIPIENT_RANK[b.recipient])[0];
       return variant ? { report, variant } : null;
     })
     .filter((c) => c !== null)

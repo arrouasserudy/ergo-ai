@@ -4,6 +4,15 @@ import { REPORT_INSIGHT_KINDS, type ReportInsight, type ReportInsightKind } from
 export const MAX_INSIGHTS = 8;
 export const MAX_INSIGHT_LENGTH = 2000;
 
+/**
+ * The Recommendations card shows ideas in two groups: what can be done within therapy
+ * and at home, and what to keep watching, check or raise with another professional.
+ */
+export const INSIGHT_GROUPS: { id: "therapy" | "follow_up"; kinds: readonly ReportInsightKind[] }[] = [
+  { id: "therapy", kinds: ["recommendation", "home_activity"] },
+  { id: "follow_up", kinds: ["hypothesis", "to_check", "refer"] },
+];
+
 /** What the model returns for one idea, before it gets an id and a status. */
 export type RawInsight = { kind: string; text: string; basis: string };
 

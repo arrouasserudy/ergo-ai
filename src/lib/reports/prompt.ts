@@ -30,6 +30,11 @@ const DOC_TYPES: Record<ReportDocType, string> = {
 };
 
 const RECIPIENTS: Record<ReportRecipient, { reader: string; tone: string; sections: string[] }> = {
+  clinical: {
+    reader: "the child's clinical record (the therapist's own documentation, readable by other health professionals)",
+    tone: "Professional, precise and impersonal, in the observational register of clinical documentation (\"difficulty … was observed\", \"substantial support was needed\"). Use the field's professional terms instead of everyday wording. Organize the content so it is easy to see what was done in the session, how the child performed and what was observed. Concise: no explanations for lay readers, no warm opening sentence.",
+    sections: ["Session activities", "Performance and observations", "Next steps"],
+  },
   parents: {
     reader: "the child's parents",
     tone: "Simple, warm and reassuring. No jargon: explain any technical idea in everyday words. Start with what is going well, be honest about what is still hard, and end with a few concrete things to do at home.",
@@ -50,13 +55,14 @@ const RECIPIENTS: Record<ReportRecipient, { reader: string; tone: string; sectio
 const INSIGHT_KINDS = `- "hypothesis": a plausible explanation of something observed (why it happened), worded as a possibility, never as a certainty or a diagnosis.
 - "recommendation": something to do in therapy, at school or with the family, that fits what was observed.
 - "home_activity": a concrete activity or adaptation the family can try at home.
-- "to_check": what to observe, ask or assess next to confirm or rule out a hypothesis.`;
+- "to_check": what to observe, ask or assess next, within OT, to confirm or rule out a hypothesis.
+- "refer": a finding worth raising with the doctor or another professional (eye specialist, speech therapist, psychologist…) for further assessment, as the team judges; never a diagnosis.`;
 
 /** Rules shared by the draft and the rewrite: placeholder, language, format. */
 function sharedRules(language: Locale): string {
   return `- Refer to the child only as ${CHILD_PLACEHOLDER}, exactly as written, each time you name the child. Never invent a first name. For pronouns and grammatical gender, follow the notes; when they do not show it, choose neutral wording.
 - Write in ${LANGUAGE[language]}, including section headings, whatever language the notes are in, in the professional register of an experienced OT.
-- Section bodies are plain text that she will edit directly: paragraphs separated by a blank line, and "- " bullet lists with one item per line (no blank line between items). Use **bold** rarely, for at most one or two key words in the whole report, or not at all. No headings inside a body, no tables, no greeting or signature (the letterhead and signature are added at export), except for the parents version, whose first section may start with one friendly sentence (not a section of its own).`;
+- Section bodies are plain text that she will edit directly: paragraphs separated by a blank line, and "- " bullet lists with one item per line (no blank line between items). Use **bold** only to highlight a significant finding of the notes, so she can spot it later: an unusual or marked difficulty, a clear change in function (progress or regression), a safety concern. Bold a short phrase, never a whole sentence, at most three in the whole report; none when nothing stands out. No headings inside a body, no tables, no greeting or signature (the letterhead and signature are added at export), except for the parents version, whose first section may start with one friendly sentence (not a section of its own).`;
 }
 
 /** The OT knowledge pack, when it has content for this language and document type. */
@@ -74,7 +80,8 @@ export function reportSystemPrompt(language: Locale, docType: ReportDocType): st
 
 Rules for the report sections:
 - Facts only: use only what is present in the notes, the test results, the questionnaires attached to the session and the child context, and only what matters to this reader. Never invent an observation, a score, a date or a recommendation she did not mention. Rephrase, group and order her content into a clear professional text; your own ideas go into "insights", never into the sections.
-- When a section needs information that the notes do not give, write ${TO_COMPLETE[language]} instead of guessing.
+- Never state a session goal, a focus, a plan or a comparison with earlier sessions that the notes do not give: describe what was done (the activities) instead of why.
+- Leave out a section the notes give nothing for (no plan noted: no next-steps section). Inside a section you keep, write ${TO_COMPLETE[language]} where a needed detail is missing (a date, a score) instead of guessing.
 - Never diagnose, and never present a hypothesis as a certainty.
 
 Rules for the insights (at most ${MAX_INSIGHTS}, the most useful first; fewer is better than weak ones; none when the notes give nothing to reason on):
@@ -82,7 +89,8 @@ Rules for the insights (at most ${MAX_INSIGHTS}, the most useful first; fewer is
 ${INSIGHT_KINDS}
 - Each insight rests on something actually written in the notes, tests or questionnaires: quote or summarize that observation in "basis". Never base an insight on something not given.
 - Reason like a senior OT: link what was observed to the underlying components (sensory processing, regulation, postural control, praxis, fine motor, visual perception, executive functions, feeding, participation), consider the child's age and context, and suggest what a real OT would propose next. Prefer concrete, specific ideas over generic advice.
-- Never diagnose and never label the child. When something could be medical (pain, sleep, swallowing safety, weight, medication, a regression), the insight is to check it with the doctor.
+- Keep apart what can be done within therapy ("recommendation", "home_activity") and what to keep following or raise with someone else ("to_check", "refer"). A finding that may also be medical or neurological can get both: practical ideas for therapy and a point to follow.
+- Never diagnose and never label the child. When something could be medical (pain, sleep, swallowing safety, weight, medication, vision, a regression), it gets a "refer" insight. One set of notes is not enough to conclude: unless it is a safety concern, suggest a referral when the difficulty seems consistent or marked, and otherwise what to observe next to know whether it is.
 - Never blame the family or the school; recommendations are practical and respectful.
 - "text" is written for her (a colleague), in a sentence or two, ready to be adapted into the report; "basis" is short.
 
@@ -100,6 +108,7 @@ Rules:
   - "recommendation" and "home_activity": in the section of recommendations or of things to do at home; create such a section at the end when there is none.
   - "hypothesis": woven into the relevant observation as a possibility ("this may be related to…"), never as a certainty or a diagnosis.
   - "to_check": as a next step (what will be observed or assessed next).
+  - "refer": as a suggestion to raise the finding with that professional for further assessment, never as a diagnosis.
 - Add nothing else: no other idea, recommendation, example or explanation of your own.
 ${sharedRules(language)}${guidance(language, docType)}`;
 }

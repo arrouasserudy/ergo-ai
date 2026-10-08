@@ -28,6 +28,7 @@ describe("reportUserPrompt", () => {
     expect(reportUserPrompt(base)).toContain("the child's parents");
     expect(reportUserPrompt({ ...base, recipient: "doctor" })).toContain("clinical");
     expect(reportUserPrompt({ ...base, recipient: "school" })).toContain("classroom");
+    expect(reportUserPrompt({ ...base, recipient: "clinical" })).toContain("clinical record");
   });
 
   it("includes notes, tests and the age at the session date", () => {
@@ -73,8 +74,32 @@ describe("reportSystemPrompt", () => {
   it("keeps facts in the sections and the model's own ideas in the insights", () => {
     const system = reportSystemPrompt("he", "initial_assessment");
     expect(system).toContain("your own ideas go into \"insights\", never into the sections");
-    for (const kind of ["hypothesis", "recommendation", "home_activity", "to_check"]) expect(system).toContain(`"${kind}"`);
+    for (const kind of ["hypothesis", "recommendation", "home_activity", "to_check", "refer"]) expect(system).toContain(`"${kind}"`);
     expect(system).toContain("Never diagnose");
+  });
+
+  it("keeps therapy ideas and points to follow or refer apart", () => {
+    const system = reportSystemPrompt("he", "follow_up");
+    expect(system).toContain('"refer"');
+    expect(system).toContain("One set of notes is not enough to conclude");
+  });
+
+  it("shows model reports for both readers, labelled", () => {
+    for (const language of ["fr", "he", "en"] as const) {
+      const system = reportSystemPrompt(language, "follow_up");
+      expect(system).toContain('reader="clinical record"');
+      expect(system).toContain('reader="parents"');
+    }
+  });
+
+  it("drops empty sections and never infers a session goal", () => {
+    const system = reportSystemPrompt("he", "follow_up");
+    expect(system).toContain("Leave out a section the notes give nothing for");
+    expect(system).toContain("Never state a session goal");
+  });
+
+  it("includes the vision and gaze domain", () => {
+    expect(reportSystemPrompt("fr", "follow_up")).toContain("Visual attention, gaze and oculomotor skills");
   });
 
   it("is identical across requests (cacheable)", () => {

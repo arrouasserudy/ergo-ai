@@ -16,6 +16,32 @@ export type EvalCase = {
 /** Fictional cases. Several include an episode whose cause the notes do not state, to test hypotheses. */
 export const CASES: EvalCase[] = [
   {
+    // The example of the OT's documentation spec: raw notes in, clinical wording out, no added facts.
+    id: "he-cutting-spec-example",
+    language: "he",
+    docType: "follow_up",
+    child: { birthDate: "2020-11-02", referralReason: "מוטוריקה עדינה, הכנה לכיתה א'", schoolLevel: "גן חובה", followUpStart: "2026-01-15", interests: ["רכבות"] },
+    sessionDate: "2026-09-21",
+    notes: "היום הוא התקשה בגזירה. היה לו קשה להחזיק את הדף ולגזור לפי הקו. הייתי צריכה לעזור לו הרבה. אחרי שהצלחנו הוא רצה לעשות עוד פעם.",
+    tests: [],
+  },
+  {
+    // Gaze difficulty: ideas for therapy and, apart, points to follow; a referral only as the team judges.
+    id: "he-gaze-follow-up",
+    language: "he",
+    docType: "follow_up",
+    child: { birthDate: "2021-06-18", referralReason: "קשב, מוטוריקה עדינה", schoolLevel: "גן טרום חובה", followUpStart: "2026-03-01", interests: ["בועות סבון", "חיות"] },
+    sessionDate: "2026-09-28",
+    notes: `מפגש 8
+- בועות סבון: עוקב אחרי בועה 2-3 שנ' ומאבד, מזיז את כל הראש
+- פאזל 12 חלקים: מסיט מבט כל כמה שניות, מתקרב מאוד לדף
+- משפשף עיניים פעמיים במהלך המפגש
+- תפיסת כדור גדול: מצליח 2 מ-6
+- אמא: גם בבית "לא מסתכל כשמראים לו משהו"
+- מוטיבציה טובה, שיתוף פעולה טוב`,
+    tests: [],
+  },
+  {
     id: "he-asd-meltdown-follow-up",
     language: "he",
     docType: "follow_up",
