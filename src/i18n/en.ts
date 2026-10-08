@@ -95,6 +95,9 @@ export const en: Dictionary = {
     letterheadEmpty: "No letterhead: only the practice name will be printed.",
   },
   settings: {
+    adminTitle: "Administration",
+    adminHint: "Visible to admins only.",
+    adminOpen: "Usage dashboard",
     eyebrow: "Settings",
     title: "Practice and account",
     subtitle: "Your practice, your team, your profile and your preferences.",

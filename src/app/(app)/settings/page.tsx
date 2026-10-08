@@ -1,4 +1,4 @@
-import { CheckCircle2 } from "lucide-react";
+import { BarChart3, CheckCircle2 } from "lucide-react";
 import { eq } from "drizzle-orm";
 import { AccountNameForm } from "@/components/account/AccountNameForm";
 import { AddTherapistForm } from "@/components/account/AddTherapistForm";
@@ -13,6 +13,7 @@ import { PasswordForm } from "@/components/settings/PasswordForm";
 import { ProfileForm } from "@/components/settings/ProfileForm";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
+import { LinkButton } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { FormError } from "@/components/ui/FormError";
@@ -21,7 +22,7 @@ import { authCredentials } from "@/db/schema";
 import { getI18n } from "@/i18n/server";
 import { googleEnabled } from "@/lib/auth";
 import { homePreferences } from "@/lib/dashboard/queries";
-import { requireTherapist } from "@/lib/session";
+import { isAdminEmail, requireTherapist } from "@/lib/session";
 import { listTherapists } from "@/lib/therapists";
 
 export async function generateMetadata() {
@@ -201,6 +202,19 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
             <LocaleSwitcher />
           </div>
         </Card>
+
+        {/* Admins only (ADMIN_EMAILS): the internal usage dashboard. */}
+        {isAdminEmail(therapist.email) && (
+          <Card>
+            <CardHeader title={t.settings.adminTitle} hint={t.settings.adminHint} />
+            <div className="px-5 pb-5">
+              <LinkButton href="/admin/usage" variant="secondary">
+                <BarChart3 className="size-4" />
+                {t.settings.adminOpen}
+              </LinkButton>
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   );

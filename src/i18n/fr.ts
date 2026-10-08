@@ -93,6 +93,9 @@ export const fr = {
     letterheadEmpty: "Aucun en-tête : seul le nom du cabinet sera imprimé.",
   },
   settings: {
+    adminTitle: "Administration",
+    adminHint: "Visible par les administrateurs seulement.",
+    adminOpen: "Tableau de bord d'utilisation",
     eyebrow: "Paramètres",
     title: "Cabinet et compte",
     subtitle: "Votre cabinet, votre équipe, votre profil et vos préférences.",

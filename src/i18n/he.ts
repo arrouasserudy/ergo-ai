@@ -99,6 +99,9 @@ export const he: Dictionary = {
     letterheadEmpty: "אין כותרת: רק שם הקליניקה יודפס.",
   },
   settings: {
+    adminTitle: "ניהול",
+    adminHint: "גלוי למנהלי המערכת בלבד.",
+    adminOpen: "לוח בקרת שימוש",
     eyebrow: "הגדרות",
     title: "קליניקה וחשבון",
     subtitle: "הקליניקה, הצוות, הפרופיל וההעדפות שלך.",
