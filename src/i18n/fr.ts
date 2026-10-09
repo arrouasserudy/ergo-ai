@@ -1225,6 +1225,12 @@ export const fr = {
         "Supprimer à tout moment un compte-rendu, un épisode ou un document de la bibliothèque.",
         "Archiver la fiche d'un enfant. Sa suppression définitive n'est pas encore disponible dans l'application.",
       ],
+      creditsTitle: "Crédits",
+      credits: {
+        amit: "Avatar d'Amit : « Adventurer » de Lisa Wischofsky, via DiceBear, fond ajouté.",
+        license: "Licence CC BY 4.0",
+        source: "Source",
+      },
       back: "Retour",
     },
   },

@@ -1225,6 +1225,12 @@ export const he: Dictionary = {
         "מחיקה בכל עת של סיכום, אירוע או מסמך מהספרייה.",
         "העברת תיק ילד/ה לארכיון. מחיקה סופית עדיין אינה זמינה באפליקציה.",
       ],
+      creditsTitle: "קרדיטים",
+      credits: {
+        amit: "האווטאר של עמית: \"Adventurer\" מאת Lisa Wischofsky, דרך DiceBear, נוסף רקע.",
+        license: "רישיון CC BY 4.0",
+        source: "מקור",
+      },
       back: "חזרה",
     },
   },

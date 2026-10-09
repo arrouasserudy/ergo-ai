@@ -98,6 +98,20 @@ export default async function PrivacyPage() {
       <Section title={p.controlsTitle}>
         <List items={p.controls} />
       </Section>
+
+      {/* Required by the CC BY 4.0 licence of Amit's avatar (public/amit.svg). */}
+      <Section title={p.creditsTitle}>
+        <p className="text-[13px] text-ink-muted">
+          {p.credits.amit}{" "}
+          <a href="https://creativecommons.org/licenses/by/4.0/" className="underline hover:text-ink" rel="license noreferrer" target="_blank">
+            {p.credits.license}
+          </a>
+          {" · "}
+          <a href="https://www.figma.com/community/file/1184595184137881796" className="underline hover:text-ink" rel="noreferrer" target="_blank">
+            {p.credits.source}
+          </a>
+        </p>
+      </Section>
     </div>
   );
 }

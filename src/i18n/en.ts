@@ -1222,6 +1222,12 @@ export const en: Dictionary = {
         "Delete a report, an episode or a library document at any time.",
         "Archive a child's file. Permanent deletion is not available in the app yet.",
       ],
+      creditsTitle: "Credits",
+      credits: {
+        amit: "Amit's avatar: \"Adventurer\" by Lisa Wischofsky, via DiceBear, background added.",
+        license: "CC BY 4.0 licence",
+        source: "Source",
+      },
       back: "Back",
     },
   },
